@@ -1106,14 +1106,16 @@ int sccp_astwrap_hangup(PBX_CHANNEL_TYPE * ast_channel)
 	int res = -1;
 
 	if (c) {
+		sccp_mutex_lock(&c->lock);
 		if (pbx_channel_hangupcause(ast_channel) == AST_CAUSE_ANSWERED_ELSEWHERE) {
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: This call was answered elsewhere\n");
 			c->answered_elsewhere = TRUE;
 		}
 		/* postponing pbx_channel_unref to sccp_channel destructor */
 		AUTO_RELEASE(sccp_channel_t, channel , sccp_pbx_hangup(c));					/// explicit release from unretained channel returned by sccp_pbx_hangup */
-		ast_channel->tech_pvt = NULL;
 		(void) channel;											// suppress unused variable warning
+		sccp_mutex_unlock(&c->lock);
+		ast_channel->tech_pvt = NULL;
 	} else {												// after this moment c might have gone already
 		ast_channel->tech_pvt = NULL;
 		pbx_channel_unref(ast_channel);									// strange unknown channel, why did we get called to hang it up ?
@@ -1609,17 +1611,40 @@ static int sccp_astwrap_call(PBX_CHANNEL_TYPE * ast, char *dest, int timeout)
 
 }
 
+/*
+ * Remote side has answered the call switch to up state
+ * Is being called with pbxchan locked by app_dial
+ */
 static int sccp_astwrap_answer(PBX_CHANNEL_TYPE * pbxchan)
 {
-	//! \todo change this handling and split pbx and sccp handling -MC
 	int res = -1;
-	AUTO_RELEASE(sccp_channel_t, c , get_sccp_channel_from_pbx_channel(pbxchan));
-	if (c) {
-		if (pbx_channel_state(pbxchan) != AST_STATE_UP && c->state < SCCP_GROUPED_CHANNELSTATE_CONNECTION) {
-			pbx_indicate(pbxchan, AST_CONTROL_PROGRESS);
-		}
-		res = sccp_pbx_answer(c);
+	int timedout = 0;
+	if(pbx_channel_state(pbxchan) == AST_STATE_UP) {
+		pbx_log(LOG_NOTICE, "%s: Channel has already been answered remotely, skipping\n", pbx_channel_name(pbxchan));
+		return 0;
 	}
+
+	pbx_channel_ref(pbxchan);
+	AUTO_RELEASE(sccp_channel_t, c , get_sccp_channel_from_pbx_channel(pbxchan));
+	if(c && c->state < SCCP_GROUPED_CHANNELSTATE_CONNECTION) {
+		sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_3 "%s: Remote has answered the call.\n", c->designator);
+		AUTO_RELEASE(sccp_device_t, d, sccp_channel_getDevice(c));
+		if(d && d->session) {
+			sccp_log(DEBUGCAT_PBX)(VERBOSE_PREFIX_3 "%s: Waiting for pendingRequests\n", c->designator);
+			// this needs to be done with the pbx_channel unlocked to prevent lock investion
+			// note we still have a pbx_channel_ref, so the channel cannot be removed under our feet
+			pbx_channel_unlock(pbxchan);
+			timedout = sccp_session_waitForPendingRequests(d->session);
+			pbx_channel_lock(pbxchan);
+		}
+		if (!timedout) {
+			sccp_log(DEBUGCAT_PBX)(VERBOSE_PREFIX_3 "%s: Switching to STATE_UP\n", c->designator);
+			pbx_setstate(pbxchan, AST_STATE_UP);
+			pbx_indicate(pbxchan, AST_CONTROL_PROGRESS);
+			res = sccp_pbx_answer(c);
+		}
+	}
+	pbx_channel_unref(pbxchan);
 	return res;
 }
 

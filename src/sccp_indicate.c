@@ -316,10 +316,14 @@ void __sccp_indicate(constDevicePtr maybe_device, channelPtr c, const sccp_chann
 		case SCCP_CHANNELSTATE_CONNECTED:
 			{
 				d->indicate->connected(d, lineInstance, c->callid, c->calltype, ci);
+				sccp_rtp_setCallback(&c->rtp.audio, SCCP_RTP_RECEPTION, sccp_channel_startMediaTransmission);
 				if(!sccp_rtp_getState(&c->rtp.audio, SCCP_RTP_RECEPTION)) {
 					sccp_channel_openReceiveChannel(c);
 				} else if(!sccp_rtp_getState(&c->rtp.audio, SCCP_RTP_TRANSMISSION)) {
-					sccp_channel_startMediaTransmission(c);
+					/* this looks a little confusing, maybe we should not have two but only one rtp callback */
+					sccp_rtp_runCallback(&c->rtp.audio, SCCP_RTP_RECEPTION, c);
+				} else {
+					sccp_rtp_setCallback(&c->rtp.audio, SCCP_RTP_RECEPTION, NULL);
 				}
 				sccp_dev_set_keyset(d, lineInstance, c->callid, KEYMODE_CONNECTED);
 			}
@@ -403,10 +407,13 @@ void __sccp_indicate(constDevicePtr maybe_device, channelPtr c, const sccp_chann
 		case SCCP_CHANNELSTATE_CONNECTEDCONFERENCE:
 			{
 				d->indicate->connected(d, lineInstance, c->callid, c->calltype, ci);
+				sccp_rtp_setCallback(&c->rtp.audio, SCCP_RTP_RECEPTION, sccp_channel_startMediaTransmission);
 				if(!sccp_rtp_getState(&c->rtp.audio, SCCP_RTP_RECEPTION)) {
 					sccp_channel_openReceiveChannel(c);
 				} else if(!sccp_rtp_getState(&c->rtp.audio, SCCP_RTP_TRANSMISSION)) {
-					sccp_channel_startMediaTransmission(c);
+					sccp_rtp_runCallback(&c->rtp.audio, SCCP_RTP_TRANSMISSION, c);
+				} else {
+					sccp_rtp_setCallback(&c->rtp.audio, SCCP_RTP_RECEPTION, NULL);
 				}
 				sccp_dev_set_keyset(d, lineInstance, c->callid, KEYMODE_CONNCONF);
 			}

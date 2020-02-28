@@ -124,7 +124,7 @@ struct sccp_selectedchannel {
 };														/*!< SCCP Selected Channel Structure */
 /* live cycle */
 SCCP_API channelPtr SCCP_CALL sccp_channel_allocate(constLinePtr l, constDevicePtr device);			// device is optional
-SCCP_API PBX_CHANNEL_TYPE * SCCP_CALL sccp_channel_lock_full(channelPtr c);
+SCCP_API PBX_CHANNEL_TYPE * SCCP_CALL sccp_channel_lock_full(channelPtr c, boolean_t retry_indefinitly);
 SCCP_API channelPtr SCCP_CALL sccp_channel_getEmptyChannel(constLinePtr l, constDevicePtr d, channelPtr maybe_c, skinny_calltype_t calltype, PBX_CHANNEL_TYPE * parentChannel, const void *ids);	// retrieve or allocate new channel
 SCCP_API channelPtr SCCP_CALL sccp_channel_newcall(constLinePtr l, constDevicePtr device, const char *dial, skinny_calltype_t calltype, PBX_CHANNEL_TYPE * parentChannel, const void *ids);
 

@@ -537,10 +537,7 @@ channelPtr sccp_pbx_hangup(constChannelPtr channel)
 		sccp_log_and((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: Asked to hangup channel. SCCP channel already deleted\n");
 		return NULL;
 	}
-	pbx_mutex_lock(&c->lock);
 	c->isHangingUp = TRUE;
-	pbx_mutex_unlock(&c->lock);
-
 	sccp_log_and((DEBUGCAT_PBX + DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "%s: Asked to hangup channel.\n", c->designator);
 
 	AUTO_RELEASE(sccp_device_t, d , sccp_channel_getDevice(c));
@@ -650,10 +647,10 @@ int sccp_pbx_answer(constChannelPtr channel)
 	}
 
 	/* The channel has already been answered so we don't need to do anything */
-	if(pbx_channel_state(c->owner) == AST_STATE_UP) {
-		pbx_log(LOG_NOTICE, "%s: Channel has already been remote answered, skipping\n", channel->designator);
-		return 0;
-	}
+	/*	if(pbx_channel_state(c->owner) == AST_STATE_UP) {
+			pbx_log(LOG_NOTICE, "%s: Channel has already been remote answered, skipping\n", channel->designator);
+			return 0;
+		}*/
 
 	sccp_channel_stop_schedule_cfwd_noanswer(c);
 
@@ -757,26 +754,12 @@ int sccp_pbx_answer(constChannelPtr channel)
 					iPbx.set_dialed_number(c, c->dialedNumber);
 				}
 			}
-			
-			sccp_indicate(d, c, SCCP_CHANNELSTATE_PROCEED);
+
 #if CS_SCCP_CONFERENCE
 			sccp_indicate(d, c, d->conference ? SCCP_CHANNELSTATE_CONNECTEDCONFERENCE : SCCP_CHANNELSTATE_CONNECTED);
 #else
 			sccp_indicate(d, c, SCCP_CHANNELSTATE_CONNECTED);
 #endif
-			// sccp_session_waitForPendingRequests(d->session);
-			iPbx.set_callstate(c, AST_STATE_UP);
-			/*
-			#if CS_SCCP_VIDEO
-						if (sccp_channel_getVideoMode(c) == SCCP_VIDEO_MODE_AUTO && sccp_device_isVideoSupported(d) && c->preferences.video[0] != SKINNY_CODEC_NONE) {
-							if(!sccp_rtp_getState(&c->rtp.video, SCCP_RTP_RECEPTION)) {
-								sccp_channel_openMultiMediaReceiveChannel(c);
-							} else if((sccp_rtp_getState(&c->rtp.video, SCCP_RTP_RECEPTION) & SCCP_RTP_STATUS_ACTIVE) && !sccp_rtp_getState(&c->rtp.video, SCCP_RTP_TRANSMISSION)) {
-								sccp_channel_startMultiMediaTransmission(c);
-							}
-						}
-			#endif
-			*/
 			/** check for monitor request */
 			if((d->monitorFeature.status & SCCP_FEATURE_MONITOR_STATE_REQUESTED) && !(d->monitorFeature.status & SCCP_FEATURE_MONITOR_STATE_ACTIVE)) {
 				pbx_log(LOG_NOTICE, "%s: request monitor\n", d->id);

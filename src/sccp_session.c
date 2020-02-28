@@ -49,7 +49,7 @@ static int accept_sock = -1;
 #define KEEPALIVE_ADDITIONAL_PERCENT_SESSION 1.05								/* extra time allowed for device keepalive overrun (percentage of GLOB(keepalive)) */
 #define KEEPALIVE_ADDITIONAL_PERCENT_DEVICE 1.20								/* extra time allowed for device keepalive overrun (percentage of GLOB(keepalive)) */
 #define KEEPALIVE_ADDITIONAL_PERCENT_ON_CALL 2.00								/* extra time allowed for device keepalive overrun (percentage of GLOB(keepalive)) */
-#define SESSION_REQUEST_TIMEOUT              3
+#define SESSION_REQUEST_TIMEOUT              5
 
 /* Lock Macro for Sessions */
 #define sccp_session_lock(x)			pbx_mutex_lock(&(x)->lock)
@@ -147,7 +147,7 @@ int sccp_session_setOurIP4Address(constSessionPtr session, const struct sockaddr
 	return -2;
 }
 
-void sccp_session_waitForPendingRequests(sccp_session_t * s)
+int sccp_session_waitForPendingRequests(sccp_session_t * s)
 {
 	struct timeval relative_timeout = {
 		SESSION_REQUEST_TIMEOUT,
@@ -163,9 +163,10 @@ void sccp_session_waitForPendingRequests(sccp_session_t * s)
 		sccp_log(DEBUGCAT_SOCKET)(VERBOSE_PREFIX_3 "%s: Waiting for %d Pending Requests!\n", s->designator, s->requestsInFlight);
 		if(pbx_cond_timedwait(&s->pendingRequest, &s->lock, &timeout_spec) == ETIMEDOUT) {
 			pbx_log(LOG_WARNING, "%s: waitForPendingRequests timed out!\n", s->designator);
-			break;
+			return s->requestsInFlight;
 		}
 	}
+	return 0;
 }
 
 uint16_t sccp_session_getPendingRequests(sccp_session_t * s)

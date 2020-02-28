@@ -176,6 +176,9 @@
 #define pbx_channel_trylock ast_channel_trylock
 #define pbx_channel_undefer_dtmf ast_channel_undefer_dtmf
 #define pbx_channel_unregister ast_channel_unregister
+#define pbx_channel_callid                      ast_channel_callid
+#define pbx_callid_threadassoc_add              ast_callid_threadassoc_add
+
 #define pbx_cli ast_cli
 #define pbx_cli_entry ast_cli_entry
 #define pbx_cli_register ast_cli_register

@@ -241,37 +241,67 @@ void sccp_rtp_destroy(constChannelPtr c)
 
 sccp_rtp_status_t sccp_rtp_getState(constRtpPtr rtp, sccp_rtp_dir_t dir)
 {
-	SCOPED_MUTEX(audiolock, (ast_mutex_t *)&rtp->lock);
+	SCOPED_MUTEX(rtplock, (ast_mutex_t *)&rtp->lock);
 	const sccp_rtp_direction_t * const direction = (dir == SCCP_RTP_RECEPTION) ? &rtp->reception : &rtp->transmission;
 	return direction->_state;
 }
+
 sccp_rtp_status_t sccp_rtp_areBothInvalid(constRtpPtr rtp)
 {
-	SCOPED_MUTEX(audiolock, (ast_mutex_t *)&rtp->lock);
+	SCOPED_MUTEX(rtplock, (ast_mutex_t *)&rtp->lock);
 	return !rtp->reception._state && !rtp->transmission._state;
 }
+
 void sccp_rtp_appendState(rtpPtr rtp, sccp_rtp_dir_t dir, sccp_rtp_status_t state)
 {
-	SCOPED_MUTEX(audiolock, (ast_mutex_t *)&rtp->lock);
+	SCOPED_MUTEX(rtplock, (ast_mutex_t *)&rtp->lock);
 	sccp_rtp_direction_t * direction = (dir == SCCP_RTP_RECEPTION) ? &rtp->reception : &rtp->transmission;
 	direction->_state |= state;
 }
+
 void sccp_rtp_subtractState(rtpPtr rtp, sccp_rtp_dir_t dir, sccp_rtp_status_t state)
 {
-	SCOPED_MUTEX(audiolock, (ast_mutex_t *)&rtp->lock);
+	SCOPED_MUTEX(rtplock, (ast_mutex_t *)&rtp->lock);
 	sccp_rtp_direction_t * direction = (dir == SCCP_RTP_RECEPTION) ? &rtp->reception : &rtp->transmission;
 	direction->_state &= ~state;
 }
+
 void sccp_rtp_setState(rtpPtr rtp, sccp_rtp_dir_t dir, sccp_rtp_status_t newstate)
 {
-	SCOPED_MUTEX(audiolock, (ast_mutex_t *)&rtp->lock);
+	SCOPED_MUTEX(rtplock, (ast_mutex_t *)&rtp->lock);
 	sccp_rtp_direction_t * direction = (dir == SCCP_RTP_RECEPTION) ? &rtp->reception : &rtp->transmission;
 	direction->_state = newstate;
 }
 
-// void sccp_rtp_get_format();
-// void sccp_rtp_set_format();
-// void sccp_rtp_associate();
+void sccp_rtp_setCallback(rtpPtr rtp, sccp_rtp_dir_t dir, scpp_rtp_direction_cb_t cb)
+{
+	SCOPED_MUTEX(rtplock, (ast_mutex_t *)&rtp->lock);
+	sccp_rtp_direction_t * direction = (dir == SCCP_RTP_RECEPTION) ? &rtp->reception : &rtp->transmission;
+	direction->cb = cb;
+}
+
+/* Note: this does unset callback in the process */
+static scpp_rtp_direction_cb_t rtp_fetchActiveCallback(rtpPtr rtp, sccp_rtp_dir_t dir)
+{
+	SCOPED_MUTEX(rtplock, (ast_mutex_t *)&rtp->lock);
+	scpp_rtp_direction_cb_t callback = NULL;
+	sccp_rtp_direction_t * direction = (dir == SCCP_RTP_RECEPTION) ? &rtp->reception : &rtp->transmission;
+	if(direction->cb && (direction->_state & SCCP_RTP_STATUS_ACTIVE) == SCCP_RTP_STATUS_ACTIVE) {
+		callback = direction->cb;
+		direction->cb = NULL;
+	}
+	return callback;
+}
+
+boolean_t sccp_rtp_runCallback(rtpPtr rtp, sccp_rtp_dir_t dir, constChannelPtr channel)
+{
+	scpp_rtp_direction_cb_t callback = NULL;
+	if((callback = rtp_fetchActiveCallback(rtp, dir))) {
+		callback(channel);                                        // note callback has to be called without rtp lock held
+		return TRUE;
+	}
+	return FALSE;
+}
 
 /*!
  * \brief update the phones destination address (it's peer)

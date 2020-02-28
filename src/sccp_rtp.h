@@ -11,7 +11,6 @@
 
 /* can be removed in favor of forward declaration if we change phone and phone_remote to pointers instead */
 #include <netinet/in.h>
-//struct sockaddr_storage;
 
 __BEGIN_C_EXTERN__
 typedef void (*scpp_rtp_direction_cb_t)(constChannelPtr c);
@@ -19,7 +18,7 @@ typedef void (*scpp_rtp_direction_cb_t)(constChannelPtr c);
 typedef struct sccp_rtp_direction {
 	uint16_t _state;
 	skinny_codec_t format;
-	sccp_channel_t *c;
+	scpp_rtp_direction_cb_t cb;
 } sccp_rtp_direction_t;
 
 /*!
@@ -53,11 +52,13 @@ SCCP_API boolean_t SCCP_CALL sccp_rtp_getVideoPeer(constChannelPtr c, struct soc
 SCCP_API sccp_rtp_info_t SCCP_CALL sccp_rtp_getVideoPeerInfo(constChannelPtr c, sccp_rtp_t **rtp);
 #endif
 
-sccp_rtp_status_t sccp_rtp_getState(constRtpPtr rtp, sccp_rtp_dir_t dir);
-sccp_rtp_status_t sccp_rtp_areBothInvalid(constRtpPtr rtp);
-void sccp_rtp_appendState(rtpPtr rtp, sccp_rtp_dir_t dir, sccp_rtp_status_t state);
-void sccp_rtp_subtractState(rtpPtr rtp, sccp_rtp_dir_t dir, sccp_rtp_status_t state);
-void sccp_rtp_setState(rtpPtr rtp, sccp_rtp_dir_t dir, sccp_rtp_status_t newstate);
+SCCP_API sccp_rtp_status_t SCCP_CALL sccp_rtp_getState(constRtpPtr rtp, sccp_rtp_dir_t dir);
+SCCP_API sccp_rtp_status_t SCCP_CALL sccp_rtp_areBothInvalid(constRtpPtr rtp);
+SCCP_API void SCCP_CALL sccp_rtp_appendState(rtpPtr rtp, sccp_rtp_dir_t dir, sccp_rtp_status_t state);
+SCCP_API void SCCP_CALL sccp_rtp_subtractState(rtpPtr rtp, sccp_rtp_dir_t dir, sccp_rtp_status_t state);
+SCCP_API void SCCP_CALL sccp_rtp_setState(rtpPtr rtp, sccp_rtp_dir_t dir, sccp_rtp_status_t newstate);
+SCCP_API void SCCP_CALL sccp_rtp_setCallback(rtpPtr rtp, sccp_rtp_dir_t dir, scpp_rtp_direction_cb_t cb);
+SCCP_API boolean_t SCCP_CALL sccp_rtp_runCallback(rtpPtr rtp, sccp_rtp_dir_t dir, constChannelPtr c);
 
 SCCP_API uint8_t SCCP_CALL sccp_rtp_get_payloadType(constRtpPtr rtp, skinny_codec_t codec);
 SCCP_API boolean_t SCCP_CALL sccp_rtp_getUs(constRtpPtr rtp, struct sockaddr_storage * us);
