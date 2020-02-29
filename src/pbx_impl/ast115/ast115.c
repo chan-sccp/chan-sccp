@@ -161,10 +161,15 @@ static struct ast_format *sccp_astwrap_skinny2ast_format(skinny_codec_t skinnyco
 		case SKINNY_CODEC_G723_1:
 			return ast_format_g723;
 		case SKINNY_CODEC_G729:
+			return ast_format_g729;
 		case SKINNY_CODEC_G729_A:
 			return ast_format_g729;
 		case SKINNY_CODEC_G729_B_LOW:
 			return ast_format_ilbc;
+//		case SKINNY_CODEC_G729_B:
+//		case SKINNY_CODEC_G729_ANNEX_B:
+//		case SKINNY_CODEC_G729_AB:
+//			return ast_format_g729b;
 		case SKINNY_CODEC_G726_32K:
 			return ast_format_g726;
 		case SKINNY_CODEC_WIDEBAND_256K:
@@ -1156,12 +1161,13 @@ static boolean_t sccp_astwrap_setWriteFormat(constChannelPtr channel, skinny_cod
 	sccp_log((DEBUGCAT_RTP | DEBUGCAT_CODEC)) (VERBOSE_PREFIX_3 "%s: (setWriteFormat) %s)\n", channel->designator, codec2str(codec));
 
 	struct ast_format *ast_format = sccp_astwrap_skinny2ast_format(codec);
+	if (ast_format == ast_format_none)
+		return FALSE;
+
 	if (channel->rtp.audio.instance) {
 		ast_channel_set_rawwriteformat(channel->owner, ast_format);
 		ast_rtp_instance_set_write_format(channel->rtp.audio.instance, ast_format);
 	}
-	//ast_set_write_format(channel->owner, ast_format);
-	//ast_set_write_format_from_cap(channel->owner, caps);
 	ast_channel_set_writeformat(channel->owner, ast_format);
 	ao2_ref(ast_format, -1);
 	return TRUE;
@@ -1176,12 +1182,13 @@ static boolean_t sccp_astwrap_setReadFormat(constChannelPtr channel, skinny_code
 	sccp_log((DEBUGCAT_RTP | DEBUGCAT_CODEC)) (VERBOSE_PREFIX_3 "%s: (setReadFormat) %s)\n", channel->designator, codec2str(codec));
 
 	struct ast_format *ast_format = sccp_astwrap_skinny2ast_format(codec);
+	if (ast_format == ast_format_none)
+		return FALSE;
+
 	if (channel->rtp.audio.instance) {
 		ast_channel_set_rawreadformat(channel->owner, ast_format);
 		ast_rtp_instance_set_read_format(channel->rtp.audio.instance, ast_format);
 	}
-	//ast_set_read_format(channel->owner, ast_format);
-	//ast_set_read_format_from_cap(channel->owner, caps);
 	ast_channel_set_readformat(channel->owner, ast_format);
 	ao2_ref(ast_format, -1);
 	return TRUE;

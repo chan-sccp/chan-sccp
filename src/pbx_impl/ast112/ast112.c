@@ -341,8 +341,6 @@ int skinny_codecs2pbx_codec_pref(const skinny_codec_t * const codecs, struct ast
 	return ast_codec_pref_append(astCodecPref, &dst);							// return ast_codec_pref
 }
 
-static boolean_t sccp_astwrap_setReadFormat(const sccp_channel_t * channel, skinny_codec_t codec);
-
 #define RTP_NEW_SOURCE(_c,_log) 								\
 	if(c->rtp.audio.instance) { 										\
 		ast_rtp_new_source(c->rtp.audio.instance); 							\
@@ -2245,7 +2243,6 @@ static int sccp_astwrap_setPhoneRTPAddress(const struct sccp_rtp *rtp, const str
 
 static boolean_t sccp_astwrap_setWriteFormat(const sccp_channel_t * channel, skinny_codec_t codec)
 {
-	//! \todo possibly needs to be synced to ast108
 	if (!channel) {
 		return FALSE;
 	}
@@ -2253,6 +2250,9 @@ static boolean_t sccp_astwrap_setWriteFormat(const sccp_channel_t * channel, ski
 	struct ast_format_cap *cap = ast_format_cap_alloc(AST_FORMAT_CAP_FLAG_NOLOCK);
 
 	ast_format_set(&tmp_format, skinny_codec2pbx_codec(codec), 0);
+	if (tmp_format == ast_format_none)
+		return FALSE;
+
 	ast_format_cap_add(cap, &tmp_format);
 	ast_set_write_format_from_cap(channel->owner, cap);
 	ast_format_cap_destroy(cap);
@@ -2265,7 +2265,6 @@ static boolean_t sccp_astwrap_setWriteFormat(const sccp_channel_t * channel, ski
 
 static boolean_t sccp_astwrap_setReadFormat(const sccp_channel_t * channel, skinny_codec_t codec)
 {
-	//! \todo possibly needs to be synced to ast108
 	if (!channel) {
 		return FALSE;
 	}
@@ -2273,6 +2272,9 @@ static boolean_t sccp_astwrap_setReadFormat(const sccp_channel_t * channel, skin
 	struct ast_format_cap *cap = ast_format_cap_alloc(AST_FORMAT_CAP_FLAG_NOLOCK);
 
 	ast_format_set(&tmp_format, skinny_codec2pbx_codec(codec), 0);
+	if (tmp_format == ast_format_none)
+		return FALSE;
+
 	ast_format_cap_add(cap, &tmp_format);
 	ast_set_read_format_from_cap(channel->owner, cap);
 	ast_format_cap_destroy(cap);
