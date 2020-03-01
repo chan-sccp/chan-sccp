@@ -1,0 +1,201 @@
+<device>
+    <enterpriseconfig>
+    	<!-- All the same entries as vendorconfig -->
+    	<!-- Boolean Values:
+    	 0 Use Manufacturer defaults
+    	 1|true Enabled
+    	 255|false Disabled
+    	-->
+    </enterpriseconfig>
+    <vendorconfig>
+    	<!-- Boolean Values:
+    	 0 Use EnterpriseConfig (ie:one level up)
+    	 1|true Enabled
+    	 255|false Disabled
+    	-->
+        <deviceType typename="Integer" defaultvalue="0"></deviceType>
+    	
+        <autocallselect typename="Boolean" defaultvalue="1"></autocallselect>
+        <autoSelectLine typename="Boolean" defaultvalue="0"></autoSelectLine>
+        <suppresscallerid typename="Boolean" defaultvalue=""></suppresscallerid>
+	<suppressCallInfoDisplay typename="String" defaultvalue="false"></suppressCallInfoDisplay>
+        
+	<useEnblocDialing typename="Boolean" defaultvalue="1"></useEnblocDialing>
+        <rtpcontrolprotocol typename="Boolean" defaultvalue=""></rtpcontrolprotocol>
+	<minimumRingVolume typename="Integer" defaultvalue="0"></minimumRingVolume>
+	<sideToneLevel typename=">Boolean" defaultvalue="0"></sideToneLevel>
+        <!--<morekeytimer typename="Integer" defaultvalue=""></morekeytimer>-->
+	<moreKeyReversionTimer typename="Integer" defaultvalue="5"></moreKeyReversionTimer>
+	<forwardingDelay typename="Boolean" defaultvalue="1"></forwardingDelay>
+
+	<recordingTone typename="Boolean" defaultvalue="0"></recordingTone>
+	<recordingToneLocalVolume typename="Integer" defaultvalue="100"></recordingToneLocalVolume>
+	<recordingToneRemoteVolume typename="Integer" defaultvalue="50"></recordingToneRemoteVolume>
+	<recordingToneDuration typename="Integer" defaultvalue="0"></recordingToneDuration>
+
+        <ehookEnable typename="Boolean" defaultvalue="0"></ehookEnable>
+        <enableGroupListen typename="Boolean" defaultvalue=""></enableGroupListen>
+
+	<pcPort typename="Boolean" defaultvalue="0"></pcPort>
+	<spanToPCPort typename="Integer" defaultvalue="1"></spanToPCPort>
+<!--
+        <cdpenabledpcport typename="Boolean" defaultvalue="true"></cdpenabledpcport>
+        <cdpenabledswport typename="Boolean" defaultvalue="true"></cdpenabledswport>
+        <lldpenabledpcport typename="Boolean" defaultvalue="true"></lldpenabledpcport>
+        <lldpenabledswport typename="Boolean" defaultvalue="true"></lldpenabledswport>
+-->
+        <enableCdpPcPort typename="Boolean" defaultvalue="false"></enableCdpPcPort>
+        <enableCdpSwPort typename="Boolean" defaultvalue="false"></enableCdpSwPort>
+        <enableLldpSwPort typename="Boolean" defaultvalue="false"></enableLldpSwPort>
+        <enableLldpPcPort typename="Boolean" defaultvalue="false"></enableLldpPcPort>
+	<PortAutoLinkSync typename="Boolean" defaultvalue="false"></PortAutoLinkSync>
+	<eapAuthentication typename="Boolean" defaultvalue="false"></eapAuthentication>
+        <swremoteconfig typename="Integer" defaultvalue="0"></swremoteconfig>
+        <pcremoteconfig typename="Integer" defaultvalue="0"></pcremoteconfig>
+        <powerpriority typename="Integer" defaultvalue="16"></powerpriority>
+	<rtcp typename="Integer" defaultvalue="false"></rtcp>
+
+
+        <webAccess typename="Boolean" defaultvalue="false"></webAccess>
+        <webProtocol typename="Boolean" defaultvalue="false"></webProtocol>
+        <!--<settingsrestriction typename="Integer" defaultvalue=""></settingsrestriction>-->
+	<settingsAccess typename="Integer" defaultvalue="false"></settingsAccess>
+        <!--<muteenable typename="Boolean" defaultvalue=""></muteenable>-->
+        <enableMuteFeature typename="String" defaultvalue="NOT_RCVD"></enableMuteFeature>
+        <!--<videoenable typename="Boolean" defaultvalue=""></videoenable>-->
+	<videoCapability typename="Integer" defaultvalue="false"></videoCapability>
+        
+        <!--<speakerenable typename="Boolean" defaultvalue=""></speakerenable>-->
+        <!--<headsetenable typename="Boolean" defaultvalue=""></headsetenable>-->
+	<disableSpeaker typename="String" defaultvalue=""></disableSpeaker>
+	<disableSpeakerAndHeadset typename="String" defaultvalue=""></disableSpeakerAndHeadset>
+        <handsetHeadsetMonitor typename="Boolean" defaultvalue="1"></handsetHeadsetMonitor>
+	<headsetWidebandUIControl typename=">Boolean" defaultvalue="0"></headsetWidebandUIControl>
+	<handsetWidebandUIControl typename=">Boolean" defaultvalue="0"></handsetWidebandUIControl>
+	<headsetWidebandEnable typename="Boolean" defaultvalue="1"></headsetWidebandEnable>
+	<handsetWidebandEnable typename=">Boolean" defaultvalue="0"></handsetWidebandEnable>
+
+        <assetid typename="String" defaultvalue=""></assetid>
+
+        <logServer typename="String" defaultvalue=""></logServer>
+        <ipv6LoadServer typename="String" defaultvalue="NOT_RCVD"></ipv6LoadServer>
+        <ipv6LogServer typename="String" defaultvalue=""></ipv6LogServer>
+        <loadServer typename="String" defaultvalue="NOT_RCVD"></loadServer>
+	<loggingDisplay typename="Boolean" defaultvalue="1"></loggingDisplay>
+        
+        <peerfirmwaresharing typename="Boolean" defaultvalue="false"></peerfirmwaresharing>
+        <ldapServers typename="String" defaultvalue=""></ldapServers>
+        <garp typename="Boolean" defaultvalue="0"></garp>
+	<voiceVlanAccess typename="Boolean" defaultvalue="0"></voiceVlanAccess>
+
+	<displayIdleTimeout typename="String" defaultvalue="NOT_RCVD"></displayIdleTimeout>
+	<daysDisplayNotActive typename="String" defaultvalue="NOT_RCVD"></daysDisplayNotActive>
+	<displayOnDuration typename="String" defaultvalue="NOT_RCVD"></displayOnDuration>
+	<displayOnTime typename="String" defaultvalue="NOT_RCVD"></displayOnTime>
+	<displayOnWhenIncomingCall typename=">Boolean" defaultvalue="0"></displayOnWhenIncomingCall>
+	<displayRefreshRate typename="Int" defaultvalue="78" options="78|68"></displayRefreshRate>
+	
+	<g722CodecSupport typename=">Boolean" defaultvalue="0"></g722CodecSupport>
+    </vendorconfig>
+    <commonconfig>
+    	<!-- All the same entries as vendorconfig -->
+    	<!-- Boolean Values:
+    	 0 Use VendorConfig (ie: one level up)
+    	 1|true Enabled
+    	 255|false Disabled
+    	-->
+    </commonconfig>
+    <network>
+        <devicetype typename="Integer" defaultvalue=""></devicetype>
+        <ipv6capfserver typename="String" defaultvalue=""></ipv6capfserver>
+    </network>
+    <srstinfo>
+        <srstoption typename="Byte" defaultvalue=""></srstoption>
+    </srstinfo>
+    <callmanager>
+        <changed typename="Boolean" defaultvalue="false"></changed>
+    </callmanager>
+    <configprocessed typename="Boolean" defaultvalue="false, false"></configprocessed>
+    <sidecar>
+        <autoadapting typename="Boolean" defaultvalue="false"></autoadapting>
+        <autoadapting typename="Boolean" defaultvalue="true"></autoadapting>
+        <addonmodule1>
+            <deviceline typename="Integer" defaultvalue=""></deviceline>
+            <devicetype typename="String" defaultvalue=""></devicetype>
+            <loadId typename="String" defaultvalue=""></loadId>
+        </addonmodule1>
+        <addonmodule2>
+            <deviceline typename="Integer" defaultvalue=""></deviceline>
+            <devicetype typename="String" defaultvalue=""></devicetype>
+            <loadId typename="String" defaultvalue=""></loadId>
+        </addonmodule2>
+    </sidecar>
+    <sccpprotocolversion typename="Integer" defaultvalue="12"></sccpprotocolversion>
+    <!--
+    <configprocessed typename="Boolean" defaultvalue="true, false"></configprocessed>
+    <configretry typename="Boolean" defaultvalue="false"></configretry>
+    -->
+    
+    <blfenabled typename="Boolean" defaultvalue=""></blfenabled>
+    <forwardingdelay typename="Boolean" defaultvalue="1"></forwardingdelay>
+    <missedcallloggingoption typename="String" defaultvalue=""></missedcallloggingoption>
+
+    <authenticationurl typename="String" defaultvalue=""></authenticationurl>
+    <directoriesurl typename="String" defaultvalue=""></directoriesurl>
+    <idleurl typename="String" defaultvalue=""></idleurl>
+    <informationurl typename="String" defaultvalue=""></informationurl>
+    <messagesurl typename="String" defaultvalue=""></messagesurl>
+    <proxyserverurl typename="String" defaultvalue=""></proxyserverurl>
+    <servicesurl typename="String" defaultvalue=""></servicesurl>
+
+    <autoipconfig typename="Boolean" defaultvalue=""></autoipconfig>
+    <temptftpaddress1 typename="String" defaultvalue="XmlConfigObject.field_160"></temptftpaddress1>
+    <temptftpaddress2 typename="String" defaultvalue="XmlConfigObject.field_161"></temptftpaddress2>
+    <temptftpaddress3 typename="String" defaultvalue="XmlConfigObject.field_162"></temptftpaddress3>
+    <temptftpaddress4 typename="String" defaultvalue="XmlConfigObject.field_163"></temptftpaddress4>
+    <connmonitorduration typename="Integer" defaultvalue=""></connmonitorduration>
+    <detectCMConnectionFailure typename=">Boolean" defaultvalue="0"></detectCMConnectionFailure>
+    <versionstamp typename="String" defaultvalue=""></versionstamp>
+    <userid typename="String" defaultvalue=""></userid>
+    <password typename="String" defaultvalue=""></password>
+    <idletimer typename="Integer" defaultvalue=""></idletimer>
+    <vemport typename="Integer" defaultvalue="0"></vemport>
+    <vemip typename="String" defaultvalue=""></vemip>
+
+    <emccmode typename="Boolean" defaultvalue="false"></emccmode>
+    <emccmode typename="Boolean" defaultvalue="false"></emccmode>
+    <emccmode typename="Boolean" defaultvalue="true"></emccmode>
+    <emccupdatecfg typename="Boolean" defaultvalue="false"></emccupdatecfg>
+    <emccupdatecfg typename="Boolean" defaultvalue="false"></emccupdatecfg>
+    <emccupdatecfg typename="Boolean" defaultvalue="true"></emccupdatecfg>
+    <visitinglogouturi typename="String" defaultvalue="XmlConfigObject.field_164"></visitinglogouturi>
+
+    <encrConfig typename="Boolean" defaultvalue=""></encrConfig>
+
+    <vpngroup>
+        <autonetdetect typename="Boolean" defaultvalue="false"></autonetdetect>
+        <pswdpersistent typename="Boolean" defaultvalue="false"></pswdpersistent>
+        <enablehostidcheck typename="Integer" defaultvalue="1"></enablehostidcheck>
+        <failconnecttime typename="Integer" defaultvalue="30"></failconnecttime>
+        <hashalg typename="Integer" defaultvalue="0"></hashalg>
+        <mtu typename="Integer" defaultvalue="1290"></mtu>
+        <address1 typename="String" defaultvalue=""></address1>
+        <address2 typename="String" defaultvalue=""></address2>
+        <address3 typename="String" defaultvalue=""></address3>
+        <hash1 typename="String" defaultvalue=""></hash1>
+        <hash2 typename="String" defaultvalue=""></hash2>
+        <hash3 typename="String" defaultvalue=""></hash3>
+        <hash4 typename="String" defaultvalue=""></hash4>
+        <hash5 typename="String" defaultvalue=""></hash5>
+        <hash6 typename="String" defaultvalue=""></hash6>
+        <hash7 typename="String" defaultvalue=""></hash7>
+        <hash8 typename="String" defaultvalue=""></hash8>
+        <hash9 typename="String" defaultvalue=""></hash9>
+        <hash10 typename="String" defaultvalue=""></hash10>
+    </vpngroup>
+    <!--
+    <vpn>
+        <configured typename="Boolean" defaultvalue="false"></configured>
+    </vpn>
+    -->
+</device>
