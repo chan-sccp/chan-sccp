@@ -3350,12 +3350,13 @@ int sccp_manager_config_metadata(struct mansession *s, const struct message *m)
 							if (!sccp_strlen_zero(config[cur_elem].description)) {
 								char *description = pbx_strdupa(config[cur_elem].description);
 								char *description_part = "";
+								int comma2 = 0;
 
-								astman_append(s, ",\"Description\":\"");
-								while (description && (description_part = strsep(&description, "\n"))) {
-									astman_append(s, "%s ", description_part);
+								astman_append(s, ",\"Description\": [");
+								while(description && (description_part = strsep(&description, "\n")) && !sccp_strlen_zero(description_part)) {
+									astman_append(s, "%s\"%s\"", comma2++ ? "," : "", description_part);
 								}
-								astman_append(s, "\"");
+								astman_append(s, "]");
 							}
 						}
 						astman_append(s, "}");
