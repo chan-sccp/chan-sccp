@@ -238,7 +238,7 @@ static int sccp_feat_perform_pickup(constDevicePtr d, channelPtr c, PBX_CHANNEL_
 				pbx_hangup(original);
 			}
 		} else {									// pickup failed
-			pbx_log(LOG_NOTICE, "SCCP: (perform_pickup) Pickup Failed (Some other caller must have gotten it, or remote end hunup). Giving Up.\n");
+			pbx_log(LOG_NOTICE, "SCCP: (perform_pickup) Pickup Failed (Some other caller must have gotten it, or remote end hungup). Giving Up.\n");
 			sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_TEMP_FAIL " " SKINNY_DISP_OPICKUP, SCCP_DISPLAYSTATUS_TIMEOUT);
 			sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, lineInstance, c->callid, SKINNY_TONEDIRECTION_USER);
 			sccp_channel_schedule_hangup(c, 5000);
