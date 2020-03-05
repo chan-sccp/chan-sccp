@@ -48,10 +48,10 @@ struct sccp_line {
 	boolean_t directed_pickup;										/*!< Directed Pickup Extension Support (Boolean, default=on) */
 	char directed_pickup_context[SCCP_MAX_CONTEXT];								/*!< Directed Pickup Context to Use in DialPlan */
 	boolean_t pickup_modeanswer;										/*!< Directed PickUp Mode Answer (boolean, default" on) */
-#endif
 #ifdef CS_AST_HAS_NAMEDGROUP
 	char *namedcallgroup;											/*!< Named Call Group */
 	char *namedpickupgroup;											/*!< Named Pickup Group */
+#endif
 #endif
 	skinny_capabilities_t capabilities;									/*!< (shared)line level preferences (overrules device level) */
 	skinny_capabilities_t preferences;									/*!< (shared)line level preferences (overrules device level) */

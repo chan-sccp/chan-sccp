@@ -111,6 +111,10 @@ static const SCCPConfigOption sccpGlobalConfigOptions[]={
 	{"directed_pickup_context",	G_OBJ_REF(directed_pickup_context),	TYPE_PARSER(sccp_config_parse_context),						SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"context where direct pickup search for extensions. If not set, the current context of the picking line will be used.\n"},
 	{"directed_pickup_modeanswer", 	G_OBJ_REF(pickup_modeanswer), 		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_DEPRECATED,					SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"(DEPRECATED) Automatically Answer when using Directed Pickup. (default=on) (Replaced by in favor of pickup_modeanswer).\n"},
 	{"pickup_modeanswer", 		G_OBJ_REF(pickup_modeanswer), 		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"yes",				"Automatically Answer when using Directed Pickup. (default=on)"},
+#ifdef CS_AST_HAS_NAMEDGROUP
+	{"namedcallgroup",		G_OBJ_REF(namedcallgroup),		TYPE_STRINGPTR,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"",				"sets the named caller groups\n"},
+	{"namedpickupgroup",		G_OBJ_REF(namedpickupgroup),		TYPE_STRINGPTR,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"",				"sets the named pickup groups (can pickup calls from remote phones which are in this callgroup\n"},
+#endif
 #endif
 	{"callhistory_answered_elsewhere", G_OBJ_REF(callhistory_answered_elsewhere),TYPE_ENUM(skinny,callHistoryDisposition),					SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"Ignore",			"Where to store callinfo for calls answered on a remote device. Options: Ignore, Missed Calls (or Placed Calls, Received Calls which are less usefull)"},
 	{"amaflags", 			G_OBJ_REF(amaflags), 			TYPE_PARSER(sccp_config_parse_amaflags),					SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"default",			"Sets the default AMA flag code stored in the CDR record\n"},
@@ -228,7 +232,7 @@ static const SCCPConfigOption sccpDeviceConfigOptions[] = {
 	{"setvar", 			D_OBJ_REF(variables),			TYPE_PARSER(sccp_config_parse_variables),					SCCP_CONFIG_FLAG_MULTI_ENTRY,					SCCP_CONFIG_NOUPDATENEEDED, 		NULL,				"extra variables to be set on line initialization multiple entries possible (for example the sip number to use when dialing outside)\n"
 																																					"format setvar=param=value, for example setvar=sipno=12345678\n"},
 	{"permithost", 			D_OBJ_REF(permithosts), 		TYPE_PARSER(sccp_config_parse_permithosts),					SCCP_CONFIG_FLAG_MULTI_ENTRY,					SCCP_CONFIG_NEEDDEVICERESET,		NULL,				"permit/deny but by resolved hostname"},
-	{"addon", 			D_OBJ_REF(addons),	 		TYPE_PARSER(sccp_config_parse_addons),						SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		NULL,				"One of 7914, 7915, 7916"},
+	{"addon", 			D_OBJ_REF(addons),	 		TYPE_PARSER(sccp_config_parse_addons),						SCCP_CONFIG_FLAG_MULTI_ENTRY,					SCCP_CONFIG_NEEDDEVICERESET,		NULL,				"One or Two of 7914, 7915, 7916"},
 	{"button", 			D_OBJ_REF(buttonconfig), 		TYPE_PARSER(sccp_config_parse_button),						SCCP_CONFIG_FLAG_MULTI_ENTRY,					SCCP_CONFIG_NEEDDEVICERESET,		NULL,				"Buttons come in the following flavours (empty, line, speeddial, service, feature).\n"
 																																					"Examples (read the documentation for more examples/combinations):\n"
 																																					" - button = line,1234\n"
@@ -308,11 +312,9 @@ static const SCCPConfigOption sccpLineConfigOptions[] = {
 	{"directed_pickup", 		L_OBJ_REF(directed_pickup), 		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"enable/disable Pickup button to do directed pickup from a specific extension.\n"},
 	{"directed_pickup_context",	L_OBJ_REF(directed_pickup_context),	TYPE_PARSER(sccp_config_parse_context),						SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"context where direct pickup search for extensions. If not set, current context or this line will be used.\n"},
 	{"pickup_modeanswer", 		L_OBJ_REF(pickup_modeanswer), 		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"Automatically Answer when using Directed Pickup. (default=on)"},
-#endif
 #ifdef CS_AST_HAS_NAMEDGROUP
-	{"namedcallgroup",		L_OBJ_REF(namedcallgroup),		TYPE_STRINGPTR,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"",				"sets the named caller groups this line is a member of (ast111)\n"},
-#ifdef CS_SCCP_PICKUP
-	{"namedpickupgroup",		L_OBJ_REF(namedpickupgroup),		TYPE_STRINGPTR,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"",				"sets the named pickup groups this line is a member of (this phone can pickup calls from remote phones which are in this caller group (ast111)\n"},
+	{"namedcallgroup",		L_OBJ_REF(namedcallgroup),		TYPE_STRINGPTR,									SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		"",				"sets the named caller groups this line is a member of (ast111)\n"},
+	{"namedpickupgroup",		L_OBJ_REF(namedpickupgroup),		TYPE_STRINGPTR,									SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		"",				"sets the named pickup groups this line is a member of (this phone can pickup calls from remote phones which are in this caller group (ast111)\n"},
 #endif
 #endif
 	{"disallow|allow", 		L_OBJ_REF(preferences), 		TYPE_PARSER(sccp_config_parse_codec_preferences),				SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT | SCCP_CONFIG_FLAG_MULTI_ENTRY,	SCCP_CONFIG_NOUPDATENEEDED,	NULL,				"Same as entry in [general] section"},
