@@ -5,10 +5,12 @@ CREATE SCHEMA IF NOT EXISTS sccp;
 -- 
 -- Add/Remove columns if needed, check sccp.conf.annotated for valid column entries
 --
+-- Note: For multivalue entries like buttons / addons / deny|permit / disallow|allow / mailbox the separator to use is ';'
+--
 DROP TABLE IF EXISTS sccpdevice;
 CREATE TABLE sccpdevice (
   type varchar(15) default NULL,
-  addon varchar(45) default NULL,
+  addon varchar(45) default NULL,						-- multiple entries should be separated using ';'
   description varchar(45) default NULL,
   tzoffset varchar(5) default NULL,
   transfer varchar(5) default NULL,

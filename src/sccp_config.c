@@ -1626,13 +1626,15 @@ sccp_value_changed_t sccp_config_parse_addons(void * const dest, const size_t si
 	SCCP_LIST_TRAVERSE_SAFE_BEGIN(addonList, addon, list) {
 		if (v) {
 			if (!sccp_strlen_zero(v->value)) {
-				if((addon_type = addonstr2enum(v->value))) {
+				if((addon_type = addonstr2enum(v->value)) && addon_type != SKINNY_DEVICETYPE_SENTINEL) {
 					if (addon->type != addon_type) {					/* change/update */
-						sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) ("change addon: %d => %d\n", addon->type, addon_type);
+						sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH))("change addon: %s(%d) => %s(%d)\n", skinny_devicetype2str(addon->type), addon->type, skinny_devicetype2str(addon_type),
+												addon_type);
 						addon->type = addon_type;
 						changed |= SCCP_CONFIG_CHANGE_CHANGED;
 					}
 				} else {
+					pbx_log(LOG_ERROR, "unknown addon type: %s, skipped\n", v->value);
 					changed |= SCCP_CONFIG_CHANGE_INVALIDVALUE;
 				}
 			}
@@ -1651,8 +1653,8 @@ sccp_value_changed_t sccp_config_parse_addons(void * const dest, const size_t si
 	for (; v; v = v->next) {										/* addition */
 		if (2 > addon_counter++) {
 			if (!sccp_strlen_zero(v->value)) {
-				if ((addon_type = addonstr2enum(v->value))) {
-					sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) ("add new addon: %d\n", addon_type);
+				if((addon_type = addonstr2enum(v->value)) && addon_type != SKINNY_DEVICETYPE_SENTINEL) {
+					sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH))("add new addon: %s(%d)\n", skinny_devicetype2str(addon_type), addon_type);
 					if (!(addon = (sccp_addon_t *)sccp_calloc(1, sizeof(sccp_addon_t)))) {
 						pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, "SCCP");
 						return SCCP_CONFIG_CHANGE_ERROR;
@@ -1661,6 +1663,7 @@ sccp_value_changed_t sccp_config_parse_addons(void * const dest, const size_t si
 					SCCP_LIST_INSERT_TAIL(addonList, addon, list);
 					changed |= SCCP_CONFIG_CHANGE_CHANGED;
 				} else {
+					pbx_log(LOG_ERROR, "unknown addon type: %s, skipped\n", v->value);
 					changed |= SCCP_CONFIG_CHANGE_INVALIDVALUE;
 				}
 			}

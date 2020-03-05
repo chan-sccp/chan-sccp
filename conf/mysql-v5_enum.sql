@@ -1,17 +1,11 @@
 --
--- this is for users how like to sepatet device and button configuration
--- You have to change the table names to:
---
--- sccpdevices -> sccpdeviceconfig
--- sccplines -> sccpline  
---
-
+-- Note: For multivalue entries like buttons / addons / deny|permit / disallow|allow / mailbox the separator to use is ';'
 --
 -- Table with line-configuration
 --
 CREATE TABLE IF NOT EXISTS `sccpdevice` (
   `type` varchar(15) default NULL,
-  `addon` varchar(45) default NULL,
+  `addon` varchar(45) default NULL,						-- multiple entries should be separated using ';'
   `description` varchar(45) default NULL,
   `tzoffset` varchar(5) default NULL,
   `imageversion` varchar(31) default NULL,
