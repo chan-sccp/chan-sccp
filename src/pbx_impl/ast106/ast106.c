@@ -1687,6 +1687,7 @@ static int sccp_astwrap_call(PBX_CHANNEL_TYPE * ast, char *dest, int timeout)
 static int sccp_astwrap_answer(PBX_CHANNEL_TYPE * pbxchan)
 {
 	int res = -1;
+	int timedout = 0;
 	if(pbx_channel_state(pbxchan) == AST_STATE_UP) {
 		pbx_log(LOG_NOTICE, "%s: Channel has already been answered remotely, skipping\n", pbx_channel_name(pbxchan));
 		return 0;
@@ -1702,13 +1703,14 @@ static int sccp_astwrap_answer(PBX_CHANNEL_TYPE * pbxchan)
 			// this needs to be done with the pbx_channel unlocked to prevent lock investion
 			// note we still have a pbx_channel_ref, so the channel cannot be removed under our feet
 			pbx_channel_unlock(pbxchan);
-			sccp_session_waitForPendingRequests(d->session);
+			timeout = sccp_session_waitForPendingRequests(d->session);
 			pbx_channel_lock(pbxchan);
 		}
-		sccp_log(DEBUGCAT_PBX)(VERBOSE_PREFIX_3 "%s: Switching to STATE_UP\n", c->designator);
-		pbx_setstate(pbxchan, AST_STATE_UP);
-		pbx_indicate(pbxchan, AST_CONTROL_PROGRESS);
-		res = sccp_pbx_answer(c);
+		if(!timedout) {
+			// pbx_indicate(pbxchan, AST_CONTROL_PROGRESS);
+			res = sccp_pbx_remote_answer(c);
+		}
+		res = sccp_pbx_remote_answer(c);
 	}
 	pbx_channel_unref(pbxchan);
 	return res;

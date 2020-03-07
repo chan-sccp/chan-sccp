@@ -104,7 +104,6 @@ struct sccp_channel {
 	boolean_t isBarged;
 	boolean_t isBarging;
 	boolean_t isHangingUp;
-	boolean_t isAnswering;
 	boolean_t isRunningPbxThread;
 
 	sccp_autoanswer_t autoanswer_type;									/*!< Auto Answer Type */

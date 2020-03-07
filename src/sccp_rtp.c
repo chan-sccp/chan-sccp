@@ -281,6 +281,7 @@ void sccp_rtp_setCallback(rtpPtr rtp, sccp_rtp_dir_t dir, scpp_rtp_direction_cb_
 }
 
 /* Note: this does unset callback in the process */
+/* Note: We should maybe move the callback to sccp_rtp_t instead of sccp_rtp_direction_t because it get's a little confusing in sccp_indicate CONNECTED */
 static scpp_rtp_direction_cb_t rtp_fetchActiveCallback(rtpPtr rtp, sccp_rtp_dir_t dir)
 {
 	SCOPED_MUTEX(rtplock, (ast_mutex_t *)&rtp->lock);

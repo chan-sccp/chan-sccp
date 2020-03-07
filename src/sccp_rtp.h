@@ -15,6 +15,8 @@
 __BEGIN_C_EXTERN__
 typedef void (*scpp_rtp_direction_cb_t)(constChannelPtr c);
 
+/* Note: We should maybe move the callback to sccp_rtp_t instead of sccp_rtp_direction_t because it get's a little confusing in sccp_indicate CONNECTED */
+/* Note: In the process of making this private, using "_" to signal the has to be locked when reading/writing */
 typedef struct sccp_rtp_direction {
 	uint16_t _state;
 	skinny_codec_t format;

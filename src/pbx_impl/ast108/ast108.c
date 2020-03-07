@@ -1638,10 +1638,8 @@ static int sccp_astwrap_answer(PBX_CHANNEL_TYPE * pbxchan)
 			pbx_channel_lock(pbxchan);
 		}
 		if (!timedout) {
-			sccp_log(DEBUGCAT_PBX)(VERBOSE_PREFIX_3 "%s: Switching to STATE_UP\n", c->designator);
-			pbx_setstate(pbxchan, AST_STATE_UP);
-			pbx_indicate(pbxchan, AST_CONTROL_PROGRESS);
-			res = sccp_pbx_answer(c);
+			// pbx_indicate(pbxchan, AST_CONTROL_PROGRESS);
+			res = sccp_pbx_remote_answer(c);
 		}
 	}
 	pbx_channel_unref(pbxchan);

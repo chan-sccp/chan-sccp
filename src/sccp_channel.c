@@ -57,7 +57,8 @@ struct sccp_private_channel_data {
 	lineDevicePtr ld;
 	sccp_callinfo_t * callInfo;
 	SCCP_LIST_HEAD (, sccp_threadpool_job_t) cleanup_jobs;
-	boolean_t microphone; /*!< Flag to mute the microphone when calling a baby phone */
+	boolean_t microphone;					/*!< Flag to mute the microphone when calling a baby phone */
+	boolean_t isAnswering;
 };
 
 /*!
@@ -153,6 +154,7 @@ channelPtr sccp_channel_allocate(constLinePtr l, constDevicePtr device)
 		/* assign private_data default values */
 		private_data->microphone = TRUE;
 		private_data->callInfo = iCallInfo.Constructor(callInstance, designator);
+		private_data->isAnswering = FALSE;
 		SCCP_LIST_HEAD_INIT(&private_data->cleanup_jobs);
 		if (!private_data->callInfo) {
 			break;
@@ -193,7 +195,6 @@ channelPtr sccp_channel_allocate(constLinePtr l, constDevicePtr device)
 		channel->setDevice = sccp_channel_setDevice;
 		channel->isMicrophoneEnabled = sccp_always_true;
 		channel->isHangingUp = FALSE;
-		channel->isAnswering = FALSE;
 		channel->isRunningPbxThread = FALSE;
 		channel->setMicrophone = setMicrophoneState;
 		channel->hangupRequest = sccp_astgenwrap_requestQueueHangup;
@@ -1650,52 +1651,73 @@ static void channel_answer_completion(constChannelPtr channel)
 	pbx_assert(channel && channel->owner);
 	AUTO_RELEASE(sccp_channel_t, c, sccp_channel_retain(channel));
 	AUTO_RELEASE(sccp_device_t, d, sccp_channel_getDevice(c));
-	if(c && d && c->isAnswering) {
+	if(c && d && c->privateData->isAnswering) {
 		PBX_CHANNEL_TYPE * pbx_channel = NULL;
 		if((pbx_channel = sccp_channel_lock_full(c, TRUE))) {
-			sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: (%s) Answering Call: %s (state:%s)\n", d->id, __func__, c->designator, ast_state2str(ast_channel_state(pbx_channel)));
-			sccp_channel_startMediaTransmission(c);
-			if(ast_channel_state(pbx_channel) != AST_STATE_UP) {
-				iPbx.queue_control(pbx_channel, AST_CONTROL_ANSWER);
-			}
+			if(!pbx_check_hangup_locked(pbx_channel)) {
+				sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: (%s) Answering Call: %s (state:%s)\n", d->id, __func__, c->designator, ast_state2str(ast_channel_state(pbx_channel)));
+				sccp_channel_startMediaTransmission(c);
+				if(ast_channel_state(pbx_channel) != AST_STATE_UP) {
+					iPbx.queue_control(pbx_channel, AST_CONTROL_ANSWER);
+				}
 #ifdef CS_SCCP_VIDEO
-			if(sccp_channel_getVideoMode(c) != SCCP_VIDEO_MODE_OFF && sccp_device_isVideoSupported(d)) {
-				sccp_channel_openMultiMediaReceiveChannel(c);
-			}
+				if(sccp_channel_getVideoMode(c) != SCCP_VIDEO_MODE_OFF && sccp_device_isVideoSupported(d)) {
+					sccp_channel_openMultiMediaReceiveChannel(c);
+				}
 #endif
-			/** check for monitor request */
-			if((d->monitorFeature.status & SCCP_FEATURE_MONITOR_STATE_REQUESTED) && !(d->monitorFeature.status & SCCP_FEATURE_MONITOR_STATE_ACTIVE)) {
-				pbx_log(LOG_NOTICE, "%s: request monitor\n", d->id);
-				sccp_feat_monitor(d, NULL, 0, c);
-			}
-			c->subscribers = 1;
-			sccp_indicate(d, c, SCCP_CHANNELSTATE_CONNECTED);
+				/*
+								AUTO_RELEASE(sccp_line_t, l, sccp_line_retain(c->line));
+								if (l && SCCP_LIST_GETSIZE(&l->devices) > 1) {
+									sccp_linedevice_t * ld = NULL;
+									SCCP_LIST_LOCK(&l->devices);
+									SCCP_LIST_TRAVERSE(&l->devices, ld, list) {
+										sccp_device_t *otherdevice = ld->device;
+										if (otherdevice != d) {
+											sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: (%s) Hangingup up sharing subscribers\n", DEV_ID_LOG(otherdevice), __func__);
+											otherdevice->indicate->callhistory(otherdevice, ld->lineInstance, c->callid, otherdevice->callhistory_answered_elsewhere);
+											sccp_dev_displayprompt(otherdevice, ld->lineInstance, c->callid, SKINNY_DISP_IN_USE_REMOTE, GLOB(digittimeout));
+											otherdevice->indicate->onhook(otherdevice, ld->lineInstance, c->callid);
+										}
+									}
+									SCCP_LIST_UNLOCK(&l->devices);
+								}
+				*/
+				/** check for monitor request */
+				if((d->monitorFeature.status & SCCP_FEATURE_MONITOR_STATE_REQUESTED) && !(d->monitorFeature.status & SCCP_FEATURE_MONITOR_STATE_ACTIVE)) {
+					pbx_log(LOG_NOTICE, "%s: request monitor\n", d->id);
+					sccp_feat_monitor(d, NULL, 0, c);
+				}
+				c->subscribers = 1;
+				sccp_indicate(d, c, SCCP_CHANNELSTATE_CONNECTED);
 #ifdef CS_MANAGER_EVENTS
-			if(GLOB(callevents)) {
-				char tmpCallingNumber[StationMaxDirnumSize] = { 0 };
-				char tmpCallingName[StationMaxNameSize] = { 0 };
-				char tmpOrigCallingName[StationMaxNameSize] = { 0 };
-				char tmpLastRedirectingName[StationMaxNameSize] = { 0 };
-				iCallInfo.Getter(channel->privateData->callInfo, SCCP_CALLINFO_CALLINGPARTY_NUMBER, &tmpCallingNumber, SCCP_CALLINFO_CALLINGPARTY_NAME, &tmpCallingName, SCCP_CALLINFO_ORIG_CALLINGPARTY_NUMBER,
-						 &tmpOrigCallingName, SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NAME, &tmpLastRedirectingName, SCCP_CALLINFO_KEY_SENTINEL);
-				manager_event(EVENT_FLAG_CALL, "CallAnswered",
-					      "Channel: %s\r\n"
-					      "SCCPLine: %s\r\n"
-					      "SCCPDevice: %s\r\n"
-					      "Uniqueid: %s\r\n"
-					      "CallingPartyNumber: %s\r\n"
-					      "CallingPartyName: %s\r\n"
-					      "originalCallingParty: %s\r\n"
-					      "lastRedirectingParty: %s\r\n",
-					      channel->designator, c->line->name, d->id, iPbx.getChannelUniqueID(channel), tmpCallingNumber, tmpCallingName, tmpOrigCallingName, tmpLastRedirectingName);
-			}
+				if(GLOB(callevents)) {
+					char tmpCallingNumber[StationMaxDirnumSize] = { 0 };
+					char tmpCallingName[StationMaxNameSize] = { 0 };
+					char tmpOrigCallingName[StationMaxNameSize] = { 0 };
+					char tmpLastRedirectingName[StationMaxNameSize] = { 0 };
+					iCallInfo.Getter(channel->privateData->callInfo, SCCP_CALLINFO_CALLINGPARTY_NUMBER, &tmpCallingNumber, SCCP_CALLINFO_CALLINGPARTY_NAME, &tmpCallingName,
+							 SCCP_CALLINFO_ORIG_CALLINGPARTY_NUMBER, &tmpOrigCallingName, SCCP_CALLINFO_LAST_REDIRECTINGPARTY_NAME, &tmpLastRedirectingName, SCCP_CALLINFO_KEY_SENTINEL);
+					manager_event(EVENT_FLAG_CALL, "CallAnswered",
+						      "Channel: %s\r\n"
+						      "SCCPLine: %s\r\n"
+						      "SCCPDevice: %s\r\n"
+						      "Uniqueid: %s\r\n"
+						      "CallingPartyNumber: %s\r\n"
+						      "CallingPartyName: %s\r\n"
+						      "originalCallingParty: %s\r\n"
+						      "lastRedirectingParty: %s\r\n",
+						      c->designator, c->line->name, d->id, iPbx.getChannelUniqueID(c), tmpCallingNumber, tmpCallingName, tmpOrigCallingName, tmpLastRedirectingName);
+				}
 #endif
-			sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: (%s) Answered channel %s\n", d->id, __func__, channel->designator);
-
+				sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: (%s) Answered channel %s\n", d->id, __func__, c->designator);
+			} else {
+				pbx_log(LOG_WARNING, "%s: (%s) Attempted to answer channel '%s' but someone else beat us to it (actual state:%s)\n", DEV_ID_LOG(d), __func__, c->designator,
+					pbx_state2str(ast_channel_state(pbx_channel)));
+			}
 			pbx_channel_unref(pbx_channel);                                         // reffed by sccp_channel_lock_full
 			pbx_channel_unlock(pbx_channel);                                        // locked by sccp_channel_lock_full
 		}
-		sccp_channel_unlock(channel);							// locked by sccp_channel_lock_full
+		sccp_channel_unlock(c);                                        // locked by sccp_channel_lock_full
 	}
 }
 
@@ -1727,21 +1749,46 @@ void sccp_channel_answer(constDevicePtr device, channelPtr channel)
 		pbx_log(LOG_ERROR, "%s: (%s) Answering on unknown channel/device\n", (channel ? channel->designator : 0), __func__);
 		return;
 	}
-
-	channel->setDevice(channel, device);
 	sccp_channel_end_forwarding_channel(channel);
+
+	AUTO_RELEASE(sccp_channel_t, previous_channel, sccp_device_getActiveChannel(device));
+	if(previous_channel && !sccp_channel_hold(previous_channel)) {
+		pbx_log(LOG_ERROR, "%s: Putting Active Channel:%s OnHold failed -> While trying to answer incoming call:%s. Skipping answer!\n", device->id, previous_channel->designator, channel->designator);
+		return;
+	}
 
 	PBX_CHANNEL_TYPE * pbx_channel = NULL;
 	if((pbx_channel = sccp_channel_lock_full(channel, TRUE))) {
-		if(pbx_channel_state(pbx_channel) == AST_STATE_RINGING) {
+		if(pbx_channel_state(pbx_channel) == AST_STATE_RINGING && !pbx_check_hangup_locked(pbx_channel) && !channel->privateData->isAnswering) {
+			channel->setDevice(channel, device);
+			channel->privateData->isAnswering = TRUE;
+			if (channel->state != SCCP_CHANNELSTATE_OFFHOOK) {	/* 7911 need to have callstate offhook, before connected, to transmit audio */
+				sccp_indicate(device, channel, SCCP_CHANNELSTATE_OFFHOOK);
+			}
+			pbx_setstate(pbx_channel, AST_STATE_OFFHOOK);
 			uint16_t lineInstance = sccp_device_find_index_for_line(device, channel->line->name);
 			sccp_device_sendcallstate(device, lineInstance, channel->callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_LOW,
 						  SKINNY_CALLINFO_VISIBILITY_DEFAULT);	// send connected, so it is not listed as missed call on device that fail the answer first
-			channel->isAnswering = TRUE;
 			sccp_rtp_setCallback(&channel->rtp.audio, SCCP_RTP_RECEPTION, channel_answer_completion);
 			sccp_channel_openReceiveChannel(channel);
+
+			AUTO_RELEASE(sccp_line_t, l, sccp_line_retain(channel->line));
+			if(l && SCCP_LIST_GETSIZE(&l->devices) > 1) {
+				sccp_linedevice_t * ld = NULL;
+				SCCP_LIST_LOCK(&l->devices);
+				SCCP_LIST_TRAVERSE(&l->devices, ld, list) {
+					sccp_device_t * otherdevice = ld->device;
+					if(otherdevice != device) {
+						sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: (%s) Hanging up sharing subscribers\n", DEV_ID_LOG(otherdevice), __func__);
+						otherdevice->indicate->callhistory(otherdevice, ld->lineInstance, channel->callid, otherdevice->callhistory_answered_elsewhere);
+						sccp_dev_displayprompt(otherdevice, ld->lineInstance, channel->callid, SKINNY_DISP_IN_USE_REMOTE, GLOB(digittimeout));
+						otherdevice->indicate->onhook(otherdevice, ld->lineInstance, channel->callid);
+					}
+				}
+				SCCP_LIST_UNLOCK(&l->devices);
+			}
 		} else {
-			pbx_log(LOG_WARNING, "%s: (%s) Attempted to answer channel '%s' that was not ringing (actual state:%s)\n", DEV_ID_LOG(device), __func__, channel->designator,
+			pbx_log(LOG_WARNING, "%s: (%s) Attempted to answer channel '%s' but someone else beat us to it (actual state:%s)\n", DEV_ID_LOG(device), __func__, channel->designator,
 				pbx_state2str(ast_channel_state(pbx_channel)));
 		}
 		pbx_channel_unref(pbx_channel);                                         // reffed by sccp_channel_lock_full

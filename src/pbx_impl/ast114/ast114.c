@@ -1026,12 +1026,12 @@ static int sccp_astwrap_rtp_write(PBX_CHANNEL_TYPE * ast, PBX_FRAME_TYPE * frame
 				//return -1;
 			}
 			if (!frame->samples) {
-				if (strcasecmp(frame->src, "ast_prod")) {
-					pbx_log(LOG_ERROR, "%s: Asked to transmit frame type %d with no samples.\n", c->currentDeviceId, (int) frame->frametype);
-				} else {
-					// frame->samples == 0  when frame_src is ast_prod
+				if(!strcasecmp(frame->src, "ast_prod")) {
 					sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Asterisk prodded channel %s.\n", c->currentDeviceId, pbx_channel_name(ast));
+				} else {
+					pbx_log(LOG_NOTICE, "%s: Asked to transmit frame type %d ('%s') with no samples.\n", c->currentDeviceId, (int)frame->frametype, frame->src);
 				}
+				break;
 			}
 			if(c->rtp.audio.instance && (sccp_rtp_getState(&c->rtp.audio, SCCP_RTP_RECEPTION) & SCCP_RTP_STATUS_ACTIVE) != 0) {
 				res = ast_rtp_instance_write(c->rtp.audio.instance, frame);
@@ -1964,10 +1964,8 @@ static int sccp_astwrap_answer(PBX_CHANNEL_TYPE * pbxchan)
 			pbx_channel_lock(pbxchan);
 		}
 		if (!timedout) {
-			sccp_log(DEBUGCAT_PBX)(VERBOSE_PREFIX_3 "%s: Switching to STATE_UP\n", c->designator);
-			pbx_setstate(pbxchan, AST_STATE_UP);
-			pbx_indicate(pbxchan, AST_CONTROL_PROGRESS);
-			res = sccp_pbx_answer(c);
+			// pbx_indicate(pbxchan, AST_CONTROL_PROGRESS);
+			res = sccp_pbx_remote_answer(c);
 		}
 	}
 	pbx_channel_unref(pbxchan);
