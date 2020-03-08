@@ -1151,7 +1151,7 @@ static btnlist *sccp_make_button_template(devicePtr d)
 								/* fall through */
 
 							case SCCP_FEATURE_MULTIBLINK:
-								if (d->inuseprotocolversion >= 15) {
+								if(d->inuseprotocolversion >= 15 && d->skinny_type != SKINNY_DEVICETYPE_CISCO8941 && d->skinny_type != SKINNY_DEVICETYPE_CISCO8945) {
 									btn[i].type = SKINNY_BUTTONTYPE_MULTIBLINKFEATURE;
 								} else {
 									btn[i].type = SKINNY_BUTTONTYPE_FEATURE;
@@ -3998,7 +3998,7 @@ void handle_forward_stat_req(constSessionPtr s, devicePtr d, constMessagePtr msg
 }
 
 /*!
- * \brief Handle Feature Status Reques for Session
+ * \brief Handle Feature Status Request for Session
  * \param s SCCP Session
  * \param d SCCP Device
  * \param msg_in SCCP Message
@@ -4018,7 +4018,7 @@ void handle_feature_stat_req(constSessionPtr s, devicePtr d, constMessagePtr msg
 #ifdef CS_DYNAMIC_SPEEDDIAL
 	/*
 	 * the new speeddial style uses feature to display state
-	 * unfortunately we dont know how to handle this on other way
+	 * unfortunately we dont know how to handle this on non-dynamic phones
 	 */
 	sccp_speed_t k;
 
@@ -4032,6 +4032,7 @@ void handle_feature_stat_req(constSessionPtr s, devicePtr d, constMessagePtr msg
 			msg->data.FeatureStatDynamicMessage.lel_lineInstance = htolel(featureIndex);
 			msg->data.FeatureStatDynamicMessage.lel_buttonType = htolel(SKINNY_BUTTONTYPE_BLFSPEEDDIAL);
 			msg->data.FeatureStatDynamicMessage.stateVal.lel_uint32 = htolel(0);
+			// msg->data.FeatureStatDynamicMessage.stateVal.lel_uint32 = htolel(0x020304);
 			d->copyStr2Locale(d, msg->data.FeatureStatDynamicMessage.textLabel, k.name, sizeof(msg->data.FeatureStatDynamicMessage.textLabel));
 			sccp_dev_send(d, msg);
 			return;

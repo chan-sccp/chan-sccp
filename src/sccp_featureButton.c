@@ -24,6 +24,7 @@
 #include "sccp_line.h"
 #include "sccp_linedevice.h"
 #include "sccp_utils.h"
+#include "sccp_labels.h"
 
 #ifdef CS_DEVSTATE_FEATURE
 #include "sccp_devstate.h"
@@ -55,6 +56,7 @@ void sccp_featButton_changed(constDevicePtr device, sccp_feature_type_t featureT
 	uint8_t instance = 0;
 	uint8_t buttonID = SKINNY_BUTTONTYPE_FEATURE;								// Default feature type.
 	boolean_t lineFound = FALSE;
+	char label_text[StationDynamicNameSize];
 
 	if (!device) {
 		return;
@@ -64,6 +66,7 @@ void sccp_featButton_changed(constDevicePtr device, sccp_feature_type_t featureT
 	SCCP_LIST_TRAVERSE(&device->buttonconfig, config, list) {
 		if (config->type == FEATURE && config->button.feature.id == featureType) {
 			sccp_log((DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (sccp_featButton_changed) FeatureID = %d, Option: %s\n", DEV_ID_LOG(device), config->button.feature.id, (config->button.feature.options) ? config->button.feature.options : "(none)");
+			sccp_copy_string(label_text, config->label, sizeof(label_text));
 			instance = config->instance;
 
 			switch (config->button.feature.id) {
@@ -172,20 +175,24 @@ void sccp_featButton_changed(constDevicePtr device, sccp_feature_type_t featureT
 						sccp_log((DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "%s: (sccp_featButton_changed) monitor featureButton new state:%s (%d)\n", DEV_ID_LOG(device), sccp_feature_monitor_state2str(device->monitorFeature.status), device->monitorFeature.status);
 						// coverity[MIXED_ENUMS]
 						uint8_t status = (sccp_feature_monitor_state_t) device->monitorFeature.status;
-						if (device->inuseprotocolversion > 15) {				// multiple States
+						if(device->inuseprotocolversion > 15 && device->skinny_type != SKINNY_DEVICETYPE_CISCO8941
+						   && device->skinny_type != SKINNY_DEVICETYPE_CISCO8945) {                                        // multiple States
 							buttonID = SKINNY_BUTTONTYPE_MULTIBLINKFEATURE;
 							switch (status) {
 								case SCCP_FEATURE_MONITOR_STATE_DISABLED:
-									config->button.feature.status = 0;
+									config->button.feature.status = 0; /*off*/
 									break;
 								case SCCP_FEATURE_MONITOR_STATE_REQUESTED:
-									config->button.feature.status = 0x020202;
+									// snprintf(label_text, sizeof(label_text), "%s (%s)", config->label, SKINNY_DISP_RECORDING_AWAITING_CALL_TO_BE_ACTIVE);
+									config->button.feature.status = 0x020302; /*amber-on-filled */
 									break;
 								case SCCP_FEATURE_MONITOR_STATE_ACTIVE:
-									config->button.feature.status = 0x020303;
+									snprintf(label_text, sizeof(label_text), "%s (%s)", config->label, SKINNY_DISP_RECORDING);
+									config->button.feature.status = 0x030203; /*red-slowblink-filled */
 									break;
 								case (SCCP_FEATURE_MONITOR_STATE_REQUESTED | SCCP_FEATURE_MONITOR_STATE_ACTIVE):
-									config->button.feature.status = 0x020205;
+									snprintf(label_text, sizeof(label_text), "%s (%s)", config->label, SKINNY_DISP_RECORDING);
+									config->button.feature.status = 0x030205; /*red-slowblink-boxes */
 									break;
 							}
 						} else {
@@ -194,16 +201,19 @@ void sccp_featButton_changed(constDevicePtr device, sccp_feature_type_t featureT
 									config->button.feature.status = 0;
 									break;
 								case SCCP_FEATURE_MONITOR_STATE_REQUESTED:
-									if (device->active_channel) {
+									if(!device->active_channel) {
+										// snprintf(label_text, sizeof(label_text), "%s (%s)", config->label, SKINNY_DISP_RECORDING_AWAITING_CALL_TO_BE_ACTIVE);
 										config->button.feature.status = 0;
 									} else {
+										snprintf(label_text, sizeof(label_text), "%s (%s)", config->label, SKINNY_DISP_RECORDING);
 										config->button.feature.status = 1;
 										break;
 									}
 									break;
 								case SCCP_FEATURE_MONITOR_STATE_ACTIVE:
-									/* fall through */
+									// fall through
 								case (SCCP_FEATURE_MONITOR_STATE_REQUESTED | SCCP_FEATURE_MONITOR_STATE_ACTIVE):
+									snprintf(label_text, sizeof(label_text), "%s (%s)", config->label, SKINNY_DISP_RECORDING);
 									config->button.feature.status = 1;
 									break;
 							}
@@ -321,13 +331,13 @@ void sccp_featButton_changed(constDevicePtr device, sccp_feature_type_t featureT
 				msg->data.FeatureStatDynamicMessage.lel_lineInstance = htolel(instance);
 				msg->data.FeatureStatDynamicMessage.lel_buttonType = htolel(buttonID);
 				msg->data.FeatureStatDynamicMessage.stateVal.lel_uint32 = htolel(config->button.feature.status);
-				sccp_copy_string(msg->data.FeatureStatDynamicMessage.textLabel, config->label, sizeof(msg->data.FeatureStatDynamicMessage.textLabel));
+				sccp_copy_string(msg->data.FeatureStatDynamicMessage.textLabel, label_text, sizeof(msg->data.FeatureStatDynamicMessage.textLabel));
 			} else {
 				REQ(msg, FeatureStatMessage);
 				msg->data.FeatureStatMessage.lel_lineInstance = htolel(instance);
 				msg->data.FeatureStatMessage.lel_buttonType = htolel(buttonID);
 				msg->data.FeatureStatMessage.lel_stateValue = htolel(config->button.feature.status);
-				sccp_copy_string(msg->data.FeatureStatMessage.textLabel, config->label, sizeof(msg->data.FeatureStatDynamicMessage.textLabel));
+				sccp_copy_string(msg->data.FeatureStatMessage.textLabel, label_text, sizeof(msg->data.FeatureStatMessage.textLabel));
 			}
 			sccp_dev_send(device, msg);
 			sccp_log((DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (sccp_featButton_changed) Got Feature Status Request. Instance = %d, Label: '%s', Status: %d\n", DEV_ID_LOG(device), instance, config->label, config->button.feature.status);
