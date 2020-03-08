@@ -146,18 +146,18 @@ void sccp_featButton_changed(constDevicePtr device, sccp_feature_type_t featureT
 								buttonID = SKINNY_BUTTONTYPE_MULTIBLINKFEATURE;
 								switch (status) {
 									case SCCP_DNDMODE_OFF:
-										config->button.feature.status = 0x010000; 	// icon/color/rythm
+										config->button.feature.status = 0x010000;                                        // off
 										break;
 									case SCCP_DNDMODE_REJECT:
-										config->button.feature.status = 0x020202; 	// icon/color/rythm
+										config->button.feature.status = 0x020202;                                        // red/on/filled
 										break;
 									case SCCP_DNDMODE_SILENT:
-										config->button.feature.status = 0x020302; 	// icon/color/rythm
+										config->button.feature.status = 0x030302;                                        // amber/blink/filled
 										break;
 									case SCCP_DNDMODE_SENTINEL:
 										/* fall through */
 									case SCCP_DNDMODE_USERDEFINED:
-										config->button.feature.status = 0x020303;
+										config->button.feature.status = 0x030303;                                        // amber/blink/boxes
 										break;
 								}
 							} else {								// old non-java phones
@@ -175,8 +175,23 @@ void sccp_featButton_changed(constDevicePtr device, sccp_feature_type_t featureT
 						sccp_log((DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "%s: (sccp_featButton_changed) monitor featureButton new state:%s (%d)\n", DEV_ID_LOG(device), sccp_feature_monitor_state2str(device->monitorFeature.status), device->monitorFeature.status);
 						// coverity[MIXED_ENUMS]
 						uint8_t status = (sccp_feature_monitor_state_t) device->monitorFeature.status;
-						if(device->inuseprotocolversion > 15 && device->skinny_type != SKINNY_DEVICETYPE_CISCO8941
-						   && device->skinny_type != SKINNY_DEVICETYPE_CISCO8945) {                                        // multiple States
+						if(device->inuseprotocolversion <= 15 || device->skinny_type == SKINNY_DEVICETYPE_CISCO8941
+						   || device->skinny_type == SKINNY_DEVICETYPE_CISCO8945) {                                        // multiple States
+							// firmware on the 89xx series is broken, showing the color of the lamp on the label of MultiBlinkButtons
+							// so using old SKINNY_BUTTONTYPE_MONITOR instead
+							switch (status) {
+								case SCCP_FEATURE_MONITOR_STATE_DISABLED:
+									config->button.feature.status = 0;
+									break;
+								case SCCP_FEATURE_MONITOR_STATE_REQUESTED:
+									// fall through
+								case SCCP_FEATURE_MONITOR_STATE_ACTIVE:
+									// fall through
+								case (SCCP_FEATURE_MONITOR_STATE_REQUESTED | SCCP_FEATURE_MONITOR_STATE_ACTIVE):
+									config->button.feature.status = 1;
+									break;
+							}
+						} else {
 							buttonID = SKINNY_BUTTONTYPE_MULTIBLINKFEATURE;
 							switch (status) {
 								case SCCP_FEATURE_MONITOR_STATE_DISABLED:
@@ -184,37 +199,15 @@ void sccp_featButton_changed(constDevicePtr device, sccp_feature_type_t featureT
 									break;
 								case SCCP_FEATURE_MONITOR_STATE_REQUESTED:
 									// snprintf(label_text, sizeof(label_text), "%s (%s)", config->label, SKINNY_DISP_RECORDING_AWAITING_CALL_TO_BE_ACTIVE);
-									config->button.feature.status = 0x020302; /*amber-on-filled */
+									config->button.feature.status = 0x020302; /*amber/on/filled */
 									break;
 								case SCCP_FEATURE_MONITOR_STATE_ACTIVE:
 									snprintf(label_text, sizeof(label_text), "%s (%s)", config->label, SKINNY_DISP_RECORDING);
-									config->button.feature.status = 0x030203; /*red-slowblink-filled */
+									config->button.feature.status = 0x030203; /*red/slowblink/filled */
 									break;
 								case (SCCP_FEATURE_MONITOR_STATE_REQUESTED | SCCP_FEATURE_MONITOR_STATE_ACTIVE):
 									snprintf(label_text, sizeof(label_text), "%s (%s)", config->label, SKINNY_DISP_RECORDING);
-									config->button.feature.status = 0x030205; /*red-slowblink-boxes */
-									break;
-							}
-						} else {
-							switch (status) {
-								case SCCP_FEATURE_MONITOR_STATE_DISABLED:
-									config->button.feature.status = 0;
-									break;
-								case SCCP_FEATURE_MONITOR_STATE_REQUESTED:
-									if(!device->active_channel) {
-										// snprintf(label_text, sizeof(label_text), "%s (%s)", config->label, SKINNY_DISP_RECORDING_AWAITING_CALL_TO_BE_ACTIVE);
-										config->button.feature.status = 0;
-									} else {
-										snprintf(label_text, sizeof(label_text), "%s (%s)", config->label, SKINNY_DISP_RECORDING);
-										config->button.feature.status = 1;
-										break;
-									}
-									break;
-								case SCCP_FEATURE_MONITOR_STATE_ACTIVE:
-									// fall through
-								case (SCCP_FEATURE_MONITOR_STATE_REQUESTED | SCCP_FEATURE_MONITOR_STATE_ACTIVE):
-									snprintf(label_text, sizeof(label_text), "%s (%s)", config->label, SKINNY_DISP_RECORDING);
-									config->button.feature.status = 1;
+									config->button.feature.status = 0x030205; /*red/slowblink/boxes */
 									break;
 							}
 						}
