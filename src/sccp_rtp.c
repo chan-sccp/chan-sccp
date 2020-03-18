@@ -100,7 +100,7 @@ SCCP_FILE_VERSION(__FILE__, "");
  * \brief create a new rtp server
  * \todo refactor iPbx.rtp_???_server to include sccp_rtp_type_t
  */
-boolean_t sccp_rtp_createServer(constDevicePtr d, channelPtr c, sccp_rtp_type_t type)
+boolean_t sccp_rtp_createServer(constDevicePtr d, constChannelPtr c, sccp_rtp_type_t type)
 {
 	sccp_rtp_t *rtp = NULL;
 
@@ -110,15 +110,15 @@ boolean_t sccp_rtp_createServer(constDevicePtr d, channelPtr c, sccp_rtp_type_t 
 
 	switch(type) {
 		case SCCP_RTP_AUDIO:
-			rtp = &(c->rtp.audio);
+			rtp = (sccp_rtp_t *) &(c->rtp.audio);
 			break;
 #if CS_SCCP_VIDEO
 		case SCCP_RTP_VIDEO:
-			rtp = &(c->rtp.video);
+			rtp = (sccp_rtp_t *) &(c->rtp.video);
 			break;
 #endif
 		default:
-			pbx_log(LOG_ERROR, "%s: (sccp_rtp_createRTPServer) unknown/unhandled rtp type, cancelling\n", c->designator);
+			pbx_log(LOG_ERROR, "%s: (sccp_rtp_createServer) unknown/unhandled rtp type, cancelling\n", c->designator);
 			return FALSE;
 	}
 
@@ -131,6 +131,7 @@ boolean_t sccp_rtp_createServer(constDevicePtr d, channelPtr c, sccp_rtp_type_t 
 		}
 	}
 	rtp->type = type;
+	//rtp->directMedia = d->directrtp;
 
 	if (iPbx.rtp_create_instance) {
 		rtp->instance_active = iPbx.rtp_create_instance(d, c, rtp);
@@ -150,7 +151,8 @@ boolean_t sccp_rtp_createServer(constDevicePtr d, channelPtr c, sccp_rtp_type_t 
 	sccp_netsock_setPort(phone_remote, port);
 
 	if (ast_test_flag(GLOB(global_jbconf), AST_JB_ENABLED)) {
-		if (ast_test_flag(GLOB(global_jbconf), AST_JB_FORCED) || !d->directrtp) {
+		if (ast_test_flag(GLOB(global_jbconf), AST_JB_FORCED) || !d->directrtp
+		) {
 			pbx_jb_configure(c->owner, GLOB(global_jbconf));
 		}
 	}
@@ -247,12 +249,12 @@ void sccp_rtp_destroy(constChannelPtr c)
  */
 void sccp_rtp_set_peer(constChannelPtr c, rtpPtr rtp, struct sockaddr_storage * new_peer)
 {
-	/* validate socket */
-	if (sccp_netsock_getPort(new_peer) == 0) {
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: ( sccp_rtp_set_peer ) remote information are invalid, don't change anything\n", c->currentDeviceId);
-		return;
+	if (sccp_netsock_getPort(new_peer) != 0) {
+		memcpy(&rtp->phone_remote, new_peer, sizeof rtp->phone_remote);
+		pbx_log(LOG_NOTICE, "%s: ( sccp_rtp_set_peer ) Set new remote address to %s\n", c->currentDeviceId, sccp_netsock_stringify(&rtp->phone_remote));
 	}
 
+#if 0 /* issues/394_2 : moved*/
 	/* check if we have new information, which requires us to update */
 	if (sccp_netsock_equals(new_peer, &rtp->phone_remote)) {
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_rtp_set_peer) remote information is equal to the current info, ignore change\n", c->currentDeviceId);
@@ -268,6 +270,17 @@ void sccp_rtp_set_peer(constChannelPtr c, rtpPtr rtp, struct sockaddr_storage * 
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_rtp_set_peer) Restart media transmission on channel %d\n", c->currentDeviceId, c->callid);
 
 		/*! \todo we should check if this is a video or audio rtp */
+		if (rtp->type == SCCP_RTP_AUDIO) {
+			sccp_channel_updateMediaTransmission(c);
+		}
+#if CS_SCCP_VIDEO
+		else if (rtp->type == SCCP_RTP_VIDEO) {
+			sccp_channel_updateMultiMediaTransmission(c);
+		}
+#endif
+	}
+#endif
+	if (sccp_netsock_getPort(&rtp->phone_remote) != 0) {
 		sccp_channel_updateMediaTransmission(c);
 	}
 }
@@ -289,8 +302,6 @@ void sccp_rtp_set_phone(constChannelPtr c, rtpPtr rtp, struct sockaddr_storage *
 	AUTO_RELEASE(sccp_device_t, device , sccp_channel_getDevice(c));
 
 	if (device) {
-
-		/* check if we have new infos */
 		char peerIpStr[NI_MAXHOST + NI_MAXSERV];
 		char remoteIpStr[NI_MAXHOST + NI_MAXSERV];
 		char phoneIpStr[NI_MAXHOST + NI_MAXSERV];
@@ -302,19 +313,10 @@ void sccp_rtp_set_phone(constChannelPtr c, rtpPtr rtp, struct sockaddr_storage *
 			sccp_netsock_ipv4_mapped(new_peer, new_peer);
 			sccp_netsock_setPort(new_peer, port);
 		}
-
-		/*! \todo if we enable this, we get an audio issue when resume on the same device, so we need to force asterisk to update -MC */
-		/*
-		if (sccp_netsock_equals(new_peer, &c->rtp.audio.phone)) {
-			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_rtp_set_phone) remote information are equal to the current one, ignore change\n", c->currentDeviceId);
-			return;
-		}
-		*/
-
 		memcpy(&rtp->phone, new_peer, sizeof(rtp->phone));
 
 		//update pbx
-		if (iPbx.rtp_setPhoneAddress) {
+		if (iPbx.rtp_setPhoneAddress && rtp->instance) {
 			iPbx.rtp_setPhoneAddress(rtp, new_peer, device->nat >= SCCP_NAT_ON ? 1 : 0);
 		}
 
