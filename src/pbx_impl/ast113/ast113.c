@@ -647,7 +647,11 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 		return res;
 	}
 
-	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: (pbx_indicate) start indicate '%s' (%d) condition on channel %s (readStat:%d, writeState:%d, rtp:%s)\n", DEV_ID_LOG(d), asterisk_indication2str(ind), ind, pbx_channel_name(ast), c->rtp.audio.reception.state, c->rtp.audio.transmission.state, (c->rtp.audio.instance) ? "yes" : "no");
+	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL
+		  | DEBUGCAT_INDICATE))(VERBOSE_PREFIX_1 "%s: (pbx_indicate) start indicate '%s' (%d) condition on channel %s (rtp_instance:%s, reception.state:%d/%s, transmission.state:%d/%s)\n", DEV_ID_LOG(d),
+					asterisk_indication2str(ind), ind, pbx_channel_name(ast), c->rtp.audio.instance ? "yes" : "no", sccp_rtp_getState(&c->rtp.audio, SCCP_RTP_RECEPTION),
+					codec2str(c->rtp.audio.reception.format), sccp_rtp_getState(&c->rtp.audio, SCCP_RTP_TRANSMISSION), codec2str(c->rtp.audio.transmission.format));
+
 	boolean_t inband_if_receivechannel = FALSE;
 	switch (ind) {
 		case AST_CONTROL_RINGING:
@@ -744,11 +748,9 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 			}
 #ifdef CS_SCCP_VIDEO
 			if (c->rtp.video.instance && d && sccp_device_isVideoSupported(d) && sccp_channel_getVideoMode(c) != SCCP_VIDEO_MODE_OFF) {
-				if (SCCP_RTP_STATUS_INACTIVE != c->rtp.video.transmission.state) {
+				d->protocol->sendMultiMediaCommand(d, c, SKINNY_MISCCOMMANDTYPE_VIDEOFREEZEPICTURE);
+				if(sccp_rtp_getState(&c->rtp.video, SCCP_RTP_TRANSMISSION)) {
 					sccp_channel_stopMultiMediaTransmission(c, TRUE);
-				}
-				if (SCCP_RTP_STATUS_INACTIVE != c->rtp.video.reception.state) {
-					sccp_channel_closeMultiMediaReceiveChannel(c, TRUE);
 				}
 				ast_rtp_instance_update_source(c->rtp.video.instance);
 			}
@@ -762,11 +764,14 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 				ast_rtp_instance_update_source(c->rtp.audio.instance);
 			}
 #ifdef CS_SCCP_VIDEO
-			if (c->rtp.video.instance && d && sccp_device_isVideoSupported(d) && sccp_channel_getVideoMode(c) != SCCP_VIDEO_MODE_OFF) {
+			if(c->rtp.video.instance && d && sccp_device_isVideoSupported(d) && sccp_channel_getVideoMode(c) != SCCP_VIDEO_MODE_OFF) {
 				ast_rtp_instance_update_source(c->rtp.video.instance);
-				if (SCCP_RTP_STATUS_INACTIVE == c->rtp.video.reception.state) {
+				if(!sccp_rtp_getState(&c->rtp.video, SCCP_RTP_RECEPTION)) {
 					sccp_channel_openMultiMediaReceiveChannel(c);
+				} else if((sccp_rtp_getState(&c->rtp.video, SCCP_RTP_RECEPTION) & SCCP_RTP_STATUS_ACTIVE) && !sccp_rtp_getState(&c->rtp.video, SCCP_RTP_TRANSMISSION)) {
+					sccp_channel_startMultiMediaTransmission(c);
 				}
+				ast_rtp_instance_update_source(c->rtp.video.instance);
 			}
 #endif
 			sccp_astwrap_moh_stop(ast);
@@ -832,9 +837,9 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 		case AST_CONTROL_PVT_CAUSE_CODE:
 			{
 				/*! \todo This would also be a good moment to update the c->requestHangup to requestQueueHangup */
-				int hangupcause = ast_channel_hangupcause(ast);
-
-				sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: hangup cause set: %d\n", c->designator, hangupcause);
+				// int hangupcause = ast_channel_hangupcause(ast);
+				// sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: hangup cause set: %d\n", c->designator, hangupcause);
+				res = -1;
 			}
 			break;
 
@@ -848,7 +853,7 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 				c->calltype == SKINNY_CALLTYPE_OUTBOUND && 
 				!ast_channel_hangupcause(ast)
 			) {
-				if (c->rtp.audio.reception.state == SCCP_RTP_STATUS_INACTIVE) {
+				if(!sccp_rtp_getState(&c->rtp.audio, SCCP_RTP_RECEPTION)) {
 					sccp_channel_openReceiveChannel(c);
 				}
 			}
@@ -860,7 +865,7 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 			res = -1;	/* this indication is not supported */
 			break;
 	}
-	if (inband_if_receivechannel && c->rtp.audio.reception.state != SCCP_RTP_STATUS_INACTIVE) {
+	if(inband_if_receivechannel && sccp_rtp_getState(&c->rtp.audio, SCCP_RTP_RECEPTION)) {
 		res = -1;
 	}
 	sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_2 "%s: (pbx_indicate) finish: send indication (res:%d)\n", DEV_ID_LOG(d), res);
@@ -979,33 +984,32 @@ static int sccp_astwrap_rtp_write(PBX_CHANNEL_TYPE * ast, PBX_FRAME_TYPE * frame
 				//return -1;
 			}
 			if (!frame->samples) {
-				if (strcasecmp(frame->src, "ast_prod")) {
-					pbx_log(LOG_ERROR, "%s: Asked to transmit frame type %d with no samples.\n", c->currentDeviceId, (int) frame->frametype);
-				} else {
-					// frame->samples == 0  when frame_src is ast_prod
+				if(!strcasecmp(frame->src, "ast_prod")) {
 					sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Asterisk prodded channel %s.\n", c->currentDeviceId, pbx_channel_name(ast));
+				} else {
+					pbx_log(LOG_NOTICE, "%s: Asked to transmit frame type %d ('%s') with no samples.\n", c->currentDeviceId, (int)frame->frametype, frame->src);
 				}
+				break;
 			}
-			if (c->rtp.audio.instance && (c->rtp.audio.reception.state & SCCP_RTP_STATUS_ACTIVE) != 0) {
+			if(c->rtp.audio.instance && (sccp_rtp_getState(&c->rtp.audio, SCCP_RTP_RECEPTION) & SCCP_RTP_STATUS_ACTIVE) != 0) {
 				res = ast_rtp_instance_write(c->rtp.audio.instance, frame);
 			}
 			break;
 		case AST_FRAME_IMAGE:
 		case AST_FRAME_VIDEO:
 #ifdef CS_SCCP_VIDEO
-			if (c->rtp.video.reception.state == SCCP_RTP_STATUS_INACTIVE && c->rtp.video.instance && c->state != SCCP_CHANNELSTATE_HOLD) {
-				// int codec = pbx_codec2skinny_codec((frame->subclass.codec & AST_FORMAT_VIDEO_MASK));
-				// int codec = pbx_codec2skinny_codec(frame->subclass.format.id);
-
-				if (ast_format_cmp(ast_format_h264, frame->subclass.format) == AST_FORMAT_CMP_EQUAL) {
-					sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: got video frame %s\n", c->currentDeviceId, "H264");
+			if(sccp_channel_getVideoMode(c) != SCCP_VIDEO_MODE_OFF && c->state != SCCP_CHANNELSTATE_HOLD) {
+				if(ast_format_cmp(ast_format_h264, frame->subclass.format) != AST_FORMAT_CMP_EQUAL) {
+					sccp_channel_closeMultiMediaReceiveChannel(c, TRUE);
+					sccp_channel_stopMultiMediaTransmission(c, TRUE);
+				}
+				if(!sccp_rtp_getState(&c->rtp.video, SCCP_RTP_RECEPTION)) {
+					sccp_log((DEBUGCAT_RTP))(VERBOSE_PREFIX_3 "%s: got video frame %s\n", c->currentDeviceId, "H264");
 					c->rtp.video.reception.format = SKINNY_CODEC_H264;
 					sccp_channel_openMultiMediaReceiveChannel(c);
+				} else if((sccp_rtp_getState(&c->rtp.video, SCCP_RTP_RECEPTION) & SCCP_RTP_STATUS_ACTIVE)) {
+					res = ast_rtp_instance_write(c->rtp.video.instance, frame);
 				}
-			}
-
-			if (c->rtp.video.instance && (c->rtp.video.reception.state & SCCP_RTP_STATUS_ACTIVE) != 0) {
-				res = ast_rtp_instance_write(c->rtp.video.instance, frame);
 			}
 #endif
 			break;
@@ -1504,6 +1508,7 @@ int sccp_astwrap_hangup(PBX_CHANNEL_TYPE * ast_channel)
 #endif
 
 	if (c) {
+		sccp_mutex_lock(&c->lock);
 		callid_created = c->pbx_callid_created;
 		c->pbx_callid_created = 0;
 		if (pbx_channel_hangupcause(ast_channel) == AST_CAUSE_ANSWERED_ELSEWHERE) {
@@ -1512,8 +1517,9 @@ int sccp_astwrap_hangup(PBX_CHANNEL_TYPE * ast_channel)
 		}
 		/* postponing pbx_channel_unref to sccp_channel destructor */
 		AUTO_RELEASE(sccp_channel_t, channel , sccp_pbx_hangup(c));					/* explicit release from unretained channel returned by sccp_pbx_hangup */
-		ast_channel_tech_pvt_set(ast_channel, NULL);
 		(void) channel;											// suppress unused variable warning
+		sccp_mutex_unlock(&c->lock);
+		ast_channel_tech_pvt_set(ast_channel, NULL);
 	} else {												// after this moment c might have gone already
 		ast_channel_tech_pvt_set(ast_channel, NULL);
 		pbx_channel_unref(ast_channel);									// strange unknown channel, why did we get called to hang it up ?
@@ -1897,23 +1903,42 @@ static int sccp_astwrap_call(PBX_CHANNEL_TYPE * ast, const char *dest, int timeo
 	return res;
 }
 
+/*
+ * Remote side has answered the call switch to up state
+ * Is being called with pbxchan locked by app_dial
+ */
 static int sccp_astwrap_answer(PBX_CHANNEL_TYPE * pbxchan)
 {
-	//! \todo change this handling and split pbx and sccp handling -MC
 	int res = -1;
-
-	AUTO_RELEASE(sccp_channel_t, c , get_sccp_channel_from_pbx_channel(pbxchan));
-	if (c) {
-		if (!c->pbx_callid_created && !ast_channel_callid(pbxchan)) {
-			ast_callid_threadassoc_add(ast_channel_callid(pbxchan));
-		}
-
-		if (pbx_channel_state(pbxchan) != AST_STATE_UP && c->state < SCCP_GROUPED_CHANNELSTATE_CONNECTION) {
-			pbx_indicate(pbxchan, AST_CONTROL_PROGRESS);
-		}
-
-		res = sccp_pbx_answer(c);
+	int timedout = 0;
+	if(pbx_channel_state(pbxchan) == AST_STATE_UP) {
+		pbx_log(LOG_NOTICE, "%s: Channel has already been answered remotely, skipping\n", pbx_channel_name(pbxchan));
+		return 0;
 	}
+
+	pbx_channel_ref(pbxchan);
+	AUTO_RELEASE(sccp_channel_t, c , get_sccp_channel_from_pbx_channel(pbxchan));
+	if(c && c->state < SCCP_GROUPED_CHANNELSTATE_CONNECTION) {
+		sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_3 "%s: Remote has answered the call.\n", c->designator);
+		if(!c->pbx_callid_created && !pbx_channel_callid(pbxchan)) {
+			pbx_callid_threadassoc_add(ast_channel_callid(pbxchan));
+		}
+
+		AUTO_RELEASE(sccp_device_t, d, sccp_channel_getDevice(c));
+		if(d && d->session) {
+			sccp_log(DEBUGCAT_PBX)(VERBOSE_PREFIX_3 "%s: Waiting for pendingRequests\n", c->designator);
+			// this needs to be done with the pbx_channel unlocked to prevent lock investion
+			// note we still have a pbx_channel_ref, so the channel cannot be removed under our feet
+			pbx_channel_unlock(pbxchan);
+			timedout = sccp_session_waitForPendingRequests(d->session);
+			pbx_channel_lock(pbxchan);
+		}
+		if (!timedout) {
+			// pbx_indicate(pbxchan, AST_CONTROL_PROGRESS);
+			res = sccp_pbx_remote_answer(c);
+		}
+	}
+	pbx_channel_unref(pbxchan);
 	return res;
 }
 
@@ -1932,10 +1957,12 @@ static int sccp_astwrap_fixup(PBX_CHANNEL_TYPE * oldchan, PBX_CHANNEL_TYPE * new
 			ast_log(LOG_WARNING, "old channel wasn't %p but was %p\n", oldchan, c->owner);
 			res = -1;
 		} else {
-			/* during a masquerade, fixup gets called twice, The Zombie channel name will have been changed to include '<ZOMBI>' */
-			/* using test_flag for ZOMBIE cannot be used, as it is only set after the fixup call */
-			if (!strstr(pbx_channel_name(newchan), "<ZOMBIE>")) {
-				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: set c->hangupRequest = requestQueueHangup\n", c->designator);
+			/* during a masquerade, fixup gets called twice */
+			if(ast_channel_masqr(newchan)) { /* this is the channel that is masquaraded out */
+				// set to simple channel requestHangup, we are out of pbx_run_pbx, upon returning from masquerade */
+				// sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: set c->hangupRequest = requestHangup\n", c->designator);
+				c->hangupRequest = sccp_astgenwrap_requestHangup;
+
 				if (pbx_channel_hangupcause(newchan) == AST_CAUSE_ANSWERED_ELSEWHERE) {
 					sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Fixup Adding Redirecting Party from:%s\n", c->designator, pbx_channel_name(oldchan));
 					iCallInfo.Setter(sccp_channel_getCallInfo(c),
@@ -1946,32 +1973,27 @@ static int sccp_astwrap_fixup(PBX_CHANNEL_TYPE * oldchan, PBX_CHANNEL_TYPE * new
 						SCCP_CALLINFO_LAST_REDIRECT_REASON, 5,
 						SCCP_CALLINFO_KEY_SENTINEL);
 				}
-				// set channel requestHangup to use ast_queue_hangup (as it is now part of a __ast_pbx_run, after masquerade completes)
+			} else {
+				// set channel requestHangup to use ast_hangup (as it will not be part of __ast_pbx_run, upon returning from masquerade) */
+				// sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: set c->hangupRequest = requestQueueHangup\n", c->designator);
 				c->hangupRequest = sccp_astgenwrap_requestQueueHangup;
+
 				if (!sccp_strlen_zero(c->line->language)) {
 					ast_channel_language_set(newchan, c->line->language);
 				}
-			} else {
-				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: set c->hangupRequest = requestHangup\n", c->designator);
-				// set channel requestHangup to use ast_hangup (as it will not be part of __ast_pbx_run anymore, upon returning from masquerade)
-				c->hangupRequest = sccp_astgenwrap_requestHangup;
+
+				//! \todo update remote capabilities after fixup
+				pbx_retrieve_remote_capabilities(c);
+
+				/* Re-invite RTP back to Asterisk. Needed if channel is masqueraded out of a native
+				   RTP bridge (i.e., RTP not going through Asterisk): RTP bridge code might not be
+				   able to do this if the masquerade happens before the bridge breaks (e.g., AMI
+				   redirect of both channels). Note that a channel can not be masqueraded *into*
+				   a native bridge. So there is no danger that this breaks a native bridge that
+				   should stay up. */
+				// sccp_astwrap_update_rtp_peer(newchan, NULL, NULL, 0, 0, 0);
 			}
 			sccp_astwrap_setOwner(c, newchan);
-
-			//! \todo force update of rtp peer for directrtp
-			/* Re-invite RTP back to Asterisk. Needed if channel is masqueraded out of a native
-			   RTP bridge (i.e., RTP not going through Asterisk): RTP bridge code might not be
-			   able to do this if the masquerade happens before the bridge breaks (e.g., AMI
-			   redirect of both channels). Note that a channel can not be masqueraded *into*
-			   a native bridge. So there is no danger that this breaks a native bridge that
-			   should stay up. */
-			// sccp_astwrap_update_rtp_peer(newchan, NULL, NULL, 0, 0, 0);
-
-#ifdef CS_EXPERIMENTAL
-			//! \todo update remote capabilities after fixup
-			//pbx_str_t *codec_buf = pbx_str_alloca(AST_FORMAT_CAP_NAMES_LEN);
-			//pbx_log(LOG_NOTICE, "Fixup: nativeformats=%s\n", ast_format_cap_get_names(ast_channel_nativeformats(newchan), &codec_buf));
-#endif
 		}
 	} else {
 		pbx_log(LOG_WARNING, "sccp_pbx_fixup(old: %s(%p), new: %s(%p)). no SCCP channel to fix\n", pbx_channel_name(oldchan), (void *) oldchan, pbx_channel_name(newchan), (void *) newchan);

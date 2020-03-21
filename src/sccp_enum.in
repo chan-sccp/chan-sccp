@@ -186,9 +186,10 @@ strenum callerid_presentation {
 }
 
 enum rtp_status {
-	SCCP_RTP_STATUS_INACTIVE, 			=0,	"Rtp Inactive",
+	SCCP_RTP_STATUS_INACTIVE, 			=0,		"Rtp Inactive",
 	SCCP_RTP_STATUS_PROGRESS, 			=1<<0,	"Rtp In Progress",
 	SCCP_RTP_STATUS_ACTIVE,				=1<<1,	"Rtp Active",
+	SCCP_RTP_STATUS_ERROR,				=1<<2,	"Rtp Error",
 }
 
 strenum rtp_type {
@@ -196,6 +197,11 @@ strenum rtp_type {
 	SCCP_RTP_AUDIO,					=1<<0,	"Audio RTP",
 	SCCP_RTP_VIDEO,					=1<<1,	"Video RTP",
 	SCCP_RTP_TEXT,					=1<<2,	"Text RTP",
+}
+
+strenum rtp_dir {
+	SCCP_RTP_RECEPTION,				=0,	"RTP Reception"
+	SCCP_RTP_TRANSMISSION,				=1,	"RTP Transmission"
 }
 
 enum extension_status {
@@ -1035,6 +1041,18 @@ enum ipAddr {
 	SKINNY_IPADDR_IPV6,			=0x1,	"IPv6",
 	SKINNY_IPADDR_IPV46,			=0x2,	"IPv4 and IPv6",
 	SKINNY_IPADDR_INVALID,			=0x3,	"Ip Invalid",
+}
+
+enum msgType {
+	SKINNY_MSGTYPE_EVENT,			,0x0	"Event",
+	SKINNY_MSGTYPE_REQUEST,			,	"Request",
+	SKINNY_MSGTYPE_RESPONSE,		,	"Response",
+}
+enum msgDirection {
+	SKINNY_MSGDIRECTION_UNKNOWN,		=0x0,	"Unknown",
+	SKINNY_MSGDIRECTION_DEV2PBX,		,	"Dev2Pbx",
+	SKINNY_MSGDIRECTION_PBX2DEV,		,	"Pbx2Dev",
+	SKINNY_MSGDIRECTION_BIDIR,		,	"BiDirectional",
 }
 
 } /* NAMESPACE skinny */

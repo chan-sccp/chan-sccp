@@ -63,6 +63,7 @@ SCCP_FILE_VERSION(__FILE__, "");
 #include "sccp_hint.h"
 #include "sccp_labels.h"
 #include "sccp_threadpool.h"
+#include "sccp_indicate.h"
 #include <sys/stat.h>
 #include <asterisk/cli.h>
 #include <asterisk/paths.h>
@@ -74,6 +75,8 @@ typedef enum sccp_cli_completer {
 	SCCP_CLI_LINE_COMPLETER,
 	SCCP_CLI_CONNECTED_LINE_COMPLETER,
 	SCCP_CLI_CHANNEL_COMPLETER,
+	SCCP_CLI_RINGING_CHANNEL_COMPLETER,
+	SCCP_CLI_CONNECTED_CHANNEL_COMPLETER,
 	SCCP_CLI_CONFERENCE_COMPLETER,
 	SCCP_CLI_DEBUG_COMPLETER,
 	SCCP_CLI_SET_COMPLETER,
@@ -223,6 +226,84 @@ static char * sccp_complete_channel(OLDCONST char * word, int state)
 }
 
 /*!
+ * \brief Complete Ringing Channel
+ * \param line Line as char
+ * \param word Word as char
+ * \param pos Pos as int
+ * \param state State as int
+ * \return Result as char
+ *
+ * \called_from_asterisk
+ *
+ */
+static char * sccp_complete_ringing_channel(OLDCONST char * word, int state)
+{
+	sccp_line_t * l = NULL;
+	sccp_channel_t * c = NULL;
+	int wordlen = strlen(word);
+
+	int which = 0;
+	char * ret = NULL;
+
+	SCCP_RWLIST_RDLOCK(&GLOB(lines));
+	SCCP_RWLIST_TRAVERSE(&GLOB(lines), l, list) {
+		SCCP_LIST_LOCK(&l->channels);
+		SCCP_LIST_TRAVERSE(&l->channels, c, list) {
+			if(c->state == SCCP_CHANNELSTATE_RINGING && !strncasecmp(word, c->designator, wordlen) && ++which > state) {
+				ret = pbx_strdup(c->designator);
+				break;
+			}
+		}
+		SCCP_LIST_UNLOCK(&l->channels);
+		if(ret) {
+			break;                                        // break out of outer look, prevent leaking memory by strdup
+		}
+	}
+	SCCP_RWLIST_UNLOCK(&GLOB(lines));
+
+	return ret;
+}
+
+/*!
+ * \brief Complete Ringing Channel
+ * \param line Line as char
+ * \param word Word as char
+ * \param pos Pos as int
+ * \param state State as int
+ * \return Result as char
+ *
+ * \called_from_asterisk
+ *
+ */
+static char * sccp_complete_connected_channel(OLDCONST char * word, int state)
+{
+	sccp_line_t * l = NULL;
+	sccp_channel_t * c = NULL;
+	int wordlen = strlen(word);
+
+	int which = 0;
+	char * ret = NULL;
+
+	SCCP_RWLIST_RDLOCK(&GLOB(lines));
+	SCCP_RWLIST_TRAVERSE(&GLOB(lines), l, list) {
+		SCCP_LIST_LOCK(&l->channels);
+		SCCP_LIST_TRAVERSE(&l->channels, c, list) {
+			if(SCCP_CHANNELSTATE_IsConnected(c->state) && !strncasecmp(word, c->designator, wordlen) && ++which > state) {
+				ret = pbx_strdup(c->designator);
+				break;
+			}
+		}
+		SCCP_LIST_UNLOCK(&l->channels);
+		if(ret) {
+			break;                                        // break out of outer look, prevent leaking memory by strdup
+		}
+	}
+	SCCP_RWLIST_UNLOCK(&GLOB(lines));
+
+	return ret;
+}
+
+/*!
  * \brief Complete Debug
  * \param line Line as char
  * \param word Word as char
@@ -336,7 +417,7 @@ static char *sccp_complete_set(OLDCONST char *line, OLDCONST char *word, int pos
 				SCCP_RWLIST_TRAVERSE(&GLOB(lines), l, list) {
 					SCCP_LIST_LOCK(&l->channels);
 					SCCP_LIST_TRAVERSE(&l->channels, c, list) {
-						snprintf(tmpname, sizeof(tmpname), "SCCP/%s", c->designator);
+						snprintf(tmpname, sizeof(tmpname), "%s", c->designator);
 						if (!strncasecmp(word, tmpname, wordlen) && ++which > state) {
 							ret = pbx_strdup(tmpname);
 							break;
@@ -444,6 +525,12 @@ static char *sccp_exec_completer(sccp_cli_completer_t completer, OLDCONST char *
 			break;
 		case SCCP_CLI_CHANNEL_COMPLETER:
 			completerStr = sccp_complete_channel(word, state);
+			break;
+		case SCCP_CLI_RINGING_CHANNEL_COMPLETER:
+			completerStr = sccp_complete_ringing_channel(word, state);
+			break;
+		case SCCP_CLI_CONNECTED_CHANNEL_COMPLETER:
+			completerStr = sccp_complete_connected_channel(word, state);
 			break;
 		case SCCP_CLI_CONFERENCE_COMPLETER:
 #ifdef CS_SCCP_CONFERENCE
@@ -3346,7 +3433,7 @@ static int sccp_set_object(int fd, int argc, char *argv[])
 					break;
 				}
 				if (sccp_strcaseequals("on", argv[5])) {					/* check to see if enable hold */
-					pbx_cli(fd, "PLACING CHANNEL %s ON HOLD\n", argv[3]);
+					pbx_cli(fd, "Placing channel %s on hold\n", argv[3]);
 					sccp_channel_hold(c);
 				} else if (!strcmp("off", argv[5])) {						/* check to see if disable hold */
 					if (argc < 7) {
@@ -3372,7 +3459,7 @@ static int sccp_set_object(int fd, int argc, char *argv[])
 						cli_result = RESULT_FAILURE;
 						break;
 					}
-					pbx_cli(fd, "PLACING CHANNEL %s OFF HOLD\n", argv[3]);
+					pbx_cli(fd, "Removing channel %s from hold\n", argv[3]);
 
 					sccp_channel_resume(d, c, FALSE);
 				} else {
@@ -3518,7 +3605,7 @@ static int sccp_answercall(int fd, sccp_cli_totals_t *totals, struct mansession 
 	int res = RESULT_SUCCESS;
 	char error[100] = "";
 
-	if (argc != 4 || pbx_strlen_zero(argv[2]) || pbx_strlen_zero(argv[3])) {
+	if(argc < 3 || argc > 4 || pbx_strlen_zero(argv[2])) {
 		return RESULT_SHOWUSAGE;
 	}
 
@@ -3533,30 +3620,46 @@ static int sccp_answercall(int fd, sccp_cli_totals_t *totals, struct mansession 
 		c = sccp_channel_find_byid(sccp_atoi(argv[2], strlen(argv[2]))) /*ref_replace*/;
 	}
 
-	if (c) {
-		if (c->state == SCCP_CHANNELSTATE_RINGING) {
-			AUTO_RELEASE(sccp_device_t, d , sccp_device_find_byid(argv[3], FALSE));
+	do {
+		if(!c || !c->line) {
+			pbx_log(LOG_WARNING, "SCCP: (sccp_answercall) Channel %s is not active\n", argv[2]);
+			snprintf(error, sizeof(error), "SCCP: (sccp_answercall) Channel %s is not active\n", argv[2]);
+			res = RESULT_FAILURE;
+			break;
+		}
+		AUTO_RELEASE(sccp_line_t, l, sccp_line_retain(c->line));
+		if(c->line->isShared && (argc < 4 || pbx_strlen_zero(argv[3]))) {
+			pbx_log(LOG_WARNING, "SCCP: (sccp_answercall) Channel %s is shared, to answer a device has to be specified.\n", argv[2]);
+			snprintf(error, sizeof(error), "SCCP: (sccp_answercall) Channel %s is shared, to answer a device has to be specified.\n", argv[2]);
+			res = RESULT_FAILURE;
+			break;
+		}
+		if(c->state == SCCP_CHANNELSTATE_RINGING) {
+			AUTO_RELEASE(sccp_device_t, d, NULL);
+			if(argc == 4 && !pbx_strlen_zero(argv[3])) {
+				d = sccp_device_find_byid(argv[3], FALSE);
+			} else if(!l->isShared) {
+				sccp_linedevice_t * ld = NULL;
+				SCCP_LIST_LOCK(&l->devices);
+				ld = SCCP_LIST_FIRST(&l->devices);
+				d = sccp_device_retain(ld->device);
+				SCCP_LIST_UNLOCK(&l->devices);
+			}
 			if (d) {
 				sccp_channel_answer(d, c);
-				if (c->owner) {
-					iPbx.queue_control(c->owner, AST_CONTROL_ANSWER);
-				}
 				res = RESULT_SUCCESS;
 			} else {
-				pbx_log(LOG_WARNING, "SCCP: (sccp_answercall) Device %s not found\n", argv[3]);
-				snprintf(error, sizeof(error), "SCCP: (sccp_answercall) Device %s not found\n", argv[3]);
+				pbx_log(LOG_WARNING, "SCCP: (sccp_answercall) Device %s not found\n", argc == 4 ? argv[3] : "");
+				snprintf(error, sizeof(error), "SCCP: (sccp_answercall) Device %s not found\n", argc == 4 ? argv[3] : "");
 				res = RESULT_FAILURE;
 			}
-		} else {
-			pbx_log(LOG_WARNING, "SCCP: (sccp_answercall) Channel %s needs to be ringing and incoming, to be answered\n", c->designator);
-			snprintf(error, sizeof(error), "SCCP: (sccp_answercall) Channel %s needs to be ringing and incoming, to be answered\n", c->designator);
-			res = RESULT_FAILURE;
+			break;
 		}
-	} else {
-		pbx_log(LOG_WARNING, "SCCP: (sccp_answercall) Channel %s is not active\n", argv[2]);
-		snprintf(error, sizeof(error), "SCCP: (sccp_answercall) Channel %s is not active\n", argv[2]);
+		pbx_log(LOG_WARNING, "SCCP: (sccp_answercall) Channel %s needs to be ringing and incoming, to be answered\n", c->designator);
+		snprintf(error, sizeof(error), "SCCP: (sccp_answercall) Channel %s needs to be ringing and incoming, to be answered\n", c->designator);
 		res = RESULT_FAILURE;
-	}
+		break;
+	} while(0);
 
 	if (res == RESULT_FAILURE && !sccp_strlen_zero(error)) {
 		CLI_AMI_RETURN_ERROR(fd, s, m, "%s\n", error);		/* explicit return */
@@ -3569,7 +3672,7 @@ static int sccp_answercall(int fd, sccp_cli_totals_t *totals, struct mansession 
 	return res;
 }
 
-static char cli_answercall_usage[] = "Usage: sccp answercall channelId deviceId\n"
+static char cli_answercall_usage[] = "Usage: sccp answer channelId [deviceId]\n"
 				     "       Answer a ringing incoming channel on device.\n";
 static char ami_answercall_usage[] = "Usage: SCCPAnswerCall1\n"
 				     "Answer a ringing incoming channel on device.\n\n"
@@ -3578,7 +3681,7 @@ static char ami_answercall_usage[] = "Usage: SCCPAnswerCall1\n"
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define CLI_COMMAND "sccp", "answer"
 #	define AMI_COMMAND    "SCCPAnswerCall1"
-#	define CLI_COMPLETE   SCCP_CLI_CHANNEL_COMPLETER, SCCP_CLI_CONNECTED_DEVICE_COMPLETER
+#	define CLI_COMPLETE   SCCP_CLI_RINGING_CHANNEL_COMPLETER, SCCP_CLI_CONNECTED_DEVICE_COMPLETER
 #	define CLI_AMI_PARAMS "ChannelId", "DeviceId"
 CLI_AMI_ENTRY(answercall, sccp_answercall, "Answer a ringing incoming channel on device", cli_answercall_usage, FALSE, FALSE)
 #undef CLI_AMI_PARAMS
@@ -3628,7 +3731,7 @@ static char end_call_usage[] = "Usage: sccp onhook <channelId>\n" "Hangup a chan
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define CLI_COMMAND "sccp", "onhook"
-#define CLI_COMPLETE SCCP_CLI_CHANNEL_COMPLETER
+#	define CLI_COMPLETE SCCP_CLI_CHANNEL_COMPLETER
 CLI_ENTRY(cli_end_call, sccp_end_call, "Hangup a channel", end_call_usage, FALSE)
 #undef CLI_COMMAND
 #undef CLI_COMPLETE

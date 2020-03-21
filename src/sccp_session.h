@@ -14,7 +14,9 @@ struct sccp_session;
 
 __BEGIN_C_EXTERN__
 SCCP_API void SCCP_CALL sccp_session_terminateAll(void);
-SCCP_API const char *const SCCP_CALL sccp_session_getDesignator(constSessionPtr session);
+SCCP_API const char * const SCCP_CALL sccp_session_getDesignator(constSessionPtr session);
+SCCP_API int SCCP_CALL sccp_session_waitForPendingRequests(sccp_session_t * s);
+uint16_t sccp_session_getPendingRequests(sccp_session_t * s);
 SCCP_API void SCCP_CALL sccp_session_sendmsg(constDevicePtr device, sccp_mid_t t);
 SCCP_API int SCCP_CALL sccp_session_send(constDevicePtr device, const sccp_msg_t * msg_in);
 SCCP_API int SCCP_CALL sccp_session_send2(constSessionPtr session, sccp_msg_t * msg);

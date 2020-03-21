@@ -121,7 +121,7 @@ gcc_inline static devicePtr check_session_message_device(constSessionPtr s, cons
 
 	if (msg && (GLOB(debug) & (DEBUGCAT_MESSAGE)) != 0) {
 		sccp_mid_t mid = letohl(msg->header.lel_messageId);
-		pbx_log(LOG_NOTICE, "%s: SCCP Handle Message: %s(0x%04X) %d bytes length\n", sccp_session_getDesignator(s), msgtype2str(mid), mid, msg->header.length);
+		pbx_log(LOG_NOTICE, "%s: SCCP Handle Message: %s(0x%04X) %d bytes length\n", sccp_session_getDesignator(s), msginfo2str(mid), mid, msg->header.length);
 		sccp_dump_msg(msg);
 	}
 
@@ -238,11 +238,11 @@ int sccp_handle_message(constMessagePtr msg, constSessionPtr s)
 		handle_unknown_message(s, NULL, msg);
 		return 0;
 	}
-	sccp_log((DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "%s: >> Got message %s (0x%X)\n", sccp_session_getDesignator(s), msgtype2str(mid), mid);
+	sccp_log((DEBUGCAT_MESSAGE))(VERBOSE_PREFIX_3 "%s: >> Got message %s (0x%X)\n", sccp_session_getDesignator(s), msginfo2str(mid), mid);
 
-	AUTO_RELEASE(sccp_device_t, device, check_session_message_device(s, msg, msgtype2str(mid), messageMap_cb->deviceIsNecessary));
+	AUTO_RELEASE(sccp_device_t, device, check_session_message_device(s, msg, msginfo2str(mid), messageMap_cb->deviceIsNecessary));
 	if (messageMap_cb->messageHandler_cb && messageMap_cb->deviceIsNecessary == TRUE && !device) {
-		pbx_log(LOG_ERROR, "SCCP: Device is required to handle this message %s(%x), but none is provided. Exiting sccp_handle_message\n", msgtype2str(mid), mid);
+		pbx_log(LOG_ERROR, "SCCP: Device is required to handle this message %s(%x), but none is provided. Exiting sccp_handle_message\n", msginfo2str(mid), mid);
 		return -3;
 	}
 	if (messageMap_cb->messageHandler_cb) {
@@ -322,7 +322,7 @@ void handle_unknown_message(constSessionPtr no_s, devicePtr no_d, constMessagePt
 {
 	sccp_mid_t mid = letohl(msg_in->header.lel_messageId);
 	if ((GLOB(debug) & DEBUGCAT_MESSAGE) != 0) {								// only show when debugging messages
-		pbx_log(LOG_WARNING, "Unhandled SCCP Message: %s(0x%04X) %d bytes length\n", msgtype2str(mid), mid, msg_in->header.length);
+		pbx_log(LOG_WARNING, "Unhandled SCCP Message: %s(0x%04X) %d bytes length\n", msginfo2str(mid), mid, msg_in->header.length);
 		sccp_dump_msg(msg_in);
 	}
 }
@@ -446,7 +446,7 @@ void handle_XMLAlarmMessage(constSessionPtr s, devicePtr no_d, constMessagePtr m
 		 */
 	}
 	if ((GLOB(debug) & DEBUGCAT_MESSAGE) != 0) {								// only show when debugging messages
-		pbx_log(LOG_WARNING, "SCCP XMLAlarm Message: %s(0x%04X) %d bytes length\n", msgtype2str(mid), mid, msg_in->header.length);
+		pbx_log(LOG_WARNING, "SCCP XMLAlarm Message: %s(0x%04X) %d bytes length\n", msginfo2str(mid), mid, msg_in->header.length);
 		sccp_dump_msg(msg_in);
 	}
 }
@@ -3392,7 +3392,7 @@ void handle_openReceiveChannelAck(constSessionPtr s, devicePtr d, constMessagePt
 	uint32_t callReference = 0;
 
 	uint32_t passThruPartyId = 0;
-	int resultingChannelState = SCCP_RTP_STATUS_INACTIVE;
+	int resultingChannelState = SCCP_RTP_STATUS_ERROR;
 
 	struct sockaddr_storage sas = { 0 };
 	d->protocol->parseOpenReceiveChannelAck(msg_in, &mediastatus, &sas, &passThruPartyId, &callReference);
@@ -3400,29 +3400,30 @@ void handle_openReceiveChannelAck(constSessionPtr s, devicePtr d, constMessagePt
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Got OpenChannel ACK. Status:'%s' (%d), Remote RTP/UDP:'%s', Type:%s, PassThruPartyId:%u, CallID:%u\n", d->id, skinny_mediastatus2str(mediastatus), mediastatus, sccp_netsock_stringify(&sas), (d->directrtp ? "DirectRTP" : "Indirect RTP"), passThruPartyId, callReference);
 
 	AUTO_RELEASE(sccp_channel_t, channel , __get_channel_from_callReference_or_passThruParty(d, callReference, 0, passThruPartyId));
-	if (do_expect(channel != NULL && channel->rtp.audio.reception.state & SCCP_RTP_STATUS_PROGRESS)) {
+	if(do_expect(channel != NULL && sccp_rtp_getState(&channel->rtp.audio, SCCP_RTP_RECEPTION) & SCCP_RTP_STATUS_PROGRESS)) {
+		sccp_rtp_t * audio = &(channel->rtp.audio);
 		switch (mediastatus) {
 			case SKINNY_MEDIASTATUS_Ok:
-				sccp_rtp_set_phone(channel, &channel->rtp.audio, &sas);
+				sccp_rtp_set_phone(channel, audio, &sas);
 				resultingChannelState = sccp_channel_receiveChannelOpen(d, channel);
 				break;
 			case SKINNY_MEDIASTATUS_DeviceOnHook:
 				sccp_log((DEBUGCAT_RTP))(VERBOSE_PREFIX_3 "%s: (OpenReceiveChannelAck) Device already hungup. Giving up.\n", d->id);
-				resultingChannelState = sccp_channel_closeAllMediaTransmitAndReceive(d, channel);
+				resultingChannelState = sccp_channel_closeAllMediaTransmitAndReceive(channel) | SCCP_RTP_STATUS_ERROR;
 				break;
 			case SKINNY_MEDIASTATUS_OutOfChannels:
 			case SKINNY_MEDIASTATUS_OutOfSockets:
 				pbx_log(LOG_NOTICE, "%s: Please Reset this Device. It ran out of Channels and/or Sockets\n", d->id);
-				resultingChannelState = sccp_channel_closeAllMediaTransmitAndReceive(d, channel);
+				resultingChannelState = sccp_channel_closeAllMediaTransmitAndReceive(channel) | SCCP_RTP_STATUS_ERROR;
 				sccp_channel_endcall(channel);
 				break;
 			default:
 				pbx_log(LOG_ERROR, "%s: Device returned: '%s' (%d) !. Giving up.\n", d->id, skinny_mediastatus2str(mediastatus), mediastatus);
-				resultingChannelState = sccp_channel_closeAllMediaTransmitAndReceive(d, channel);
+				resultingChannelState = sccp_channel_closeAllMediaTransmitAndReceive(channel) | SCCP_RTP_STATUS_ERROR;
 				sccp_channel_endcall(channel);
 				break;
 		}
-		channel->rtp.audio.reception.state = resultingChannelState;
+		sccp_rtp_setState(audio, SCCP_RTP_RECEPTION, resultingChannelState);
 	} else {
 		// we successfully opened receive channel, but have no channel active -> close receive (maybe the call was already (being) terminated)
 		if (mediastatus == SKINNY_MEDIASTATUS_Ok) {
@@ -3452,7 +3453,7 @@ void handle_startMediaTransmissionAck(constSessionPtr s, devicePtr d, constMessa
 	uint32_t passThruPartyId = 0;
 
 	uint32_t callReference1 = 0;
-	int resultingChannelState = SCCP_RTP_STATUS_INACTIVE;
+	int resultingChannelState = SCCP_RTP_STATUS_ERROR;
 
 	struct sockaddr_storage sas = { 0 };
 	d->protocol->parseStartMediaTransmissionAck(msg_in, &passThruPartyId, &callReference, &callReference1, &mediastatus, &sas);
@@ -3460,28 +3461,29 @@ void handle_startMediaTransmissionAck(constSessionPtr s, devicePtr d, constMessa
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Got startMediaTransmission ACK. Status:'%s' (%d), Remote RTP/UDP:'%s', Type:%s, PassThruPartyId:%u, CallID:%u, CallID1:%u\n", d->id, skinny_mediastatus2str(mediastatus), mediastatus, sccp_netsock_stringify(&sas), (d->directrtp ? "DirectRTP" : "Indirect RTP"), passThruPartyId, callReference, callReference1);
 
 	AUTO_RELEASE(sccp_channel_t, channel , __get_channel_from_callReference_or_passThruParty(d, callReference, callReference1, passThruPartyId));
-	if (do_expect(channel != NULL && channel->rtp.audio.transmission.state & SCCP_RTP_STATUS_PROGRESS)) {
+	if(do_expect(channel != NULL && sccp_rtp_getState(&channel->rtp.audio, SCCP_RTP_TRANSMISSION) & SCCP_RTP_STATUS_PROGRESS)) {
+		sccp_rtp_t * audio = &(channel->rtp.audio);
 		switch (mediastatus) {
 			case SKINNY_MEDIASTATUS_Ok:
 				resultingChannelState = sccp_channel_mediaTransmissionStarted(d, channel);
 				break;
 			case SKINNY_MEDIASTATUS_DeviceOnHook:
 				sccp_log((DEBUGCAT_RTP))(VERBOSE_PREFIX_3 "%s: (startMediaTransmissionAck) Device already hungup. Giving up.\n", d->id);
-				resultingChannelState = sccp_channel_closeAllMediaTransmitAndReceive(d, channel);
+				resultingChannelState = sccp_channel_closeAllMediaTransmitAndReceive(channel) | SCCP_RTP_STATUS_ERROR;
 				break;
 			case SKINNY_MEDIASTATUS_OutOfChannels:
 			case SKINNY_MEDIASTATUS_OutOfSockets:
 				pbx_log(LOG_NOTICE, "%s: Please Reset this Device. It ran out of Channels and/or Sockets\n", d->id);
-				resultingChannelState = sccp_channel_closeAllMediaTransmitAndReceive(d, channel);
+				resultingChannelState = sccp_channel_closeAllMediaTransmitAndReceive(channel) | SCCP_RTP_STATUS_ERROR;
 				sccp_channel_endcall(channel);
 				break;
 			default:
 				pbx_log(LOG_ERROR, "%s: Device returned: '%s' (%d) !. Giving up.\n", d->id, skinny_mediastatus2str(mediastatus), mediastatus);
-				resultingChannelState = sccp_channel_closeAllMediaTransmitAndReceive(d, channel);
+				resultingChannelState = sccp_channel_closeAllMediaTransmitAndReceive(channel) | SCCP_RTP_STATUS_ERROR;
 				sccp_channel_endcall(channel);
 				break;
 		}
-		channel->rtp.audio.transmission.state = resultingChannelState;
+		sccp_rtp_setState(audio, SCCP_RTP_TRANSMISSION, resultingChannelState);
 	} else {
 		// we successfully opened receive channel, but have no channel active -> close receive (maybe the call was already (being) terminated)
 		if (mediastatus == SKINNY_MEDIASTATUS_Ok) {
@@ -3515,7 +3517,7 @@ void handle_OpenMultiMediaReceiveAck(constSessionPtr s, devicePtr d, constMessag
 	uint32_t callReference = 0;
 
 	uint32_t passThruPartyId = 0;
-	int resultingChannelState = SCCP_RTP_STATUS_INACTIVE;
+	int resultingChannelState = SCCP_RTP_STATUS_ERROR;
 
 	struct sockaddr_storage sas = { 0 };
 	d->protocol->parseOpenMultiMediaReceiveChannelAck(msg_in, &mediastatus, &sas, &passThruPartyId, &callReference);
@@ -3523,7 +3525,8 @@ void handle_OpenMultiMediaReceiveAck(constSessionPtr s, devicePtr d, constMessag
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Got Open MultiMedia Channel ACK. Status:'%s' (%d), Remote RTP/UDP:'%s', Type:%s, PassThruPartyId:%u, CallID:%u\n", d->id, skinny_mediastatus2str(mediastatus), mediastatus, sccp_netsock_stringify(&sas), (d->directrtp ? "DirectRTP" : "Indirect RTP"), passThruPartyId, callReference);
 
 	AUTO_RELEASE(sccp_channel_t, channel , __get_channel_from_callReference_or_passThruParty(d, callReference, 0, passThruPartyId));
-	if (do_expect(channel != NULL && channel->rtp.video.reception.state & SCCP_RTP_STATUS_PROGRESS)) {
+	if(do_expect(channel != NULL && sccp_rtp_getState(&channel->rtp.video, SCCP_RTP_RECEPTION) & SCCP_RTP_STATUS_PROGRESS)) {
+		sccp_rtp_t * video = &(channel->rtp.video);
 		switch (mediastatus) {
 			case SKINNY_MEDIASTATUS_Ok:
 				sccp_rtp_set_phone(channel, &channel->rtp.video, &sas);
@@ -3548,7 +3551,7 @@ void handle_OpenMultiMediaReceiveAck(constSessionPtr s, devicePtr d, constMessag
 				sccp_channel_endcall(channel);
 				break;
 		}
-		channel->rtp.video.reception.state = resultingChannelState;
+		sccp_rtp_setState(video, SCCP_RTP_RECEPTION, resultingChannelState);
 	} else {
 		// we successfully opened receive channel, but have no channel active -> close receive (maybe the call was already (being) terminated)
 		if (mediastatus == SKINNY_MEDIASTATUS_Ok) {
@@ -3579,14 +3582,15 @@ void handle_startMultiMediaTransmissionAck(constSessionPtr s, devicePtr d, const
 	uint32_t callReference = 0;
 
 	uint32_t callReference1 = 0;
-	int resultingChannelState = SCCP_RTP_STATUS_INACTIVE;
+	int resultingChannelState = SCCP_RTP_STATUS_ERROR;
 
 	d->protocol->parseStartMultiMediaTransmissionAck(msg_in, &passThruPartyId, &callReference, &callReference1, &mediastatus, &sas);
 
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Got Start MultiMedia Transmission ACK. Status:'%s' (%d), Remote RTP/UDP:'%s', Type:%s, PassThruPartyId:%u, CallID:%u/CallID1:%u\n", d->id, skinny_mediastatus2str(mediastatus), mediastatus, sccp_netsock_stringify(&sas), (d->directrtp ? "DirectRTP" : "Indirect RTP"), passThruPartyId, callReference, callReference1);
 
 	AUTO_RELEASE(sccp_channel_t, channel , __get_channel_from_callReference_or_passThruParty(d, callReference, callReference1, passThruPartyId));
-	if (do_expect(channel != NULL && channel->rtp.video.transmission.state & SCCP_RTP_STATUS_PROGRESS)) {
+	if(do_expect(channel != NULL && sccp_rtp_getState(&channel->rtp.video, SCCP_RTP_TRANSMISSION) & SCCP_RTP_STATUS_PROGRESS)) {
+		sccp_rtp_t * video = &(channel->rtp.video);
 		switch (mediastatus) {
 			case SKINNY_MEDIASTATUS_Ok:
 				//sccp_rtp_set_phone(channel, &channel->rtp.video, &sas);
@@ -3612,7 +3616,7 @@ void handle_startMultiMediaTransmissionAck(constSessionPtr s, devicePtr d, const
 				sccp_channel_endcall(channel);
 				break;
 		}
-		channel->rtp.video.transmission.state = resultingChannelState;
+		sccp_rtp_setState(video, SCCP_RTP_TRANSMISSION, resultingChannelState);
 	} else {
 		// we successfully opened receive channel, but have no channel active -> close receive (maybe the call was already (being) terminated)
 		if (mediastatus == SKINNY_MEDIASTATUS_Ok) {
@@ -4715,13 +4719,7 @@ void handle_miscellaneousCommandMessage(constSessionPtr s, devicePtr d, constMes
 			case SKINNY_MISCCOMMANDTYPE_VIDEOFREEZEPICTURE:
 				break;
 			case SKINNY_MISCCOMMANDTYPE_VIDEOFASTUPDATEPICTURE:
-				{
-					struct sockaddr_in addr_in = { 0 };
-					memcpy(&addr_in.sin_addr, &msg_in->data.MiscellaneousCommandMessage.data.videoFastUpdatePicture.bel_remoteIpAddr, sizeof(addr_in.sin_addr));
-					sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: videoFastUpdatePicture ip:%s, value1: %u, value2: %u, value3: %u, value4: %u\n",
-								  channel ? channel->currentDeviceId : "--", pbx_inet_ntoa(addr_in.sin_addr), letohl(msg_in->data.MiscellaneousCommandMessage.data.videoFastUpdatePicture.lel_value1), letohl(msg_in->data.MiscellaneousCommandMessage.data.videoFastUpdatePicture.lel_value2), letohl(msg_in->data.MiscellaneousCommandMessage.data.videoFastUpdatePicture.lel_value3), letohl(msg_in->data.MiscellaneousCommandMessage.data.videoFastUpdatePicture.lel_value4)
-					    );
-				}
+				iPbx.queue_control(channel->owner, AST_CONTROL_VIDUPDATE);
 				break;
 			case SKINNY_MISCCOMMANDTYPE_VIDEOFASTUPDATEGOB:		/* Group Of Pictures */
 				sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: VideoFastUpdateGob, firstGOB: %d, numberOfGOBs: %d\n",

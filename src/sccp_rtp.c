@@ -239,6 +239,71 @@ void sccp_rtp_destroy(constChannelPtr c)
 	}
 }
 
+sccp_rtp_status_t sccp_rtp_getState(constRtpPtr rtp, sccp_rtp_dir_t dir)
+{
+	SCOPED_MUTEX(rtplock, (ast_mutex_t *)&rtp->lock);
+	const sccp_rtp_direction_t * const direction = (dir == SCCP_RTP_RECEPTION) ? &rtp->reception : &rtp->transmission;
+	return direction->_state;
+}
+
+sccp_rtp_status_t sccp_rtp_areBothInvalid(constRtpPtr rtp)
+{
+	SCOPED_MUTEX(rtplock, (ast_mutex_t *)&rtp->lock);
+	return !rtp->reception._state && !rtp->transmission._state;
+}
+
+void sccp_rtp_appendState(rtpPtr rtp, sccp_rtp_dir_t dir, sccp_rtp_status_t state)
+{
+	SCOPED_MUTEX(rtplock, (ast_mutex_t *)&rtp->lock);
+	sccp_rtp_direction_t * direction = (dir == SCCP_RTP_RECEPTION) ? &rtp->reception : &rtp->transmission;
+	direction->_state |= state;
+}
+
+void sccp_rtp_subtractState(rtpPtr rtp, sccp_rtp_dir_t dir, sccp_rtp_status_t state)
+{
+	SCOPED_MUTEX(rtplock, (ast_mutex_t *)&rtp->lock);
+	sccp_rtp_direction_t * direction = (dir == SCCP_RTP_RECEPTION) ? &rtp->reception : &rtp->transmission;
+	direction->_state &= ~state;
+}
+
+void sccp_rtp_setState(rtpPtr rtp, sccp_rtp_dir_t dir, sccp_rtp_status_t newstate)
+{
+	SCOPED_MUTEX(rtplock, (ast_mutex_t *)&rtp->lock);
+	sccp_rtp_direction_t * direction = (dir == SCCP_RTP_RECEPTION) ? &rtp->reception : &rtp->transmission;
+	direction->_state = newstate;
+}
+
+void sccp_rtp_setCallback(rtpPtr rtp, sccp_rtp_dir_t dir, scpp_rtp_direction_cb_t cb)
+{
+	SCOPED_MUTEX(rtplock, (ast_mutex_t *)&rtp->lock);
+	sccp_rtp_direction_t * direction = (dir == SCCP_RTP_RECEPTION) ? &rtp->reception : &rtp->transmission;
+	direction->cb = cb;
+}
+
+/* Note: this does unset callback in the process */
+/* Note: We should maybe move the callback to sccp_rtp_t instead of sccp_rtp_direction_t because it get's a little confusing in sccp_indicate CONNECTED */
+static scpp_rtp_direction_cb_t rtp_fetchActiveCallback(rtpPtr rtp, sccp_rtp_dir_t dir)
+{
+	SCOPED_MUTEX(rtplock, (ast_mutex_t *)&rtp->lock);
+	scpp_rtp_direction_cb_t callback = NULL;
+	sccp_rtp_direction_t * direction = (dir == SCCP_RTP_RECEPTION) ? &rtp->reception : &rtp->transmission;
+	if(direction->cb && (direction->_state & SCCP_RTP_STATUS_ACTIVE) == SCCP_RTP_STATUS_ACTIVE) {
+		callback = direction->cb;
+		direction->cb = NULL;
+	}
+	return callback;
+}
+
+boolean_t sccp_rtp_runCallback(rtpPtr rtp, sccp_rtp_dir_t dir, constChannelPtr channel)
+{
+	scpp_rtp_direction_cb_t callback = NULL;
+	if((callback = rtp_fetchActiveCallback(rtp, dir))) {
+		callback(channel);                                        // note callback has to be called without rtp lock held
+		return TRUE;
+	}
+	return FALSE;
+}
+
 /*!
  * \brief update the phones destination address (it's peer)
  * \param c SCCP Channel
@@ -262,7 +327,7 @@ void sccp_rtp_set_peer(constChannelPtr c, rtpPtr rtp, struct sockaddr_storage * 
 	memcpy(&rtp->phone_remote, new_peer, sizeof rtp->phone_remote);
 	pbx_log(LOG_NOTICE, "%s: ( sccp_rtp_set_peer ) Set new remote address to %s\n", c->currentDeviceId, sccp_netsock_stringify(&rtp->phone_remote));
 
-	if (rtp->transmission.state != SCCP_RTP_STATUS_INACTIVE) {
+	if(sccp_rtp_getState(rtp, SCCP_RTP_TRANSMISSION)) {
 		/* Shutdown any early-media or previous media on re-invite */
 		/*! \todo we should wait for the acknowledgement to get back. We don't have a function/procedure in place to do this at this moment in time (sccp_dev_send_wait) */
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_rtp_set_peer) Restart media transmission on channel %d\n", c->currentDeviceId, c->callid);

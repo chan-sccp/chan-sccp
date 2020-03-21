@@ -6,11 +6,18 @@ Version: v4.3.2_DEV
    - Shared line barge
    - CLI: callforward
    - CLI: microphone
+   - CLI: tab completions
+   - CLI: answer
    - Improved Video Handling
    - Added support for asterisk-17
+   - Improved Answer Handling
+   - Improved Hangup Handling
+   - Fixing potential race conditions during answer/hangup
 
  - Fixed:
    - One way audio issues
+   - Race Condition when multiple phones answer the same incoming call
+     (huntgroup/parallel dial)
    - Congestion signallling after EndCall Softkey
    - Rtp receive channel left open after call hangup -> causing phone to run
      out of rtp channels. (under some circumstances).

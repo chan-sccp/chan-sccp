@@ -533,22 +533,26 @@ channelPtr sccp_pbx_hangup(constChannelPtr channel)
 	pbx_update_use_count();
 
 	AUTO_RELEASE(sccp_channel_t, c , sccp_channel_retain(channel));
-
 	if (!c) {
 		sccp_log_and((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: Asked to hangup channel. SCCP channel already deleted\n");
 		return NULL;
 	}
 	c->isHangingUp = TRUE;
+	sccp_log_and((DEBUGCAT_PBX + DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "%s: Asked to hangup channel.\n", c->designator);
 
 	AUTO_RELEASE(sccp_device_t, d , sccp_channel_getDevice(c));
-
-	if (d && !SCCP_CHANNELSTATE_Idling(c->state) && SKINNY_DEVICE_RS_OK == sccp_device_getRegistrationState(d)) {
-		// if (GLOB(remotehangup_tone) && d && d->state == SCCP_DEVICESTATE_OFFHOOK && c == sccp_device_getActiveChannel_nolock(d))	/* Caused active channels never to be full released */
-		if (GLOB(remotehangup_tone) && d && SCCP_DEVICESTATE_OFFHOOK == sccp_device_getDeviceState(d) && SCCP_CHANNELSTATE_IsConnected(c->state) && c == d->active_channel) {
-			uint16_t instance = sccp_device_find_index_for_line(d, c->line->name);
-			sccp_dev_starttone(d, GLOB(remotehangup_tone), instance, c->callid, SKINNY_TONEDIRECTION_USER);
-		}
-		//sccp_indicate(d, c, SCCP_CHANNELSTATE_ONHOOK);
+	if(d && d->session) {
+		sccp_session_waitForPendingRequests(d->session);
+		/*		if (
+					GLOB(remotehangup_tone) &&
+					SKINNY_DEVICE_RS_OK == sccp_device_getRegistrationState(d) &&
+					SCCP_DEVICESTATE_OFFHOOK == sccp_device_getDeviceState(d) &&
+					SCCP_CHANNELSTATE_IsConnected(c->state) &&
+					c == d->active_channel
+				) {
+					uint16_t instance = sccp_device_find_index_for_line(d, c->line->name);
+					sccp_dev_starttone(d, GLOB(remotehangup_tone), instance, c->callid, SKINNY_TONEDIRECTION_USER);
+				}*/
 	}
 
 	AUTO_RELEASE(sccp_line_t, l , sccp_line_retain(c->line));
@@ -562,49 +566,38 @@ channelPtr sccp_pbx_hangup(constChannelPtr channel)
 	}
 #endif														// CS_SCCP_CONFERENCE
 	if (c->rtp.audio.instance || c->rtp.video.instance) {
-		sccp_channel_closeAllMediaTransmitAndReceive(d, c);
+		sccp_channel_closeAllMediaTransmitAndReceive(c);
 	}
 
 	// removing scheduled dialing
 	sccp_channel_stop_schedule_digittimout(c);
 	sccp_channel_stop_schedule_cfwd_noanswer(c);
 
-	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Current channel %s state %s(%d)\n", (d) ? DEV_ID_LOG(d) : "(null)", c->designator, sccp_channelstate2str(c->state), c->state);
+	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "%s: Current pbxchannelstate %s(%d)\n", c->designator, sccp_channelstate2str(c->state), c->state);
 
 	/* end callforwards */
 	sccp_channel_end_forwarding_channel(c);
 
 	/* cancel transfer if in progress */
-	sccp_channel_transfer_cancel(d, c);
+	if(d) {
+		sccp_channel_transfer_cancel(d, c);
+	}
 
-	/* remove call from transferee, transferer */
-	sccp_linedevice_t * ld = NULL;
 	if (l) {
+		/* remove call from transferee, transferer */
+		sccp_linedevice_t * ld = NULL;
 		SCCP_LIST_LOCK(&l->devices);
 		SCCP_LIST_TRAVERSE(&l->devices, ld, list) {
 			AUTO_RELEASE(sccp_device_t, tmpDevice, sccp_device_retain(ld->device));
-
+			if(!d && tmpDevice && SKINNY_DEVICE_RS_OK == sccp_device_getRegistrationState(tmpDevice)) {
+				d = sccp_device_retain(tmpDevice);
+			}
 			if (tmpDevice) {
 				sccp_channel_transfer_release(tmpDevice, c); /* explicit release required here */
 			}
 		}
 		SCCP_LIST_UNLOCK(&l->devices);
-		/* done - remove call from transferee, transferer */
-
 		sccp_line_removeChannel(l, c);
-
-		if (!d) {
-			/* channel is not answered, just ringin over all devices */
-			/* find the first the device on which it is registered and hangup that one (__sccp_indicate_remote_device will do the rest) */
-			SCCP_LIST_LOCK(&l->devices);
-			SCCP_LIST_TRAVERSE(&l->devices, ld, list) {
-				if(ld->device && SKINNY_DEVICE_RS_OK == sccp_device_getRegistrationState(ld->device)) {
-					d = sccp_device_retain(ld->device) /*ref_replace*/;
-					break;
-				}
-			}
-			SCCP_LIST_UNLOCK(&l->devices);
-		}
 	}
 
 	if (d) {
@@ -627,7 +620,7 @@ channelPtr sccp_pbx_hangup(constChannelPtr channel)
 }
 
 /*!
- * \brief Answer an Asterisk Channel
+ * \brief Asterisk Channel as been answered by remote
  * \note we have no bridged channel at this point
  *
  * \param channel SCCCP channel
@@ -640,25 +633,23 @@ channelPtr sccp_pbx_hangup(constChannelPtr channel)
  *
  * \todo masquarade does not succeed when forwarding to a dialplan extension which starts with PLAYBACK (Is this still the case, i think this might have been resolved ?? - DdG -)
  */
-int sccp_pbx_answer(constChannelPtr channel)
+int sccp_pbx_remote_answer(constChannelPtr channel)
 {
 	int res = -1;
 
-	sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "SCCP: sccp_pbx_answer\n");
-
 	/* \todo perhaps we should lock channel here. */
 	AUTO_RELEASE(sccp_channel_t, c , sccp_channel_retain(channel));
-
-	if (!c) {
+	if(!c || !c->owner) {
 		return res;
 	}
+	sccp_log((DEBUGCAT_PBX))(VERBOSE_PREFIX_2 "%s: (%s) Remote end has answered the call.\n", c->designator, __func__);
 
 	sccp_channel_stop_schedule_cfwd_noanswer(c);
 
-	sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: sccp_pbx_answer checking parent channel\n", c->currentDeviceId);
+	// sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: sccp_pbx_answer checking parent channel\n", c->currentDeviceId);
 	if (c->parentChannel) {										// containing a retained channel, final release at the end
 		/* we are a forwarded call, bridge me with my parent (the forwarded channel will take the place of the forwarder.) */
-		sccp_log((DEBUGCAT_PBX))(VERBOSE_PREFIX_3 "%s: handling forwarded call\n", c->designator);
+		sccp_log((DEBUGCAT_PBX))(VERBOSE_PREFIX_3 "%s: (%s) handling forwarded call\n", c->designator, __func__);
 
 		pbx_channel_lock(c->parentChannel->owner);
 		PBX_CHANNEL_TYPE * forwarder = pbx_channel_ref(c->parentChannel->owner);
@@ -672,7 +663,7 @@ int sccp_pbx_answer(constChannelPtr channel)
 
 		PBX_CHANNEL_TYPE * destination = NULL;
 		if(sccp_strlen_zero(destinationChannelName) || !iPbx.getChannelByName(destinationChannelName, &destination)) {
-			pbx_log(LOG_NOTICE, "Could not retrieve channel for destination: %s", destinationChannelName);
+			pbx_log(LOG_NOTICE, "%s: (%s) Could not retrieve channel for destination: %s", c->designator, __func__, destinationChannelName);
 			return -2;
 		}
 		/*
@@ -692,14 +683,14 @@ int sccp_pbx_answer(constChannelPtr channel)
 			// retrieve channel by name which will replace in the forwarded channel
 			sccp_channel_release(&c->parentChannel);
 			if(destination) {
-				sccp_log((DEBUGCAT_PBX))(VERBOSE_PREFIX_3 "%s: handling forwarded call. Replace %s with %s.\n", c->designator, pbx_channel_name(forwarder), pbx_channel_name(destination));
+				sccp_log((DEBUGCAT_PBX))(VERBOSE_PREFIX_3 "%s: (%s) handling forwarded call. Replace %s with %s.\n", c->designator, __func__, pbx_channel_name(forwarder), pbx_channel_name(destination));
 #if ASTERISK_VERSION_GROUP < 116
 				/* set the channel and the bridge to state UP to fix problem with fast pickup / autoanswer */
 				pbx_setstate(tmp_channel, AST_STATE_UP);
 				pbx_setstate(destination, AST_STATE_UP);
 #endif
 				if(!iPbx.masqueradeHelper(destination, forwarder)) {
-					pbx_log(LOG_ERROR, "(sccp_pbx_answer) Failed to masquerade bridge into forwarded channel\n");
+					pbx_log(LOG_ERROR, "%s: (%s) Failed to masquerade bridge into forwarded channel\n", c->designator, __func__);
 					if(destination) {
 						pbx_channel_unref(destination);
 					}
@@ -710,15 +701,15 @@ int sccp_pbx_answer(constChannelPtr channel)
 				// Note: destination has taken the place of forwarder
 				pbx_indicate(forwarder, AST_CONTROL_CONNECTED_LINE);
 #endif
-				sccp_log((DEBUGCAT_PBX))(VERBOSE_PREFIX_4 "(sccp_pbx_answer) Masqueraded into %s\n", pbx_channel_name(forwarder));
+				sccp_log((DEBUGCAT_PBX))(VERBOSE_PREFIX_4 "%s: (%s) Masqueraded into %s\n", c->designator, __func__, pbx_channel_name(forwarder));
 				res = 0;
 			} else {
-				pbx_log(LOG_ERROR, "%s: Could not retrieve forwarding channel by name:%s: -> Hangup\n", c->designator, destinationChannelName);
+				pbx_log(LOG_ERROR, "%s: (%s) Could not retrieve forwarding channel by name:%s: -> Hangup\n", c->designator, __func__, destinationChannelName);
 				if(pbx_channel_state(tmp_channel) == AST_STATE_RING && pbx_channel_state(forwarder) == AST_STATE_DOWN && iPbx.getChannelPbx(c)) {
 					sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_4 "SCCP: Receiver Hungup: (hasPBX: %s)\n", iPbx.getChannelPbx(c) ? "yes" : "no");
 					pbx_channel_set_hangupcause(forwarder, AST_CAUSE_CALL_REJECTED);
 				} else {
-					pbx_log(LOG_ERROR, "%s: We did not find bridge channel for call forwarding call. Hangup\n", c->currentDeviceId);
+					pbx_log(LOG_ERROR, "%s: (%s) We did not find bridge channel for call forwarding call. Hangup\n", c->currentDeviceId, __func__);
 					pbx_channel_set_hangupcause(forwarder, AST_CAUSE_REQUESTED_CHAN_UNAVAIL);
 					sccp_channel_endcall(c);
 				}
@@ -734,9 +725,7 @@ int sccp_pbx_answer(constChannelPtr channel)
 			pbx_channel_unref(tmp_channel);
 		}
 	} else {
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_answer) Outgoing call %s being answered by remote party\n", c->currentDeviceId, iPbx.getChannelName(c));
-		//sccp_channel_updateChannelCapability(c);
-
+		sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: (%s) Outgoing call %s being answered by remote party\n", c->currentDeviceId, __func__, iPbx.getChannelName(c));
 		AUTO_RELEASE(sccp_device_t, d , sccp_channel_getDevice(c));
 		if (d) {
 			if (d->earlyrtp == SCCP_EARLYRTP_IMMEDIATE) {
@@ -755,36 +744,24 @@ int sccp_pbx_answer(constChannelPtr channel)
 					iPbx.set_dialed_number(c, c->dialedNumber);
 				}
 			}
-			
-			sccp_indicate(d, c, SCCP_CHANNELSTATE_PROCEED);
-			if (SCCP_RTP_STATUS_INACTIVE == c->rtp.audio.reception.state) {
-				sccp_channel_openReceiveChannel(c);
-			} else if ((c->rtp.audio.reception.state & SCCP_RTP_STATUS_ACTIVE) && SCCP_RTP_STATUS_INACTIVE == c->rtp.audio.transmission.state) {
-				sccp_channel_startMediaTransmission(c);
-			}
-#if CS_SCCP_VIDEO
-			if (sccp_channel_getVideoMode(c) == SCCP_VIDEO_MODE_AUTO && sccp_device_isVideoSupported(d) && c->preferences.video[0] != SKINNY_CODEC_NONE) {
-				if (SCCP_RTP_STATUS_INACTIVE == c->rtp.video.reception.state) {
-					sccp_channel_openMultiMediaReceiveChannel(c);
-				} else if ((c->rtp.video.reception.state & SCCP_RTP_STATUS_ACTIVE) && SCCP_RTP_STATUS_INACTIVE == c->rtp.video.transmission.state) {
-					sccp_channel_startMultiMediaTransmission(c);
-				}
-			}
-#endif
-#if CS_SCCP_CONFERENCE 
+
+#if CS_SCCP_CONFERENCE
 			sccp_indicate(d, c, d->conference ? SCCP_CHANNELSTATE_CONNECTEDCONFERENCE : SCCP_CHANNELSTATE_CONNECTED);
 #else
 			sccp_indicate(d, c, SCCP_CHANNELSTATE_CONNECTED);
 #endif
 			/** check for monitor request */
-			if (d && (d->monitorFeature.status & SCCP_FEATURE_MONITOR_STATE_REQUESTED) && !(d->monitorFeature.status & SCCP_FEATURE_MONITOR_STATE_ACTIVE)) {
-				pbx_log(LOG_NOTICE, "%s: request monitor\n", d->id);
+			if((d->monitorFeature.status & SCCP_FEATURE_MONITOR_STATE_REQUESTED) && !(d->monitorFeature.status & SCCP_FEATURE_MONITOR_STATE_ACTIVE)) {
+				pbx_log(LOG_NOTICE, "%s: (%s) request monitor/record\n", d->id, __func__);
 				sccp_feat_monitor(d, NULL, 0, c);
 			}
+
+			sccp_log(DEBUGCAT_PBX)(VERBOSE_PREFIX_3 "%s: (%s) Switching to STATE_UP\n", c->designator, __func__);
+			iPbx.set_callstate(c, AST_STATE_UP);
 			res = 0;
 		}
 
-		if (c->rtp.video.reception.state & SCCP_RTP_STATUS_ACTIVE) {
+		if((sccp_rtp_getState(&c->rtp.video, SCCP_RTP_RECEPTION) & SCCP_RTP_STATUS_ACTIVE)) {
 			iPbx.queue_control(c->owner, AST_CONTROL_VIDUPDATE);
 		}
 	}
@@ -1021,12 +998,13 @@ boolean_t sccp_pbx_channel_allocate(constChannelPtr channel, const void * ids, c
 				pbx_log(LOG_WARNING, "%s: Error opening RTP instance for channel %s\n", d->id, c->designator);
 				goto error_exit;
 			}
-#if CS_SCCP_VIDEO
-			if (sccp_channel_getVideoMode(c) != SCCP_VIDEO_MODE_OFF && sccp_device_isVideoSupported(d) && c->preferences.video[0] != SKINNY_CODEC_NONE && !c->rtp.video.instance && !sccp_rtp_createServer(d, c, SCCP_RTP_VIDEO)) {
-				pbx_log(LOG_WARNING, "%s: Error opening VRTP instance for channel %s\n", d->id, c->designator);
-				sccp_channel_setVideoMode(c, "off");
-			}
-#endif
+			/*
+			#if CS_SCCP_VIDEO
+						if (sccp_channel_getVideoMode(c) != SCCP_VIDEO_MODE_OFF && sccp_device_isVideoSupported(d) && c->preferences.video[0] != SKINNY_CODEC_NONE && !c->rtp.video.instance &&
+			!sccp_rtp_createServer(d, c, SCCP_RTP_VIDEO)) { pbx_log(LOG_WARNING, "%s: Error opening VRTP instance for channel %s\n", d->id, c->designator); sccp_channel_setVideoMode(c, "off");
+						}
+			#endif
+			*/
 		}
 		// export sccp informations in asterisk dialplan
 		pbx_builtin_setvar_helper(tmp, "SCCP_DEVICE_MAC", d->id);
