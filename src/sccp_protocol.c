@@ -2035,13 +2035,6 @@ gcc_inline const char * msginfo2str(sccp_mid_t msgId)
 {														/* sccp_protocol.h */
 	struct messageinfo * info = lookupMsgInfoStruct(msgId);
 	return info->text;
-	/*	if(msgId >= SPCP_MESSAGE_OFFSET && (msgId - SPCP_MESSAGE_OFFSET) < ARRAY_LEN(spcp_messageinfo)) {
-			return spcp_messageinfo[msgId - SPCP_MESSAGE_OFFSET].text;
-		}
-		if(msgId < ARRAY_LEN(sccp_messageinfo)) {
-			return sccp_messageinfo[msgId].text;
-		}*/
-	return "SCCP: Requested MessageId does not exist";
 }
 
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;
