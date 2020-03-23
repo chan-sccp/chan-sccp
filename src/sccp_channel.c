@@ -1855,7 +1855,6 @@ int sccp_channel_hold(channelPtr channel)
 
 	sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Hold the channel %s\n", d->id, channel->designator);
 
-	channel->state = SCCP_CHANNELSTATE_HOLD;
 #ifdef CS_SCCP_CONFERENCE
 	if (channel->conference) {
 		sccp_conference_hold(channel->conference);
