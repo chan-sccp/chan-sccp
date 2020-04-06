@@ -163,6 +163,7 @@ int sccp_session_waitForPendingRequests(sccp_session_t * s)
 		sccp_log(DEBUGCAT_SOCKET)(VERBOSE_PREFIX_3 "%s: Waiting for %d Pending Requests!\n", s->designator, s->requestsInFlight);
 		if(pbx_cond_timedwait(&s->pendingRequest, &s->lock, &timeout_spec) == ETIMEDOUT) {
 			pbx_log(LOG_WARNING, "%s: waitForPendingRequests timed out!\n", s->designator);
+			s->requestsInFlight = 0;
 			return s->requestsInFlight;
 		}
 	}
@@ -184,7 +185,9 @@ static void request_pending(sccp_session_t * s)
 static void response_received(sccp_session_t * s)
 {
 	SCOPED_SESSION(s);
-	s->requestsInFlight--;
+	if(s->requestsInFlight) {
+		s->requestsInFlight--;
+	}
 	pbx_cond_broadcast(&s->pendingRequest);
 }
 
