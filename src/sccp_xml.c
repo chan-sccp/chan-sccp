@@ -233,6 +233,7 @@ static void __attribute__((constructor)) init_xml(void)
 
 static void __attribute__((destructor)) destroy_xml(void)
 {
+	xsltCleanupGlobals();
 	xmlCleanupParser();
 	xmlMemoryDump();
 	xmlCleanupGlobals();

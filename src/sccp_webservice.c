@@ -168,12 +168,12 @@ static boolean_t parse_http_conf(char *const uri_str)
 					ast_log(LOG_WARNING, "Invalid port %s specified. Using default port %"PRId32, v->value, DEFAULT_PORT);
 					break;
 				}
-			} else if (!strcasecmp(v->name, "bindaddr")) {
+			} else if(!strcasecmp(v->name, "bindaddr") && !num_addrs) {
 				if (!(num_addrs = ast_sockaddr_resolve(&addr, v->value, 0, AST_AF_UNSPEC))) {
 					ast_log(LOG_WARNING, "Invalid bind address %s\n", v->value);
 					break;
 				}
-			} else if (!strcasecmp(v->name, "prefix")) {
+			} else if(!strcasecmp(v->name, "prefix")) {
 				if (!ast_strlen_zero(v->value)) {
 					prefix[0] = '/';
 					ast_copy_string(prefix + 1, v->value, sizeof(prefix) - 1);
@@ -195,9 +195,8 @@ static boolean_t parse_http_conf(char *const uri_str)
 		pbx_log(LOG_NOTICE, "SCCP: http.conf file not found or invalid\n");
 	}
 	if (addr) {
-		ast_free(addr);
+		sccp_free(addr);
 	}
-	
 	return result;
 }
 

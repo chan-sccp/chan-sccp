@@ -302,6 +302,10 @@ int sccp_preUnload(void)
 	if (GLOB(localaddr)) {
 		sccp_free_ha(GLOB(localaddr));
 	}
+	if(GLOB(cfg)) {
+		pbx_config_destroy(GLOB(cfg));
+		GLOB(cfg) = NULL;
+	}
 	sccp_config_cleanup_dynamically_allocated_memory(sccp_globals, SCCP_CONFIG_GLOBAL_SEGMENT);
 	/* */
 

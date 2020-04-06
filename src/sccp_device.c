@@ -2650,7 +2650,7 @@ int __sccp_device_destroy(const void *ptr)
 	}
 
 #ifdef CS_AST_HAS_STASIS_ENDPOINT
-	if (iPbx.endpoint_shutdown) {
+	if(iPbx.endpoint_shutdown && d->endpoint) {
 		iPbx.endpoint_shutdown(&d->endpoint);
 	}
 #endif
