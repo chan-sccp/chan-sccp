@@ -2223,8 +2223,6 @@ static boolean_t sccp_astwrap_setWriteFormat(const sccp_channel_t * channel, ski
 	struct ast_format_cap * cap = ast_format_cap_alloc_nolock();
 
 	ast_format_set(&tmp_format, skinny_codec2pbx_codec(codec), 0);
-	if (tmp_format == ast_format_none)
-		return FALSE;
 
 	ast_format_cap_add(cap, &tmp_format);
 	ast_set_write_format_from_cap(channel->owner, cap);
@@ -2246,8 +2244,6 @@ static boolean_t sccp_astwrap_setReadFormat(const sccp_channel_t * channel, skin
 	struct ast_format_cap * cap = ast_format_cap_alloc_nolock();
 
 	ast_format_set(&tmp_format, skinny_codec2pbx_codec(codec), 0);
-	if (tmp_format == ast_format_none)
-		return FALSE;
 
 	ast_format_cap_add(cap, &tmp_format);
 	ast_set_read_format_from_cap(channel->owner, cap);
