@@ -256,7 +256,7 @@ void sccp_line_clean(linePtr l, boolean_t remove_from_global)
 			event->lineInstance.line = sccp_line_retain(l);
 			sccp_event_fire(event);
 		}
-		sccp_line_removeFromGlobals(l);									// final release
+		sccp_line_removeFromGlobals(l);					// final release
 	}
 }
 
@@ -313,15 +313,28 @@ int __sccp_line_destroy(const void *ptr)
 		sccp_free(l->regcontext);
 	}
 
-	// destroy lists
+	// destroy attached channels (if any / should be none)
+	SCCP_LIST_LOCK(&l->channels);
+	sccp_channel_t *channel;
+	while ((channel = SCCP_LIST_REMOVE_HEAD(&l->channels, list))) {
+		sccp_channel_release(&channel);
+	}
 	if (!SCCP_LIST_EMPTY(&l->channels)) {
 		pbx_log(LOG_WARNING, "%s: (line_destroy) there are connected channels left during line destroy\n", l->name);
 	}
+	SCCP_LIST_UNLOCK(&l->channels);
 	SCCP_LIST_HEAD_DESTROY(&l->channels);
 
-	if (!SCCP_LIST_EMPTY(&l->devices)) {
-		pbx_log(LOG_WARNING, "%s: (line_destroy) there are connected device left during line destroy\n", l->name);
+	// destroy attached devices (if any / should be none)
+	SCCP_LIST_LOCK(&l->devices);
+	sccp_linedevice_t *linedevice;
+	while ((linedevice = SCCP_LIST_REMOVE_HEAD(&l->devices, list))) {
+		sccp_linedevice_release(&linedevice);
 	}
+	if (!SCCP_LIST_EMPTY(&l->devices)) {
+		pbx_log(LOG_WARNING, "%s: (line_destroy) there are connected linedevices left during line destroy\n", l->name);
+	}
+	SCCP_LIST_UNLOCK(&l->devices);
 	SCCP_LIST_HEAD_DESTROY(&l->devices);
 
 	return 0;

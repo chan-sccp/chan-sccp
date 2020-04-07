@@ -280,7 +280,7 @@ void sccp_refcount_destroy(void)
 	ast_rwlock_unlock(&objectslock);
 	pbx_rwlock_destroy(&objectslock);
 	if (numObjects) {
-		pbx_log(LOG_WARNING, "SCCP: (Refcount) Note: We found %d objects which had to be forcefulfy removed during refcount shutdown, see above.\n", numObjects);
+		pbx_log(LOG_WARNING, "SCCP: (Refcount) Note: We found %d objects which had to be forcefully removed during refcount shutdown, see above.\n", numObjects);
 	}
 #if CS_REFCOUNT_DEBUG
 	if (sccp_ref_debug_log) {

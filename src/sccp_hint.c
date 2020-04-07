@@ -1419,7 +1419,7 @@ static void sccp_hint_notifyLineStateUpdate(struct sccp_hint_lineState *lineStat
 	{
 		AUTO_RELEASE(sccp_line_t, line , lineState->line ? sccp_line_retain(lineState->line) : NULL);
 		if (line) {
-			snprintf(lineName, sizeof(lineName), "SCCP/%s", lineState->line->name);
+			snprintf(lineName, sizeof(lineName), "SCCP/%s", line->name);
 		} else {
 			return;
 		}

@@ -274,23 +274,29 @@ static void createSubscription(sccp_mailbox_t * mailbox, constLinePtr line)
 static void removeSubscription(sccp_mailbox_t * mailbox, constLinePtr line)
 {
 	mwi_subscription_t *removed = NULL;
+	boolean_t found_one = FALSE;
 	sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_2 "%s: (mwi::%s) uniqueid:%s\n",
 		line->name, __PRETTY_FUNCTION__, mailbox->uniqueid);
-	subscription_lock();
-	for (uint32_t idx = 0; idx < SCCP_VECTOR_SIZE(&subscriptions); idx++) {
-		mwi_subscription_t *subscription = SCCP_VECTOR_GET(&subscriptions, idx);
-		if (subscription->mailbox == mailbox && subscription->line == line) {
-			SCCP_VECTOR_REMOVE_UNORDERED(&subscriptions, idx);
-			removed = subscription;
-			break;
+
+	do {
+		found_one = FALSE;
+		subscription_lock();
+		for(uint32_t idx = 0; idx < SCCP_VECTOR_SIZE(&subscriptions); idx++) {
+			mwi_subscription_t * subscription = SCCP_VECTOR_GET(&subscriptions, idx);
+			if(subscription->mailbox == mailbox && subscription->line == line) {
+				SCCP_VECTOR_REMOVE_UNORDERED(&subscriptions, idx);
+				removed = subscription;
+				found_one = TRUE;
+				break;
+			}
 		}
-	}
-	subscription_unlock();
-	if (removed) {
-		pbxMailboxUnsubscribe(removed);
-		sccp_line_release(&removed->line);
-		sccp_free(removed);
-	}
+		subscription_unlock();
+		if(removed) {
+			pbxMailboxUnsubscribe(removed);
+			sccp_line_release(&removed->line);
+			sccp_free(removed);
+		}
+	} while (found_one);
 }
 
 /*!

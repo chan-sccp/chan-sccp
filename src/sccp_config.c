@@ -475,27 +475,18 @@ static sccp_configurationchange_t sccp_config_object_setValue(void * const obj, 
 			changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 			str = *(char **) dst;
 
-			if (!sccp_strlen_zero(value)) {
-				if (str) {
-					if(strcasecmp(str, value) != 0) {
-						changed = SCCP_CONFIG_CHANGE_CHANGED;
-						/* there is a value already, free it */
-						sccp_free(str);
-						*(void **) dst = pbx_strdup(value);
-					}
-				} else {
-					changed = SCCP_CONFIG_CHANGE_CHANGED;
-					*(void **) dst = pbx_strdup(value);
-				}
-
-			} else if (str) {
+			if (!sccp_strequals(str, value)) {
+				//pbx_log(LOG_NOTICE, "SCCP: Adding %s='%s' -> '%s'\n", name, str, value);
 				changed = SCCP_CONFIG_CHANGE_CHANGED;
-				/* there is a value already, free it */
-				sccp_free(str);
-				if (value == NULL) {
-					*(void **) dst = NULL;
-				} else {
+			}
+			if (SCCP_CONFIG_CHANGE_CHANGED == changed) {
+				if (str) {
+					sccp_free(str);
+				}
+				if (value) {
 					*(void **) dst = pbx_strdup(value);
+				} else {
+					*(void **) dst = NULL;
 				}
 			}
 			break;
