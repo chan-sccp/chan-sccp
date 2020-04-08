@@ -476,12 +476,12 @@ static sccp_configurationchange_t sccp_config_object_setValue(void * const obj, 
 			str = *(char **) dst;
 
 			if (!sccp_strequals(str, value)) {
-				pbx_log(LOG_NOTICE, "SCCP: Adding %s='%s' -> '%s'\n", name, str, value);
+				// pbx_log(LOG_NOTICE, "SCCP: Adding %s='%s' -> '%s'\n", name, str, value);
 				changed = SCCP_CONFIG_CHANGE_CHANGED;
 			}
 			if (SCCP_CONFIG_CHANGE_CHANGED == changed) {
-				if (str) {
-					sccp_free(str);
+				if(*(void **)dst) {
+					sccp_free(*(void **)dst);
 				}
 				if (value) {
 					*(void **) dst = pbx_strdup(value);
@@ -848,7 +848,7 @@ void sccp_config_cleanup_dynamically_allocated_memory(void * const obj, const sc
 			dst = ((uint8_t *) obj) + sccpConfigOption[i].offset;
 			str = *(char **) dst;
 			if (str) {
-				pbx_log(LOG_NOTICE, "SCCP: Freeing %s='%s'\n", sccpConfigOption[i].name, str);
+				// pbx_log(LOG_NOTICE, "SCCP: Freeing %s='%s'\n", sccpConfigOption[i].name, str);
 				sccp_free(str);
 				str = NULL;
 			}
