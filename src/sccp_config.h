@@ -56,7 +56,7 @@ typedef enum {
 	/* *INDENT-ON* */
 } sccp_config_file_status_t;
 
-SCCP_API sccp_config_file_status_t SCCP_CALL sccp_config_getConfig(boolean_t force);
+SCCP_API sccp_config_file_status_t SCCP_CALL sccp_config_getConfig(boolean_t force, char * filename);
 SCCP_API sccp_configurationchange_t SCCP_CALL sccp_config_applyGlobalConfiguration(PBX_VARIABLE_TYPE * v);
 SCCP_API sccp_configurationchange_t SCCP_CALL sccp_config_applyLineConfiguration(linePtr l, PBX_VARIABLE_TYPE * v);
 SCCP_API sccp_configurationchange_t SCCP_CALL sccp_config_applyDeviceConfiguration(devicePtr d, PBX_VARIABLE_TYPE * v);

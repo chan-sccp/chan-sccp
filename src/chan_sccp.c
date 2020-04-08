@@ -66,7 +66,7 @@ int load_config(void)
 #else
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "Platform byte order   : BIG ENDIAN\n");
 #endif
-	if (sccp_config_getConfig(TRUE) > CONFIG_STATUS_FILE_OK) {
+	if(sccp_config_getConfig(TRUE, "sccp.conf") > CONFIG_STATUS_FILE_OK) {
 		pbx_log(LOG_ERROR, "Error loading configfile !\n");
 		return FALSE;
 	}
@@ -333,7 +333,7 @@ int sccp_reload(void)
 		goto EXIT;
 	}
 
-	sccp_config_file_status_t cfg = sccp_config_getConfig(FALSE);
+	sccp_config_file_status_t cfg = sccp_config_getConfig(FALSE, GLOB(config_file_name));
 
 	switch (cfg) {
 		case CONFIG_STATUS_FILE_NOT_CHANGED:
