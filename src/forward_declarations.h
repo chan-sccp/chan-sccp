@@ -1,3 +1,15 @@
+/*!
+ * \file	forward_declarations.h
+ * \brief	Forward Declarations
+ * \author	Diederik de Groot <ddegroot [at] users.sourceforge.net>
+ * \note	This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ *		See the LICENSE file at the top of the source tree.
+ *
+ * $Date$
+ * $Revision$
+ */
+#pragma once
+
 __BEGIN_C_EXTERN__
 /* global types */
 #if defined(HAVE_UNALIGNED_BUSERROR)										// for example sparc64
