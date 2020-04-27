@@ -88,6 +88,26 @@ static void setMicrophoneState(channelPtr c, boolean_t enabled)
 	}
 }
 
+static void setEarlyRTP(channelPtr c, boolean_t state)
+{
+	pbx_assert(c != NULL);
+	c->wantsEarlyRTP = state ? sccp_always_true : sccp_always_false;
+}
+
+static void setProgressSent(channelPtr c)
+{
+	pbx_assert(c != NULL);
+	if(!sccp_rtp_getState(&c->rtp.audio, SCCP_RTP_RECEPTION)) {
+		sccp_channel_openReceiveChannel(c);
+	}
+#if CS_SCCP_VIDEO
+	if(!sccp_rtp_getState(&c->rtp.video, SCCP_RTP_RECEPTION) && sccp_channel_getVideoMode(c) != SCCP_VIDEO_MODE_OFF) {
+		sccp_channel_openMultiMediaReceiveChannel(c);
+	}
+#endif
+	c->progressSent = sccp_always_true;
+}
+
 /*!
  * \brief Allocate SCCP Channel on Device
  * \param l SCCP Line
@@ -196,6 +216,10 @@ channelPtr sccp_channel_allocate(constLinePtr l, constDevicePtr device)
 		channel->isMicrophoneEnabled = sccp_always_true;
 		channel->isHangingUp = FALSE;
 		channel->isRunningPbxThread = FALSE;
+		channel->wantsEarlyRTP = sccp_always_false;
+		channel->setEarlyRTP = setEarlyRTP;
+		channel->progressSent = sccp_always_false;
+		channel->setProgressSent = setProgressSent;
 		channel->setMicrophone = setMicrophoneState;
 		channel->hangupRequest = sccp_astgenwrap_requestQueueHangup;
 		//channel->privacy = (device && (device->privacyFeature.status & SCCP_PRIVACYFEATURE_CALLPRESENT)) ? TRUE : FALSE;
@@ -324,6 +348,7 @@ void sccp_channel_setDevice(channelPtr channel, constDevicePtr device)
 #endif
 		sccp_copy_string(channel->currentDeviceId, channel->privateData->device->id, sizeof(char[StationMaxDeviceNameSize]));
 		channel->dtmfmode = channel->privateData->device->getDtmfMode(channel->privateData->device);
+		channel->setEarlyRTP(channel, channel->privateData->device->earlyrtp != SCCP_EARLYRTP_NONE);
 		return;
 	}
 EXIT:
@@ -337,6 +362,7 @@ EXIT:
 	// sccp_line_copyMinimumCodecSetFromLineToChannel(l, c); 
 	sccp_copy_string(channel->currentDeviceId, "SCCP", sizeof(char[StationMaxDeviceNameSize]));
 	channel->dtmfmode = SCCP_DTMFMODE_RFC2833;
+	channel->setEarlyRTP(channel, false);
 }
 
 static void sccp_channel_recalculateAudioCodecFormat(channelPtr channel)
@@ -1542,14 +1568,14 @@ channelPtr sccp_channel_newcall(constLinePtr l, constDevicePtr device, const cha
 	iPbx.set_callstate(channel, AST_STATE_OFFHOOK);
 	if (dial) {
 		sccp_indicate(device, channel, SCCP_CHANNELSTATE_SPEEDDIAL);
-		if (device->earlyrtp <= SCCP_EARLYRTP_OFFHOOK && !channel->rtp.audio.instance) {
+		if(channel->wantsEarlyRTP) {
 			sccp_channel_openReceiveChannel(channel);
 		}
 		sccp_copy_string(channel->dialedNumber, dial, sizeof(channel->dialedNumber));
 		sccp_pbx_softswitch(channel);									/* we know the number to dial -> softswitch */
 	} else {
 		sccp_indicate(device, channel, SCCP_CHANNELSTATE_OFFHOOK);
-		if (device->earlyrtp <= SCCP_EARLYRTP_OFFHOOK && !channel->rtp.audio.instance) {
+		if(channel->wantsEarlyRTP) {
 			sccp_channel_openReceiveChannel(channel);
 		}
 		if (device->earlyrtp == SCCP_EARLYRTP_IMMEDIATE) {

@@ -98,6 +98,10 @@ struct sccp_channel {
 	void (*setMicrophone)(channelPtr c, boolean_t on);
 	boolean_t (*hangupRequest) (constChannelPtr channel);
 	boolean_t (*isMicrophoneEnabled) (void);
+	boolean_t (*wantsEarlyRTP)(void);
+	boolean_t (*progressSent)(void);
+	void (*setEarlyRTP)(channelPtr c, boolean_t state);
+	void (*setProgressSent)(channelPtr c);
 	const char *const musicclass;										/*!< Music Class */
 
 	sccp_channel_t *parentChannel;										/*!< if we are a cfwd channel, our parent is this */
