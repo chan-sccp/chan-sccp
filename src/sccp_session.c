@@ -97,8 +97,7 @@ sccp_servercontext_t * sccp_servercontext_create(struct sockaddr_storage * binda
 	context->stopListening = sccp_servercontext_stopListening;
 	context->sc.fd = -1;
 	context->accept_tid = AST_PTHREADT_NULL;
-	sccp_servercontext_reload(context, bindaddr);
-	return context;
+	return sccp_servercontext_reload(context, bindaddr) ? context : FALSE;
 }
 
 int sccp_servercontext_stopListening(sccp_servercontext_t * context)
