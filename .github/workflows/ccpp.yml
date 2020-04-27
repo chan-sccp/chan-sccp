@@ -9,8 +9,10 @@ jobs:
     
     steps:
     - uses: actions/checkout@v1
+    - name: Update apt
+      run: sudo apt update
     - name: Install Dependencies
-      run: sudo apt install asterisk asterisk-dev asterisk-config asterisk-tests asterisk-testsuite asttest automake autoconf libtool gawk libxml2-dev libxslt1-dev xsltproc
+      run: sudo apt install asterisk asterisk-dev asterisk-config asterisk-tests asterisk-testsuite asttest automake autoconf libtool gawk libxml2-dev libxslt1-dev xsltproc libssl-dev 
     - name: configure
       run: ./configure --enable-conference --enable-devdoc --with-hash-size=3001 --enable-experimental-xml --enable-video
     - name: make
