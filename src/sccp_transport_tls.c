@@ -145,32 +145,43 @@ static int tls_listen(sccp_socket_connection_t * sc, int backlog)
 static sccp_socket_connection_t * tls_accept(sccp_socket_connection_t * in_sc, struct sockaddr * addr, socklen_t * addrlen, sccp_socket_connection_t * out_sc)
 {
 	unsigned long ssl_err;
+	int newfd = 0;
+	SSL * ssl = NULL;
 	// sccp_log(DEBUGCAT_SOCKET)(VERBOSE_PREFIX_1 "TLS Transport accept...\n");
-	int newfd = accept(in_sc->fd, addr, addrlen);
-	if(newfd < 0) {
-		pbx_log(LOG_ERROR, "Error accepting new socket %s on fd:%d\n", strerror(errno), in_sc->fd);
-		return NULL;
-	}
+	do {
+		newfd = accept(in_sc->fd, addr, addrlen);
+		if(newfd < 0) {
+			pbx_log(LOG_ERROR, "Error accepting new socket %s on fd:%d\n", strerror(errno), in_sc->fd);
+			break;
+		}
 
-	SSL * ssl = SSL_new(sslctx);
-	if(!ssl) {
-		pbx_log(LOG_ERROR, "Error creating new SSL structure\n");
-		write_openssl_error_to_log();
-		return NULL;
-	}
+		ssl = SSL_new(sslctx);
+		if(!ssl) {
+			pbx_log(LOG_ERROR, "Error creating new SSL structure\n");
+			break;
+		}
 
-	SSL_set_fd(ssl, newfd);
-	ssl_err = SSL_accept(ssl);
-	if(ssl_err <= 0) {
-		pbx_log(LOG_ERROR, "SSL Error occured: %lu '%s'.\n", ssl_err, ERR_reason_error_string(ssl_err));
+		SSL_set_fd(ssl, newfd);
+		ssl_err = SSL_accept(ssl);
+		if(ssl_err <= 0) {
+			pbx_log(LOG_ERROR, "SSL Error occured: %lu '%s'.\n", ssl_err, ERR_reason_error_string(ssl_err));
+			break;
+		}
+		out_sc->fd = newfd;
+		out_sc->ssl = ssl;
+		sccp_log(DEBUGCAT_SOCKET)(VERBOSE_PREFIX_1 "TLS Transport accept returning:%d...\n", newfd);
+		return out_sc;
+	} while(0);
+
+	// cleanup:
+	if(ssl) {
 		write_openssl_error_to_log();
 		ShutdownSSL(ssl);
-		return NULL;
 	}
-	out_sc->fd = newfd;
-	out_sc->ssl = ssl;
-	sccp_log(DEBUGCAT_SOCKET)(VERBOSE_PREFIX_1 "TLS Transport accept returning:%d...\n", newfd);
-	return out_sc;
+	if(newfd) {
+		close(newfd);
+	}
+	return NULL;
 }
 
 static int tls_recv(sccp_socket_connection_t * sc, void * buf, size_t buflen, int flags)
