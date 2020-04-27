@@ -32526,7 +32526,7 @@ ac_config_commands="$ac_config_commands .revision"
 
 ac_config_commands="$ac_config_commands src/sccp_enum.h"
 
-ac_config_files="$ac_config_files Makefile README doc/Makefile src/Makefile src/pbx_impl/Makefile src/pbx_impl/ast/Makefile src/pbx_impl/ast_announce/Makefile src/pbx_impl/ast${ASTERISK_VER_GROUP}/Makefile contrib/gen_sccpconf/Makefile"
+ac_config_files="$ac_config_files Makefile doc/Makefile src/Makefile src/pbx_impl/Makefile src/pbx_impl/ast/Makefile src/pbx_impl/ast_announce/Makefile src/pbx_impl/ast${ASTERISK_VER_GROUP}/Makefile contrib/gen_sccpconf/Makefile"
 
 
 	 if test "$PBX_TYPE" == "Asterisk"; then
@@ -33980,7 +33980,6 @@ do
     ".revision") CONFIG_COMMANDS="$CONFIG_COMMANDS .revision" ;;
     "src/sccp_enum.h") CONFIG_COMMANDS="$CONFIG_COMMANDS src/sccp_enum.h" ;;
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
-    "README") CONFIG_FILES="$CONFIG_FILES README" ;;
     "doc/Makefile") CONFIG_FILES="$CONFIG_FILES doc/Makefile" ;;
     "src/Makefile") CONFIG_FILES="$CONFIG_FILES src/Makefile" ;;
     "src/pbx_impl/Makefile") CONFIG_FILES="$CONFIG_FILES src/pbx_impl/Makefile" ;;
