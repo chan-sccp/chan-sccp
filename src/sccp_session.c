@@ -739,7 +739,7 @@ void *sccp_session_device_thread(void *session)
 	pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED, NULL);
 	pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
 
-	struct pollfd fds[1] = { 0 };
+	struct pollfd fds[1] = { { 0 } };
 	fds[0].events = POLLIN | POLLPRI;
 	fds[0].revents = 0;
 	fds[0].fd = s->sc.fd;
