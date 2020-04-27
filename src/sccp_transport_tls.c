@@ -178,7 +178,7 @@ static sccp_socket_connection_t * tls_accept(sccp_socket_connection_t * in_sc, s
 		write_openssl_error_to_log();
 		ShutdownSSL(ssl);
 	}
-	if(newfd) {
+	if(newfd > 0) {
 		close(newfd);
 	}
 	return NULL;
