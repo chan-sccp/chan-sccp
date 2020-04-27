@@ -16,6 +16,7 @@ __BEGIN_C_EXTERN__
 SCCP_API char SCCP_VERSIONSTR[300];
 SCCP_API char SCCP_REVISIONSTR[30];
 
+typedef struct sccp_servercontext sccp_servercontext_t;
 /*!
  * \brief SCCP device-line subscriptionId
  * \note for addressing individual devices on shared line
@@ -43,7 +44,6 @@ struct sccp_global_vars {
 	pthread_t monitor_thread;										/*!< Monitor Thread */
 	sccp_mutex_t monitor_lock;										/*!< Monitor Asterisk Lock */
 #endif
-
 	sccp_threadpool_t *general_threadpool;									/*!< General Work Threadpool */
 
 	SCCP_RWLIST_HEAD (, sccp_session_t) sessions;								/*!< SCCP Sessions */
@@ -60,8 +60,12 @@ struct sccp_global_vars {
 
 	char dateformat[SCCP_MAX_DATE_FORMAT];									/*!< Date Format */
 
+	sccp_servercontext_t * srvcontexts[2];
+
 	struct sccp_ha *ha;											/*!< Permit or deny connections to the main socket */
 	struct sockaddr_storage bindaddr;									/*!< Bind IP Address */
+	struct sockaddr_storage secbindaddr;                                                                    /*!< Bind IP Address */
+	char * cert_file;
 	struct sccp_ha *localaddr;										/*!< Localnet for Network Address Translation */
 
 	struct sockaddr_storage externip;									/*!< External IP Address (\todo should change to an array of external ip's, because externhost could resolv to multiple ip-addresses (h_addr_list)) */

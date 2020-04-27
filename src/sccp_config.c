@@ -476,12 +476,12 @@ static sccp_configurationchange_t sccp_config_object_setValue(void * const obj, 
 			str = *(char **) dst;
 
 			if (!sccp_strequals(str, value)) {
-				//pbx_log(LOG_NOTICE, "SCCP: Adding %s='%s' -> '%s'\n", name, str, value);
+				// pbx_log(LOG_NOTICE, "SCCP: Adding %s='%s' -> '%s'\n", name, str, value);
 				changed = SCCP_CONFIG_CHANGE_CHANGED;
 			}
 			if (SCCP_CONFIG_CHANGE_CHANGED == changed) {
-				if (str) {
-					sccp_free(str);
+				if(*(void **)dst) {
+					sccp_free(*(void **)dst);
 				}
 				if (value) {
 					*(void **) dst = pbx_strdup(value);
@@ -848,7 +848,7 @@ void sccp_config_cleanup_dynamically_allocated_memory(void * const obj, const sc
 			dst = ((uint8_t *) obj) + sccpConfigOption[i].offset;
 			str = *(char **) dst;
 			if (str) {
-				//pbx_log(LOG_NOTICE, "SCCP: Freeing %s='%s'\n", sccpConfigOption[i].name, str);
+				// pbx_log(LOG_NOTICE, "SCCP: Freeing %s='%s'\n", sccpConfigOption[i].name, str);
 				sccp_free(str);
 				str = NULL;
 			}
@@ -2107,9 +2107,9 @@ sccp_value_changed_t sccp_config_addButton(sccp_buttonconfig_list_t *buttonconfi
 		case LINE:
 		{
 			char extension[SCCP_MAX_EXTENSION];
-			sccp_subscription_id_t *subscriptionId = (sccp_subscription_id_t *)sccp_malloc(sizeof(sccp_subscription_id_t));
+			sccp_subscription_id_t * subscriptionId = (sccp_subscription_id_t *)sccp_calloc(1, sizeof(sccp_subscription_id_t));
 			if (!subscriptionId) {
-				pbx_log(LOG_ERROR, "SCCP: could not allocate memory. giving up\n");
+				pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, "SCCP");
 				return SCCP_CONFIG_CHANGE_INVALIDVALUE;
  			}
 			if (sccp_parseComposedId(name, 80, subscriptionId, extension)) {;
@@ -2385,6 +2385,14 @@ boolean_t sccp_config_general(sccp_readingtype_t readingtype)
 		in->sin_port = ntohs(DEFAULT_SCCP_PORT);
 		GLOB(bindaddr).ss_family = AF_INET;
 	}
+#ifdef HAVE_OPENSSL
+	if(!sccp_netsock_getPort(&GLOB(secbindaddr))) {
+		struct sockaddr_in * in = (struct sockaddr_in *)&GLOB(secbindaddr);
+
+		in->sin_port = ntohs(DEFAULT_SCCP_SECURE_PORT);
+		GLOB(secbindaddr).ss_family = AF_INET;
+	}
+#endif
 
 	sccp_configurationchange_t res = sccp_config_applyGlobalConfiguration(v);
 
@@ -2772,7 +2780,7 @@ sccp_configurationchange_t sccp_config_applyDeviceConfiguration(devicePtr d, PBX
  * \brief Find the Correct Config File
  * \return Asterisk Config Object as ast_config
  */
-sccp_config_file_status_t sccp_config_getConfig(boolean_t force)
+sccp_config_file_status_t sccp_config_getConfig(boolean_t force, char * filename)
 {
 	// struct ast_flags config_flags = { CONFIG_FLAG_WITHCOMMENTS & CONFIG_FLAG_FILEUNCHANGED };
 	sccp_config_file_status_t res = 0;
@@ -2784,27 +2792,22 @@ sccp_config_file_status_t sccp_config_getConfig(boolean_t force)
 		}
 		pbx_clear_flag(&config_flags, CONFIG_FLAG_FILEUNCHANGED);
 	}
-
-	if (sccp_strlen_zero(GLOB(config_file_name))) {
-		GLOB(config_file_name) = pbx_strdup("sccp.conf");
+	if(sccp_strlen_zero(filename)) {
+		filename = pbx_strdupa("sccp.conf");
 	}
+	if(GLOB(config_file_name)) {
+		sccp_free(GLOB(config_file_name));
+	}
+	GLOB(config_file_name) = pbx_strdup(filename);
 	GLOB(cfg) = pbx_config_load(GLOB(config_file_name), "chan_sccp", config_flags);
 	if (GLOB(cfg) == CONFIG_STATUS_FILEMISSING) {
 		pbx_log(LOG_ERROR, "Config file '%s' not found, aborting (re)load.\n", GLOB(config_file_name));
 		GLOB(cfg) = NULL;
-		if (GLOB(config_file_name)) {
-			sccp_free(GLOB(config_file_name));
-		}
-		GLOB(config_file_name) = pbx_strdup("sccp.conf");
 		res = CONFIG_STATUS_FILE_NOT_FOUND;
 		goto FUNC_EXIT;
 	} else if (GLOB(cfg) == CONFIG_STATUS_FILEINVALID) {
 		pbx_log(LOG_ERROR, "Config file '%s' specified is not a valid config file, aborting (re)load.\n", GLOB(config_file_name));
 		GLOB(cfg) = NULL;
-		if (GLOB(config_file_name)) {
-			sccp_free(GLOB(config_file_name));
-		}
-		GLOB(config_file_name) = pbx_strdup("sccp.conf");
 		res = CONFIG_STATUS_FILE_INVALID;
 		goto FUNC_EXIT;
 	} else if (GLOB(cfg) == CONFIG_STATUS_FILEUNCHANGED) {

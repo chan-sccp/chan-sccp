@@ -10,9 +10,27 @@
  */
 #pragma once
 #include "sccp_cli.h"
+#include "sccp_transport.h"
+//#include "sccp_protocol.h"
 struct sccp_session;
 
 __BEGIN_C_EXTERN__
+typedef struct sccp_servercontext sccp_servercontext_t;
+typedef enum {
+	SCCP_SERVERCONTEXT_TCP = 0,
+#ifdef HAVE_OPENSSL
+	SCCP_SERVERCONTEXT_TLS = 1,
+#endif
+} sccp_servercontexttype_t;
+
+SCCP_API sccp_servercontext_t * SCCP_CALL sccp_servercontext_create(struct sockaddr_storage * bindaddr, sccp_servercontexttype_t type);
+SCCP_API int SCCP_CALL sccp_servercontext_stopListening(sccp_servercontext_t * context);
+SCCP_API int SCCP_CALL sccp_servercontext_destroy(sccp_servercontext_t * context);
+SCCP_API int SCCP_CALL sccp_servercontext_reload(sccp_servercontext_t * context, struct sockaddr_storage * bindaddr);
+SCCP_API int SCCP_CALL sccp_session_getFD(sccp_session_t * s);
+SCCP_API void SCCP_CALL sccp_session_setFD(sccp_session_t * s, int fd);
+SCCP_API ssl_t * SCCP_CALL sccp_session_getSSL(sccp_session_t * s);
+SCCP_API void SCCP_CALL sccp_session_setSSL(sccp_session_t * s, ssl_t * ssl);
 SCCP_API void SCCP_CALL sccp_session_terminateAll(void);
 SCCP_API const char * const SCCP_CALL sccp_session_getDesignator(constSessionPtr session);
 SCCP_API int SCCP_CALL sccp_session_waitForPendingRequests(sccp_session_t * s);
@@ -41,7 +59,7 @@ SCCP_API devicePtr SCCP_CALL sccp_session_getDevice(constSessionPtr session, boo
 SCCP_API boolean_t SCCP_CALL sccp_session_isValid(constSessionPtr session);
 SCCP_API int SCCP_CALL sccp_cli_show_sessions(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[]);
 
-SCCP_API boolean_t SCCP_CALL sccp_session_bind_and_listen(struct sockaddr_storage *bindaddr);
-SCCP_API void SCCP_CALL sccp_session_stop_accept_thread(void);
+SCCP_API boolean_t SCCP_CALL sccp_session_bind_and_listen(sccp_servercontext_t * context, struct sockaddr_storage * bindaddr);
+SCCP_API void SCCP_CALL sccp_session_stop_accept_thread(sccp_servercontext_t * context);
 __END_C_EXTERN__
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

@@ -204,6 +204,7 @@ AC_DEFUN([CS_FIND_PROGRAMS], [
 	AC_PATH_PROGS([TR],[tr],[No])
 	AC_PATH_PROGS([AWK],[gawk awk],[No])
 	AC_PATH_PROGS([PKGCONFIG],[pkg-config],[No])
+	AC_PATH_PROGS([OPENSSL], [openssl], [No])
 	AC_PROG_CC([clang llvm-gcc gcc])
 	AC_PROG_CC_C_O
 	AC_PROG_GCC_TRADITIONAL
@@ -255,6 +256,29 @@ dnl	])
 	AC_CHECK_HEADERS([netinet/in.h fcntl.h sys/signal.h stdio.h errno.h ctype.h assert.h sys/sysinfo.h])
 	AC_STRUCT_TM
 	AC_STRUCT_TIMEZONE
+	CS_WITH_LIBSSL
+])
+
+AC_DEFUN([CS_DISABLE_TLS], [
+	AC_ARG_ENABLE(tls, 
+		[AC_HELP_STRING([--disable-tls], [disable Transport Layer Security (EXPERIMENTAL)])], 
+		[ac_cv_tls=$enableval], 
+		[ac_cv_tls=yes]
+	)
+	AS_IF([test "${ac_cv_tls}" == "yes"], [
+		AS_IF([test "${ac_cv_tls}" == "yes"], [
+			AC_DEFINE(CS_TLS, 1, [Transport Layer Security (EXPERIMENTAL) enabled])
+		])
+	])
+dnl	AC_MSG_RESULT([--enable-tls: ${ac_cv_tls}])
+])
+
+AC_DEFUN([CS_WITH_LIBSSL], [
+	CS_DISABLE_TLS
+	if test "x${ac_cv_tls}" = "xyes"; then
+		AC_CHECK_LIB([crypto], [EVP_EncryptInit], [], AC_MSG_FAILURE([can't find openssl crypto lib]))
+		AC_CHECK_LIB([ssl], [SSL_CTX_new], [], AC_MSG_FAILURE([can't find openssl ssl lib]))
+	fi
 ])
 
 AC_DEFUN([CS_CHECK_CROSSCOMPILE],[
@@ -1088,11 +1112,13 @@ AC_DEFUN([CS_WITH_HASH_SIZE], [
 	AC_MSG_RESULT([--with-hash-size: ${ac_cv_set_hashsize}])
 ])
 
+
 AC_DEFUN([CS_PARSE_WITH_AND_ENABLE], [
 	CS_DISABLE_SECTION_RELOCATION
 	AC_MSG_RESULT([--enable-optimization: ${enable_optimization}]) 
 	AC_MSG_RESULT([--enable-debug: ${enable_debug}])
 	AC_MSG_RESULT([--enable-devdoc: ${ac_cv_use_devdoc}])
+	AC_MSG_RESULT([--enable-tls: ${ac_cv_tls}])
 	CS_ENABLE_GCOV
 	CS_ENABLE_REFCOUNT_DEBUG
 	CS_ENABLE_ASTOBJ_REFCOUNT
@@ -1222,3 +1248,4 @@ AC_DEFUN([CS_PARSE_WITH_LIBEV], [
 	AC_SUBST([EVENT_CFLAGS])
 	AC_SUBST([EVENT_TYPE])
 ])
+

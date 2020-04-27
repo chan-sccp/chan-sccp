@@ -612,6 +612,10 @@ static int sccp_show_globals(int fd, sccp_cli_totals_t *totals, struct mansessio
 #endif
 	CLI_AMI_OUTPUT_PARAM("Server Name", CLI_AMI_LIST_WIDTH, "%s", GLOB(servername));
 	CLI_AMI_OUTPUT_PARAM("Bind Address", CLI_AMI_LIST_WIDTH, "%s", sccp_netsock_stringify(&GLOB(bindaddr)));
+#ifdef HAVE_OPENSSL
+	CLI_AMI_OUTPUT_PARAM("Secure Bind Address", CLI_AMI_LIST_WIDTH, "%s", sccp_netsock_stringify(&GLOB(secbindaddr)));
+	CLI_AMI_OUTPUT_PARAM("Certificate File", CLI_AMI_LIST_WIDTH, "%s", GLOB(cert_file));
+#endif
 	CLI_AMI_OUTPUT_PARAM("Extern IP", CLI_AMI_LIST_WIDTH, "%s", !sccp_netsock_is_any_addr(&GLOB(externip)) ? sccp_netsock_stringify_addr(&GLOB(externip)) : (GLOB(externhost) ? "Not Set -> using externhost" : "Not Set -> falling back to Incoming Interface IP-addres (expect issue if running natted !)."));
 	CLI_AMI_OUTPUT_PARAM("Localnet", CLI_AMI_LIST_WIDTH, "%s", pbx_str_buffer(ha_localnet_buf));
 	CLI_AMI_OUTPUT_PARAM("Deny/Permit", CLI_AMI_LIST_WIDTH, "%s", pbx_str_buffer(ha_buf));
@@ -2834,6 +2838,7 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 	//sccp_configurationchange_t change;
 	unsigned int change = 0;
 	sccp_buttonconfig_t *config = NULL;
+	char * filename = pbx_strdupa(GLOB(config_file_name));
 
 	if (argc < 2 || argc > 4) {
 		return RESULT_SHOWUSAGE;
@@ -2877,7 +2882,7 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 				} else
 #endif
 				{
-					if ((CONFIG_STATUS_FILE_OK == sccp_config_getConfig(TRUE)) && GLOB(cfg)) {
+					if((CONFIG_STATUS_FILE_OK == sccp_config_getConfig(TRUE, GLOB(config_file_name))) && GLOB(cfg)) {
 						v = ast_variable_browse(GLOB(cfg), argv[3]);
 					}
 				}
@@ -2941,7 +2946,7 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 				} else
 #endif
 				{
-					if ((CONFIG_STATUS_FILE_OK == sccp_config_getConfig(TRUE)) && GLOB(cfg)) {
+					if((CONFIG_STATUS_FILE_OK == sccp_config_getConfig(TRUE, GLOB(config_file_name))) && GLOB(cfg)) {
 						v = ast_variable_browse(GLOB(cfg), argv[3]);
 					}
 				}
@@ -3006,31 +3011,26 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 		} else if (sccp_strequals("file", argv[2])) {
 			if (argc == 4) {
 				// build config file path
-				char * buf = NULL;
-				int buflen = 0;
-				if (argv[3][0] != '/') { 
-					buflen = strlen(ast_config_AST_CONFIG_DIR) + strlen(argv[3]) + 2;
-					buf = (char *)alloca(buflen);
-					snprintf(buf, buflen, "%s/%s", ast_config_AST_CONFIG_DIR, argv[3]);
+				int filename_len = 0;
+				if(argv[3][0] != '/') {
+					filename_len = strlen(ast_config_AST_CONFIG_DIR) + strlen(argv[3]) + 2;
+					filename = (char *)alloca(filename_len);
+					snprintf(filename, filename_len, "%s/%s", ast_config_AST_CONFIG_DIR, argv[3]);
 				} else {
-					buf = pbx_strdupa(argv[3]);
+					filename = pbx_strdupa(argv[3]);
 				}
 				// check file exists
 				struct stat sb = { 0 };
-				if (!(stat(buf, &sb) == 0 && S_ISREG(sb.st_mode))) {
-					pbx_cli(fd, "The config file '%s' you requested to load could not be found at '%s' (check path/rights ?). Aborting reload\n", argv[3], buf);
+				if(!(stat(filename, &sb) == 0 && S_ISREG(sb.st_mode))) {
+					pbx_cli(fd, "The config file '%s' you requested to load could not be found at '%s' (check path/rights ?). Aborting reload\n", argv[3], filename);
 					goto EXIT;
 				}
 
 				// load new config file
 				pbx_cli(fd, "Using config file '%s' (previous config file: '%s')\n", argv[3], GLOB(config_file_name));
-				if (!sccp_strequals(GLOB(config_file_name), buf)) {
+				if(!sccp_strequals(GLOB(config_file_name), filename)) {
 					force_reload = TRUE;
 				}
-				if (GLOB(config_file_name)) {
-					sccp_free(GLOB(config_file_name));
-				}
-				GLOB(config_file_name) = pbx_strdup(buf);
 			} else {
 				pbx_cli(fd, "Usage: sccp reload file [filename], filename is required\n");
 				goto EXIT;
@@ -3040,7 +3040,7 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 			goto EXIT;
 		}
 	}
-	sccp_config_file_status_t cfg = sccp_config_getConfig(force_reload);
+	sccp_config_file_status_t cfg = sccp_config_getConfig(force_reload, filename);
 
 	switch (cfg) {
 		case CONFIG_STATUS_FILE_NOT_CHANGED:
@@ -3058,7 +3058,12 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 					pbx_cli(fd, "Unable to reload configuration.\n");
 					goto EXIT;
 				}
-				returnval = sccp_session_bind_and_listen( &GLOB(bindaddr) ) ? RESULT_SUCCESS : RESULT_FAILURE;
+				if(GLOB(srvcontexts[SCCP_SERVERCONTEXT_TCP])) {
+					returnval = sccp_servercontext_reload(GLOB(srvcontexts[SCCP_SERVERCONTEXT_TCP]), &GLOB(bindaddr)) ? 0 : 3;
+				}
+				if(GLOB(srvcontexts[SCCP_SERVERCONTEXT_TLS])) {
+					returnval = sccp_servercontext_reload(GLOB(srvcontexts[SCCP_SERVERCONTEXT_TLS]), &GLOB(secbindaddr)) ? 0 : 3;
+				}
 			}
 			break;
 		case CONFIG_STATUS_FILE_OLD:

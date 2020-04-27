@@ -310,6 +310,9 @@
 /* asterisk compiled with 'TEST_FRAMEWORK' */
 #undef CS_TEST_FRAMEWORK
 
+/* Transport Layer Security (EXPERIMENTAL) enabled */
+#undef CS_TLS
+
 /* distributed devicestate */
 #undef CS_USE_ASTERISK_DISTRIBUTED_DEVSTATE
 
@@ -448,6 +451,9 @@
 /* Define to 1 if you have the `c' library (-lc). */
 #undef HAVE_LIBC
 
+/* Define to 1 if you have the `crypto' library (-lcrypto). */
+#undef HAVE_LIBCRYPTO
+
 /* Define if you have the libdl library or equivalent. */
 #undef HAVE_LIBDL
 
@@ -480,6 +486,9 @@
 
 /* Define to 1 if you have the `socket' library (-lsocket). */
 #undef HAVE_LIBSOCKET
+
+/* Define to 1 if you have the `ssl' library (-lssl). */
+#undef HAVE_LIBSSL
 
 /* Found 'LIBXML2' */
 #undef HAVE_LIBXML2

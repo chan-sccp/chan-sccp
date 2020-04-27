@@ -19,6 +19,7 @@ SCCP_FILE_VERSION(__FILE__, "");
 #include "sccp_device.h"
 #include "sccp_netsock.h"
 #include "sccp_utils.h"
+#include "sccp_transport.h"
 #include <netinet/in.h>
 #include <sys/un.h>
 
@@ -41,8 +42,8 @@ SCCP_FILE_VERSION(__FILE__, "");
 #include <signal.h>
 
 /* global variables -> GLOBALS */
-static pthread_t accept_tid;
-static int accept_sock = -1;
+// static pthread_t accept_tid;
+// static int accept_sock = -1;
 
 #define WRITE_BACKOFF 500											/* backoff time in millisecs, doubled every write retry (150+300+600+1200+2400+4800 = 9450 millisecs = 9.5 sec) */
 #define SESSION_DEVICE_CLEANUP_TIME 10										/* wait time before destroying a device on thread exit */
@@ -64,17 +65,82 @@ void __sccp_session_stopthread(sessionPtr session, skinny_registrationstate_t ne
 gcc_inline void recalc_wait_time(sccp_session_t *s);
 static struct ast_sockaddr internip;
 
+struct sccp_servercontext {
+	sccp_servercontexttype_t type;
+	const sccp_transport_t * transport;
+	struct sockaddr_storage boundaddr;
+	pthread_t accept_tid;
+	sccp_socket_connection_t sc;
+	boolean_t (*bind_and_listen)(sccp_servercontext_t * context, struct sockaddr_storage * bindaddr);
+	int (*stopListening)(sccp_servercontext_t * context);
+};
+
+sccp_servercontext_t * sccp_servercontext_create(struct sockaddr_storage * bindaddr, sccp_servercontexttype_t type)
+{
+	sccp_servercontext_t * context = NULL;
+	if(!(context = (sccp_servercontext_t *)sccp_calloc(sizeof *context, 1))) {
+		pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, "SCCP");
+		return NULL;
+	}
+	context->type = type;
+	switch(type) {
+		case SCCP_SERVERCONTEXT_TCP:
+			context->transport = tcp_init();
+			break;
+#ifdef HAVE_OPENSSL
+		case SCCP_SERVERCONTEXT_TLS:
+			context->transport = tls_init();
+			break;
+#endif
+	}
+	context->bind_and_listen = sccp_session_bind_and_listen;
+	context->stopListening = sccp_servercontext_stopListening;
+	context->sc.fd = -1;
+	context->accept_tid = AST_PTHREADT_NULL;
+	sccp_servercontext_reload(context, bindaddr);
+	return context;
+}
+
+int sccp_servercontext_stopListening(sccp_servercontext_t * context)
+{
+	if(context) {
+		sccp_session_stop_accept_thread(context);
+		return 0;
+	}
+	return 1;
+}
+
+int sccp_servercontext_destroy(sccp_servercontext_t * context)
+{
+	if(context) {
+		sccp_session_stop_accept_thread(context);
+		context->transport->destroy(1);
+		sccp_free(context);
+		return 0;
+	}
+	return 1;
+}
+
+int sccp_servercontext_reload(sccp_servercontext_t * context, struct sockaddr_storage * bindaddr)
+{
+	if(context->sc.fd > -1 && (sccp_netsock_getPort(&context->boundaddr) != sccp_netsock_getPort(bindaddr) || sccp_netsock_cmp_addr(&context->boundaddr, bindaddr))) {
+		sccp_session_stop_accept_thread(context);
+	}
+	return context->bind_and_listen(context, bindaddr);
+}
+
 /*!
  * \brief SCCP Session Structure
  * \note This contains the current session the phone is in
  */
 struct sccp_session {
+	sccp_servercontext_t * srvcontext;
 	time_t lastKeepAlive;											/*!< Last KeepAlive Time */
 	uint16_t keepAlive;
 	uint16_t keepAliveInterval;
 	SCCP_RWLIST_ENTRY (sccp_session_t) list;								/*!< Linked List Entry for this Session */
 	sccp_device_t *device;											/*!< Associated Device */
-	struct pollfd fds[1];											/*!< File Descriptor */
+	sccp_socket_connection_t sc;                                                                            /*!< session filedescription (and tls connection) */
 	struct sockaddr_storage sin;										/*!< Incoming Socket Address */
 	uint32_t protocolType;
 	volatile boolean_t session_stop;									/*!< Signal Session Stop */
@@ -87,6 +153,43 @@ struct sccp_session {
 	uint16_t requestsInFlight;
 	pbx_cond_t pendingRequest;
 };														/*!< SCCP Session Structure */
+
+int sccp_session_getFD(sccp_session_t * s)
+{
+	// SCOPED_MUTEX
+	sccp_session_lock(s);
+	int res = s->sc.fd;
+	sccp_session_unlock(s);
+	return res;
+}
+
+void sccp_session_setFD(sccp_session_t * s, int fd)
+{
+	sccp_session_lock(s);
+	if(s->sc.fd > 0) {
+		s->srvcontext->transport->shutdown(&s->sc, SHUT_RDWR);
+		s->srvcontext->transport->close(&s->sc);
+		s->sc.fd = -1;
+	}
+	s->sc.fd = fd;
+	sccp_session_unlock(s);
+}
+
+ssl_t * sccp_session_getSSL(sccp_session_t * s)
+{
+	ssl_t * res = NULL;
+	sccp_session_lock(s);
+	res = s->sc.ssl;
+	sccp_session_unlock(s);
+	return res;
+}
+
+void sccp_session_setSSL(sccp_session_t * s, ssl_t * ssl)
+{
+	sccp_session_lock(s);
+	s->sc.ssl = ssl;
+	sccp_session_unlock(s);
+}
 
 boolean_t sccp_session_getOurIP(constSessionPtr session, struct sockaddr_storage * const sockAddrStorage, int family)
 {
@@ -200,10 +303,10 @@ static void socket_get_error(constSessionPtr s, const char * file, int line, con
 			sccp_log(DEBUGCAT_SOCKET)(VERBOSE_PREFIX_3 "%s (%s:%d:%s) Socket returned error: '%s (%d)')\n", DEV_ID_LOG(s->device), file, line, function, strerror(errno), errno);
 		}
 	} else {
-		if (!s || s->fds[0].fd <= 0) {
+		if(!s || s->sc.fd <= 0) {
 			return;
 		}
-		int mysocket = s->fds[0].fd;
+		int mysocket = s->sc.fd;
 		int error = 0;
 		socklen_t error_len = sizeof(error);
 		if ((mysocket && getsockopt(mysocket, SOL_SOCKET, SO_ERROR, &error, &error_len) == 0) && error != 0) {
@@ -461,7 +564,7 @@ static int __sccp_session_addDevice(sessionPtr session, constDevicePtr device)
 				session->device->session = session;			/* update device session pointer */
 
 				char buf[16] = "";
-				snprintf(buf,16, "%s:%d", device->id, session->fds[0].fd);
+				snprintf(buf, 16, "%s:%d", device->id, session->sc.fd);
 				sccp_copy_string(session->designator, buf, sizeof(session->designator));
 				res = 1;
 			} else {
@@ -482,7 +585,7 @@ int sccp_session_retainDevice(constSessionPtr session, constDevicePtr device)
 {
 	if (session && (!device || (device && session->device != device))) {
 		sessionPtr s = (sessionPtr)session;									/* discard const */
-		sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Allocating device to session (%d) %s\n", DEV_ID_LOG(device), s->fds[0].fd, sccp_netsock_stringify_addr(&s->sin));
+		sccp_log((DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "%s: Allocating device to session (%d) %s\n", DEV_ID_LOG(device), s->sc.fd, sccp_netsock_stringify_addr(&s->sin));
 		return __sccp_session_addDevice(s, device);
 	}
 	return 0;
@@ -533,12 +636,12 @@ static void destroy_session(sccp_session_t * s)
 		sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "SCCP: Destroy Session %s\n", addrStr);
 		/* closing fd's */
 		sccp_session_lock(s);
-		if (s->fds[0].fd > 0) {
-			sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "SCCP: Shutdown socket %d\n", s->fds[0].fd);
-			shutdown(s->fds[0].fd, SHUT_RDWR);
-			sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "SCCP: Closing socket %d\n", s->fds[0].fd);
-			close(s->fds[0].fd);
-			s->fds[0].fd = -1;
+		if(s->sc.fd > 0) {
+			sccp_log((DEBUGCAT_SOCKET))(VERBOSE_PREFIX_3 "SCCP: Shutdown socket %d\n", s->sc.fd);
+			s->srvcontext->transport->shutdown(&s->sc, SHUT_RDWR);
+			sccp_log((DEBUGCAT_SOCKET))(VERBOSE_PREFIX_3 "SCCP: Closing socket %d\n", s->sc.fd);
+			s->srvcontext->transport->close(&s->sc);
+			s->sc.fd = -1;
 		}
 		sccp_session_unlock(s);
 
@@ -569,10 +672,10 @@ void sccp_session_device_thread_exit(void *session)
 	sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: cleanup session\n", DEV_ID_LOG(s->device));
 	sccp_session_lock(s);
 	s->session_stop = TRUE;
-/*	if (s->fds[0].fd > 0) {
-		close(s->fds[0].fd);
-		s->fds[0].fd = -1;
-	}*/
+	/*	if (s->sc.fd > 0) {
+			s->srvcontext->transport->close(&s->sc);
+			s->sc.fd = -1;
+		}*/
 	sccp_session_unlock(s);
 	s->session_thread = AST_PTHREADT_NULL;
 	destroy_session(s);
@@ -637,7 +740,12 @@ void *sccp_session_device_thread(void *session)
 	pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED, NULL);
 	pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
 
-	while (s->fds[0].fd > 0 && !s->session_stop) {
+	struct pollfd fds[1] = { 0 };
+	fds[0].events = POLLIN | POLLPRI;
+	fds[0].revents = 0;
+	fds[0].fd = s->sc.fd;
+
+	while(s->sc.fd > 0 && !s->session_stop) {
 		if (s->device) {
 			sccp_device_t *d = s->device;
 			if (d->pendingUpdate || d->pendingDelete) {
@@ -661,9 +769,9 @@ void *sccp_session_device_thread(void *session)
 			}
 		}
 		pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
-		sccp_log_and((DEBUGCAT_SOCKET + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "%s: set poll timeout %d for session %d\n", DEV_ID_LOG(s->device), (int) s->keepAliveInterval, s->fds[0].fd);
+		sccp_log_and((DEBUGCAT_SOCKET + DEBUGCAT_HIGH))(VERBOSE_PREFIX_4 "%s: set poll timeout %d for session %d\n", DEV_ID_LOG(s->device), (int)s->keepAliveInterval, fds[0].fd);
 
-		res = sccp_netsock_poll(s->fds, 1, s->keepAliveInterval * 1000);
+		res = sccp_netsock_poll(fds, 1, s->keepAliveInterval * 1000);
 		pthread_testcancel();
 		pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
 		if (-1 == res) {										/* poll data processing */
@@ -681,9 +789,9 @@ void *sccp_session_device_thread(void *session)
 				break;
 			}
 		} else if (res > 0) {										/* poll data processing */
-			if (s->fds[0].revents & POLLIN || s->fds[0].revents & POLLPRI) {			/* POLLIN | POLLPRI */
-				//sccp_log_and((DEBUGCAT_SOCKET + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "%s: Session New Data Arriving at buffer position:%lu\n", DEV_ID_LOG(s->device), recv_len);
-				int result = recv(s->fds[0].fd, recv_buffer + recv_len, (SCCP_MAX_PACKET * 2) - recv_len, 0);
+			if(fds[0].revents & POLLIN || fds[0].revents & POLLPRI) {                               /* POLLIN | POLLPRI */
+				// sccp_log_and((DEBUGCAT_SOCKET + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "%s: Session New Data Arriving at buffer position:%lu\n", DEV_ID_LOG(s->device), recv_len);
+				int result = s->srvcontext->transport->recv(&s->sc, recv_buffer + recv_len, (SCCP_MAX_PACKET * 2) - recv_len, 0);
 				s->lastKeepAlive = time(0);
 				if (result <= 0) {
 					if (result < 0 || (errno != EINTR || errno != EAGAIN)) {
@@ -700,7 +808,7 @@ void *sccp_session_device_thread(void *session)
 					break;
 				}
 				s->lastKeepAlive = time(0);
-			} else {										/* POLLHUP / POLLERR */
+			} else { /* POLLHUP / POLLERR */
 				pbx_log(LOG_NOTICE, "%s: Closing session because we received POLLPRI/POLLHUP/POLLERR\n", s->designator);
 				__sccp_session_stopthread(s, SKINNY_DEVICE_RS_FAILED);
 				break;
@@ -719,21 +827,21 @@ void *sccp_session_device_thread(void *session)
 }
 
 /* stop session device thread from the same thread */
-void __sccp_session_stopthread(sessionPtr session, skinny_registrationstate_t newRegistrationState)
+void __sccp_session_stopthread(sessionPtr s, skinny_registrationstate_t newRegistrationState)
 {
-	if (!session) {
+	if(!s) {
 		pbx_log(LOG_NOTICE, "SCCP: session already terminated\n");
 		return;
 	}
-	sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_2 "%s: Stopping Session Thread\n", DEV_ID_LOG(session->device));
+	sccp_log((DEBUGCAT_SOCKET))(VERBOSE_PREFIX_2 "%s: Stopping Session Thread\n", DEV_ID_LOG(s->device));
 
-	session->session_stop = TRUE;
-	if (session->device) {
-		sccp_device_setRegistrationState(session->device, newRegistrationState);
+	s->session_stop = TRUE;
+	if(s->device) {
+		sccp_device_setRegistrationState(s->device, newRegistrationState);
 	}
-	if (AST_PTHREADT_NULL != session->session_thread) {
-		shutdown(session->fds[0].fd, SHUT_RD);								// this will also wake up poll
-		// which is waiting for a read event and close down the thread nicely
+	if(AST_PTHREADT_NULL != s->session_thread) {
+		s->srvcontext->transport->shutdown(&s->sc, SHUT_RD);                                        // this will also wake up poll
+													    // which is waiting for a read event and close down the thread nicely
 	}
 }
 
@@ -793,7 +901,7 @@ static boolean_t sccp_session_new_socket_allowed(struct sockaddr_storage *sin)
 	return TRUE;
 }
 
-static sccp_session_t * sccp_create_session(int new_socket)
+static sccp_session_t * sccp_create_session(sccp_servercontext_t * context, sccp_socket_connection_t * sc)
 {
 	sccp_session_t * s = NULL;
 
@@ -806,10 +914,11 @@ static sccp_session_t * sccp_create_session(int new_socket)
 	pbx_cond_init(&s->pendingRequest, NULL);
 	sccp_mutex_init(&s->write_lock);
 
-	s->fds[0].events = POLLIN | POLLPRI;
-	s->fds[0].revents = 0;
-	s->fds[0].fd = new_socket;
+	s->sc.fd = sc->fd;
+	s->sc.ssl = sc->ssl;
 	s->protocolType = SCCP_PROTOCOL;
+	s->srvcontext = context;
+
 	s->lastKeepAlive = time(0);
 	
 	return s;
@@ -851,33 +960,33 @@ static boolean_t sccp_session_set_ourip(sccp_session_t * s)
  * - adds the new session struct to the global sessions list
  * - starts a new sccp_session_device_thread
  */
-static void *accept_thread(void *ignore)
+static void * accept_thread(void * data)
 {
-	int new_socket = 0;
+	sccp_servercontext_t * context = (sccp_servercontext_t *)data;
+	sccp_socket_connection_t new_sc = { 0, 0 };
 	struct sockaddr_storage incoming;
 	sccp_session_t *s = NULL;
-	// socklen_t length = (socklen_t)(sizeof(struct sockaddr_un));	//from "sys/un.h"
-	// socklen_t length = (socklen_t)(sizeof(struct sockaddr));
 	socklen_t length = (socklen_t)(sizeof(struct sockaddr_storage));
 
 	for (;;) {
-		new_socket = accept(accept_sock, (struct sockaddr *)&incoming, &length);
-		if(new_socket < 0) { /* blocking call */
-			pbx_log(LOG_ERROR, "Error accepting new socket %s on accept_sock:%d\n", strerror(errno), accept_sock);
+		memset(&new_sc, 0, sizeof(new_sc));
+		context->transport->accept(&context->sc, (struct sockaddr *)&incoming, &length, &new_sc);
+		if(new_sc.fd < 0) {
+			pbx_log(LOG_ERROR, "Error accepting new socket %s on acceptFD:%d\n", strerror(errno), context->sc.fd);
 			usleep(1000);
 			continue;
 		}
 
-		sccp_netsock_setoptions(new_socket, /*reuse*/ -1, /*linger*/ 0, /*keepalive*/ -1, /*sndtimeout*/ -1, /*rcvtimeout*/ 0);
+		sccp_netsock_setoptions(new_sc.fd, /*reuse*/ -1, /*linger*/ 0, /*keepalive*/ -1, /*sndtimeout*/ -1, /*rcvtimeout*/ 0);
 
 		if (!sccp_session_new_socket_allowed(&incoming)) {
-			close(new_socket);
+			context->transport->close(&new_sc);
 			continue;
 		}
 
-		s = sccp_create_session(new_socket);
+		s = sccp_create_session(context, &new_sc);
 		if(s == NULL) {
-			close(new_socket);
+			context->transport->close(&new_sc);
 			continue;
 		}
 		memcpy(&s->sin, &incoming, sizeof(s->sin));
@@ -889,11 +998,11 @@ static void *accept_thread(void *ignore)
 			destroy_session(s);
 		}
 	}
-	close(new_socket);
-	if (accept_sock > -1) {
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Closing Listening Port:%d\n", accept_sock);
-		close(accept_sock);
-		accept_sock = -1;
+	context->transport->close(&new_sc);
+	if(context->sc.fd > -1) {
+		sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "Closing Listening Port:%d\n", context->sc.fd);
+		context->transport->close(&context->sc);
+		context->sc.fd = -1;
 	}
 	return 0;
 }
@@ -901,29 +1010,29 @@ static void *accept_thread(void *ignore)
 /*!
  * Start the session accept thread
  */
-static void sccp_session_start_accept_thread(void)
+static void sccp_session_start_accept_thread(sccp_servercontext_t * context)
 {
-	ast_pthread_create_background(&accept_tid, NULL, accept_thread, NULL);
+	ast_pthread_create_background(&context->accept_tid, NULL, accept_thread, (void *)context);
 }
 
 /*!
  * Stops the session accept thread
  * Closes the listening socket
  */
-void sccp_session_stop_accept_thread(void)
+void sccp_session_stop_accept_thread(sccp_servercontext_t * context)
 {
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Stopping Accepting Thread\n");
 	pbx_rwlock_wrlock(&GLOB(lock));
-	if (accept_tid && (accept_tid != AST_PTHREADT_STOP)) {
-		pthread_cancel(accept_tid);
-		pthread_kill(accept_tid, SIGURG);
-		pthread_join(accept_tid, NULL);
+	if(context->accept_tid && (context->accept_tid != AST_PTHREADT_STOP)) {
+		pthread_cancel(context->accept_tid);
+		pthread_kill(context->accept_tid, SIGURG);
+		pthread_join(context->accept_tid, NULL);
 	}
-	accept_tid = AST_PTHREADT_STOP;
-	if (accept_sock > -1) {
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Closing Listening Port:%d\n", accept_sock);
-		close(accept_sock);
-		accept_sock = -1;
+	context->accept_tid = AST_PTHREADT_STOP;
+	if(context->sc.fd > -1) {
+		sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "Closing Listening Port:%d\n", context->sc.fd);
+		context->transport->close(&context->sc);
+		context->sc.fd = -1;
 	}
 	pbx_rwlock_unlock(&GLOB(lock));
 }
@@ -940,23 +1049,26 @@ void sccp_session_stop_accept_thread(void)
  * param bindaddr SockAddr Storage
  * returns TRUE on success
  */
-boolean_t sccp_session_bind_and_listen(struct sockaddr_storage *bindaddr)
+// boolean_t sccp_session_bind_and_listen(constTransportPtr transport, struct sockaddr_storage * bindaddr)
+boolean_t sccp_session_bind_and_listen(sccp_servercontext_t * context, struct sockaddr_storage * bindaddr)
 {
 	int result = FALSE;
-	static struct sockaddr_storage boundaddr = {0};
+	// static struct sockaddr_storage boundaddr = {0};
 	static int port = -1;
 	char addrStr[INET6_ADDRSTRLEN];
 	sccp_copy_string(addrStr, sccp_netsock_stringify_addr(bindaddr), sizeof(addrStr));
 
-	if (accept_sock > -1 && ( sccp_netsock_getPort(&boundaddr) != sccp_netsock_getPort(bindaddr) || sccp_netsock_cmp_addr(&boundaddr, bindaddr) ) ) {
+	/*
+	if (context->sc.fd > -1 && ( sccp_netsock_getPort(&boundaddr) != sccp_netsock_getPort(bindaddr) || sccp_netsock_cmp_addr(&boundaddr, bindaddr) ) ) {
 		sccp_session_stop_accept_thread();
 	}
+	*/
 
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Running bind and listen!\n");
-	if (accept_sock < 0) {
+	sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "Running bind and listen '%s'\n", addrStr);
+	if(context->sc.fd < 0) {
 		int status = 0;
 		port = sccp_netsock_getPort(bindaddr);
-		memcpy(&boundaddr, bindaddr, sizeof(struct sockaddr_storage));
+		memcpy(&context->boundaddr, bindaddr, sizeof(struct sockaddr_storage));
 		char port_str[15] = "cisco-sccp";
 
 		struct addrinfo hints;
@@ -970,22 +1082,23 @@ boolean_t sccp_session_bind_and_listen(struct sockaddr_storage *bindaddr)
 			snprintf(port_str, sizeof(port_str), "%d", port);
 		}
 
+		sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "Checking /etc/services for '%s:%s'!\n", addrStr, port_str);
 		status = getaddrinfo(sccp_netsock_stringify_addr(bindaddr), port_str, &hints, &res);
 		if(status != 0) {
 			pbx_log(LOG_ERROR, "Failed to get addressinfo for %s:%s, error: %s!\n", sccp_netsock_stringify_addr(bindaddr), port_str, gai_strerror(status));
 			return FALSE;
 		}
 		do {
-			accept_sock = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
-			if (accept_sock < 0) {
+			context->sc.fd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+			if(context->sc.fd < 0) {
 				pbx_log(LOG_ERROR, "Unable to create SCCP socket: %s\n", strerror(errno));
 				break;
 			}
-			sccp_netsock_setoptions(accept_sock, /*reuse*/ 1, /*linger*/ -1, /*keepalive*/ -1, /*sndtimeout*/0, /*rcvtimeout*/0);
-			if (bind(accept_sock, res->ai_addr, res->ai_addrlen) < 0) {
+			sccp_netsock_setoptions(context->sc.fd, /*reuse*/ 1, /*linger*/ -1, /*keepalive*/ -1, /*sndtimeout*/ 0, /*rcvtimeout*/ 0);
+			if(context->transport->bind(&context->sc, res->ai_addr, res->ai_addrlen) < 0) {
 				pbx_log(LOG_ERROR, "Failed to bind to %s:%d: %s!\n", addrStr, port, strerror(errno));
-				close(accept_sock);
-				accept_sock = -1;
+				context->transport->close(&context->sc);
+				context->sc.fd = -1;
 				break;
 			}
 
@@ -993,26 +1106,26 @@ boolean_t sccp_session_bind_and_listen(struct sockaddr_storage *bindaddr)
 			ast_sockaddr_copy(&internip, storage2ast_sockaddr(bindaddr, &tmp_sa));
 			if(ast_find_ourip(&internip, &tmp_sa, 0)) {
 				ast_log(LOG_ERROR, "Unable to get own IP address\n");
-				close(accept_sock);
-				accept_sock = -1;
+				context->transport->close(&context->sc);
+				context->sc.fd = -1;
 				break;
 			}
 
-			if (listen(accept_sock, DEFAULT_SCCP_BACKLOG)) {
+			if(listen(context->sc.fd, DEFAULT_SCCP_BACKLOG)) {
 				pbx_log(LOG_ERROR, "Failed to start listening to %s:%d: %s\n", addrStr, port, strerror(errno));
-				close(accept_sock);
-				accept_sock = -1;
+				context->transport->close(&context->sc);
+				context->sc.fd = -1;
 				break;
 			}
-			sccp_session_start_accept_thread();
+			sccp_session_start_accept_thread(context);
 		} while(0);
 		freeaddrinfo(res);
 	} else {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Socket has not changed so we are reusing it\n");
 	}
 
-	if (accept_sock > -1) {
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Listening on %s:%d using socket:%d\n", addrStr, port, accept_sock);
+	if(context->sc.fd > -1) {
+		sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "SCCP: Listening on %s:%d using socket:%d\n", addrStr, port, context->sc.fd);
 		sccp_log((DEBUGCAT_SOCKET))(VERBOSE_PREFIX_3 "SCCP: using default ip:%s\n", ast_sockaddr_stringify_addr(&internip));
 		result = TRUE;
 	}
@@ -1078,7 +1191,7 @@ int sccp_session_send2(constSessionPtr session, sccp_msg_t * msg)
 		return -2;
 	}
 
-	if (!s || s->fds[0].fd <= 0) {
+	if(!s || s->sc.fd <= 0) {
 		sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: Tried to send packet over DOWN device.\n");
 		if (s) {
 			__sccp_session_stopthread(s, SKINNY_DEVICE_RS_FAILED);
@@ -1087,8 +1200,6 @@ int sccp_session_send2(constSessionPtr session, sccp_msg_t * msg)
 		msg = NULL;
 		return -3;
 	}
-	int mysocket = s->fds[0].fd;
-
 	if (msgid == KeepAliveAckMessage || msgid == RegisterAckMessage || msgid == UnregisterAckMessage) {
 		msg->header.lel_protocolVer = 0;
 	} else if (s->device && s->device->protocol) {
@@ -1117,7 +1228,7 @@ int sccp_session_send2(constSessionPtr session, sccp_msg_t * msg)
 	}
 	do {
 		pbx_mutex_lock(&s->write_lock);									/* prevent two threads writing at the same time. That should happen in a synchronized way */
-		res = send(mysocket, bufAddr + bytesSent, bufLen - bytesSent, 0);
+		res = s->srvcontext->transport->send(&s->sc, bufAddr + bytesSent, bufLen - bytesSent, 0);
 		pbx_mutex_unlock(&s->write_lock);
 		if (res <= 0) {
 			if (errno == EINTR) {
@@ -1133,7 +1244,7 @@ int sccp_session_send2(constSessionPtr session, sccp_msg_t * msg)
 			break;
 		}
 		bytesSent += res;
-	} while (bytesSent < bufLen && s && !s->session_stop && mysocket > 0);
+	} while(bytesSent < bufLen && s && !s->session_stop && s->sc.fd > 0);
 
 	sccp_free(msg);
 	msg = NULL;
@@ -1308,7 +1419,7 @@ gcc_inline devicePtr sccp_session_getDevice(constSessionPtr session, boolean_t r
 
 boolean_t sccp_session_isValid(constSessionPtr session)
 {
-	if (session && session->fds[0].fd > 0 && !session->session_stop && !sccp_netsock_is_any_addr(&session->ourip)) {
+	if(session && session->sc.fd > 0 && !session->session_stop && !sccp_netsock_is_any_addr(&session->ourip)) {
 		return TRUE;
 	}
 	return FALSE;
@@ -1341,19 +1452,18 @@ int sccp_cli_show_sessions(int fd, sccp_cli_totals_t *totals, struct mansession 
 #define CLI_AMI_TABLE_LIST_LOCK SCCP_RWLIST_RDLOCK
 #define CLI_AMI_TABLE_LIST_ITERATOR SCCP_RWLIST_TRAVERSE
 #define CLI_AMI_TABLE_LIST_UNLOCK SCCP_RWLIST_UNLOCK
-#define CLI_AMI_TABLE_BEFORE_ITERATION 														\
-		sccp_session_lock(session);													\
-		sccp_copy_string(clientAddress, sccp_netsock_stringify_addr(&session->sin), sizeof(clientAddress));				\
-		AUTO_RELEASE(sccp_device_t, d , session->device ? sccp_device_retain(session->device) : NULL);								\
-		if (d || (argc == 4 && sccp_strcaseequals(argv[3],"all"))) {									\
-
-#define CLI_AMI_TABLE_AFTER_ITERATION 														\
-		}																\
-		sccp_session_unlock(session);
-
+#define CLI_AMI_TABLE_BEFORE_ITERATION                                                                      \
+	sccp_session_lock(session);                                                                         \
+	sccp_copy_string(clientAddress, sccp_netsock_stringify_addr(&session->sin), sizeof(clientAddress)); \
+	AUTO_RELEASE(sccp_device_t, d, session->device ? sccp_device_retain(session->device) : NULL);       \
+	if(d || (argc == 4 && sccp_strcaseequals(argv[3], "all"))) {
+#define CLI_AMI_TABLE_AFTER_ITERATION \
+	}                             \
+	sccp_session_unlock(session);
 #define CLI_AMI_TABLE_FIELDS                                                                                                           \
-	CLI_AMI_TABLE_FIELD(Socket, "-6", d, 6, session->fds[0].fd)                                                                    \
+	CLI_AMI_TABLE_FIELD(Socket, "-6", d, 6, session->sc.fd)                                                                        \
 	CLI_AMI_TABLE_FIELD(IP, "40.40", s, 40, clientAddress)                                                                         \
+	CLI_AMI_TABLE_FIELD(Trans, "5.5", s, 5, session->srvcontext->transport->name)                                                  \
 	CLI_AMI_TABLE_FIELD(Port, "-5", d, 5, sccp_netsock_getPort(&session->sin))                                                     \
 	CLI_AMI_TABLE_FIELD(KALST, "-5", d, 5, (uint32_t)(time(0) - session->lastKeepAlive))                                           \
 	CLI_AMI_TABLE_FIELD(KAINT, "-5", d, 5, (d ? d->keepaliveinterval : session->keepAliveInterval))                                \

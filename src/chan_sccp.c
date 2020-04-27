@@ -35,6 +35,8 @@
 #endif
 #include "sccp_management.h"	// use __constructor__ to remove this entry
 #include "sccp_threadpool.h"
+#include "sccp_session.h"
+//#include "sccp_transport.h"
 #include <signal.h>
 
 SCCP_FILE_VERSION(__FILE__, "");
@@ -57,6 +59,9 @@ int load_config(void)
 	GLOB(mwiMonitorThread) = AST_PTHREADT_NULL;
 
 	memset(&GLOB(bindaddr), 0, sizeof(GLOB(bindaddr)));
+#ifdef HAVE_OPENSSL
+	memset(&GLOB(secbindaddr), 0, sizeof(GLOB(secbindaddr)));
+#endif
 	GLOB(allowAnonymous) = TRUE;
 
 #if defined(SCCP_LITTLE_ENDIAN) && defined(SCCP_BIG_ENDIAN)
@@ -66,7 +71,7 @@ int load_config(void)
 #else
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "Platform byte order   : BIG ENDIAN\n");
 #endif
-	if (sccp_config_getConfig(TRUE) > CONFIG_STATUS_FILE_OK) {
+	if(sccp_config_getConfig(TRUE, "sccp.conf") > CONFIG_STATUS_FILE_OK) {
 		pbx_log(LOG_ERROR, "Error loading configfile !\n");
 		return FALSE;
 	}
@@ -127,9 +132,15 @@ boolean_t sccp_prePBXLoad(void)
 	sccp_event_subscribe(SCCP_EVENT_FEATURE_CHANGED, sccp_device_featureChangedDisplay, TRUE);
 	sccp_event_subscribe(SCCP_EVENT_FEATURE_CHANGED, sccp_util_featureStorageBackend, TRUE);
 
+	memset(&GLOB(bindaddr), 0, sizeof(GLOB(bindaddr)));
 	GLOB(bindaddr).ss_family = AF_INET;
 	((struct sockaddr_in *) &GLOB(bindaddr))->sin_port = DEFAULT_SCCP_PORT;
 
+#ifdef HAVE_OPENSSL
+	memset(&GLOB(secbindaddr), 0, sizeof(GLOB(secbindaddr)));
+	GLOB(secbindaddr).ss_family = AF_INET;
+	((struct sockaddr_in *)&GLOB(secbindaddr))->sin_port = DEFAULT_SCCP_SECURE_PORT;
+#endif
 	GLOB(externrefresh) = 60;
 	GLOB(keepalive) = SCCP_MIN_KEEPALIVE;
 
@@ -192,7 +203,17 @@ boolean_t sccp_postPBX_load(void)
 	GLOB(module_running) = TRUE;
 	pbx_rwlock_unlock(&GLOB(lock));
 
-	return sccp_session_bind_and_listen(&GLOB(bindaddr));
+	if(!GLOB(srvcontexts[SCCP_SERVERCONTEXT_TCP])) {
+		sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "bindaddr '%s'\n", sccp_netsock_stringify(&GLOB(bindaddr)));
+		GLOB(srvcontexts[SCCP_SERVERCONTEXT_TCP]) = sccp_servercontext_create(&GLOB(bindaddr), SCCP_SERVERCONTEXT_TCP);
+	}
+#ifdef HAVE_OPENSSL
+	if(!GLOB(srvcontexts[SCCP_SERVERCONTEXT_TLS])) {
+		sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "secbindaddr '%s'\n", sccp_netsock_stringify(&GLOB(secbindaddr)));
+		GLOB(srvcontexts[SCCP_SERVERCONTEXT_TLS]) = sccp_servercontext_create(&GLOB(secbindaddr), SCCP_SERVERCONTEXT_TLS);
+	}
+#endif
+	return TRUE /* ? */;
 }
 
 #if UNUSEDCODE // 2015-11-01
@@ -233,7 +254,8 @@ int sccp_preUnload(void)
 
 	/* close accept thread by shutdown the socket descriptor read side -> interrupt polling and break accept loop */
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Closing Socket Accept Descriptor\n");
-	sccp_session_stop_accept_thread();
+	sccp_servercontext_stopListening(GLOB(srvcontexts[SCCP_SERVERCONTEXT_TCP]));
+	sccp_servercontext_stopListening(GLOB(srvcontexts[SCCP_SERVERCONTEXT_TLS]));
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Hangup open channels\n");				//! \todo make this pbx independend
 
 	/* removing devices */
@@ -308,6 +330,8 @@ int sccp_preUnload(void)
 	}
 	sccp_config_cleanup_dynamically_allocated_memory(sccp_globals, SCCP_CONFIG_GLOBAL_SEGMENT);
 	/* */
+	sccp_servercontext_destroy(GLOB(srvcontexts[SCCP_SERVERCONTEXT_TCP]));
+	sccp_servercontext_destroy(GLOB(srvcontexts[SCCP_SERVERCONTEXT_TLS]));
 
 	/* destroy locks */
 #ifndef SCCP_ATOMIC
@@ -333,7 +357,7 @@ int sccp_reload(void)
 		goto EXIT;
 	}
 
-	sccp_config_file_status_t cfg = sccp_config_getConfig(FALSE);
+	sccp_config_file_status_t cfg = sccp_config_getConfig(FALSE, GLOB(config_file_name));
 
 	switch (cfg) {
 		case CONFIG_STATUS_FILE_NOT_CHANGED:
@@ -354,7 +378,14 @@ int sccp_reload(void)
 				returnval = 3;
 				break;
 			}
-			returnval = sccp_session_bind_and_listen( &GLOB(bindaddr) ) ? 0 : 3;
+			if(GLOB(srvcontexts[SCCP_SERVERCONTEXT_TCP])) {
+				returnval = sccp_servercontext_reload(GLOB(srvcontexts[SCCP_SERVERCONTEXT_TCP]), &GLOB(bindaddr)) ? 0 : 3;
+			}
+#ifdef HAVE_OPENSSL
+			if(GLOB(srvcontexts[SCCP_SERVERCONTEXT_TLS])) {
+				returnval = sccp_servercontext_reload(GLOB(srvcontexts[SCCP_SERVERCONTEXT_TLS]), &GLOB(secbindaddr)) ? 0 : 3;
+			}
+#endif
 			break;
 		case CONFIG_STATUS_FILE_OLD:
 			pbx_log(LOG_ERROR, "Error reloading from '%s'\n", GLOB(config_file_name));

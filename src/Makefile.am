@@ -54,7 +54,7 @@ noinst_HEADERS		= chan_sccp.h			sccp_actions.h			sccp_cli.h			sccp_devstate.h			
 			  revision.h			sccp_channel.h			sccp_device.h			sccp_event.h			\
 			  sccp_labels.h			sccp_protocol.h			sccp_enum.h			sccp_codec.h			\
 			  define.h			sccp_netsock.h			sccp_xml.h			sccp_webservice.h		\
-			  sccp_utils.h			sccp_featureParkingLot.h
+			  sccp_utils.h			sccp_featureParkingLot.h	sccp_transport.h
 
 libsccp_la_SOURCES	= sccp_callinfo.c 		sccp_channel.c			sccp_device.c			sccp_debug.c			\
 			  sccp_indicate.c 		sccp_pbx.c 			sccp_session.c			sccp_threadpool.c		\
@@ -64,7 +64,7 @@ libsccp_la_SOURCES	= sccp_callinfo.c 		sccp_channel.c			sccp_device.c			sccp_deb
 			  sccp_conference.c		sccp_rtp.c			sccp_appfunctions.c		sccp_protocol.c			\
 			  sccp_devstate.c		sccp_event.c			sccp_enum.c			sccp_globals.c			\
 			  sccp_netsock.c		sccp_codec.c			sccp_labels.c			sccp_xml.c			\
-			  sccp_webservice.c 		sccp_utils.c			sccp_featureParkingLot.c
+			  sccp_webservice.c 		sccp_utils.c			sccp_featureParkingLot.c	sccp_transport_tcp.c	sccp_transport_tls.c
 
 chan_sccp_la_SOURCES	= chan_sccp.c
 

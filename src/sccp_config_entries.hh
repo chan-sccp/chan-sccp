@@ -40,7 +40,12 @@ static const SCCPConfigOption sccpGlobalConfigOptions[]={
 	{"context", 			G_OBJ_REF(context), 			TYPE_STRINGPTR,									SCCP_CONFIG_FLAG_REQUIRED,					SCCP_CONFIG_NEEDDEVICERESET,		"default",			"pbx dialplan context\n"},
 	{"dateformat", 			G_OBJ_REF(dateformat), 			TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		"M/D/Y",			"M-D-Y in any order. Use M/D/YA (for 12h format)\n"},
 	{"bindaddr", 			G_OBJ_REF(bindaddr), 			TYPE_PARSER(sccp_config_parse_ipaddress),					SCCP_CONFIG_FLAG_REQUIRED,					SCCP_CONFIG_NEEDDEVICERESET,		"0.0.0.0",			"replace with the ip address of the asterisk server (RTP important param)\n"}, 
-	{"port", 			G_OBJ_REF(bindaddr),			TYPE_PARSER(sccp_config_parse_port),						SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		"2000",				"listen on port 2000 (Skinny, default)\n"},
+	{"port", 			G_OBJ_REF(bindaddr),			TYPE_PARSER(sccp_config_parse_port),						SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		"2000",				"port to listen on (Skinny default:2000)\n"},
+#ifdef HAVE_OPENSSL
+	{"secbindaddr", 		G_OBJ_REF(secbindaddr),			TYPE_PARSER(sccp_config_parse_ipaddress),					SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		"0.0.0.0",			"ip-address to use for for secure ssl/tls connections\n"}, 
+	{"secport", 			G_OBJ_REF(secbindaddr),			TYPE_PARSER(sccp_config_parse_port),						SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		"2443",				"secure port to list on (Skinny default:2443)\n"},
+	{"certfile",			G_OBJ_REF(cert_file),			TYPE_STRINGPTR,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		NULL,				"security certificate file (search path:Asterisk etc directory). If this field starts with '/' the absolute path will be used.\n"},
+#endif
 	{"disallow|allow", 		G_OBJ_REF(global_preferences),		TYPE_PARSER(sccp_config_parse_codec_preferences),				SCCP_CONFIG_FLAG_MULTI_ENTRY,					SCCP_CONFIG_NEEDDEVICERESET,		"all|ulaw,alaw",		"First disallow all codecs, for example 'all', then allow codecs in order of preference (Multiple lines allowed)\n"},
 	{"deny|permit", 		G_OBJ_REF(ha),	 			TYPE_PARSER(sccp_config_parse_deny_permit),					SCCP_CONFIG_FLAG_REQUIRED | SCCP_CONFIG_FLAG_MULTI_ENTRY,	SCCP_CONFIG_NEEDDEVICERESET,		"0.0.0.0/0.0.0.0|internal",	"Deny every address except for the only one allowed. example: '0.0.0.0/0.0.0.0'\n"
 																																					"Accept class C 192.168.1.0 example '192.168.1.0/255.255.255.0'\n"
