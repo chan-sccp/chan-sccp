@@ -18,7 +18,7 @@ __BEGIN_C_EXTERN__
 typedef struct sccp_servercontext sccp_servercontext_t;
 typedef enum {
 	SCCP_SERVERCONTEXT_TCP = 0,
-#ifdef HAVE_OPENSSL
+#ifdef HAVE_LIBSSL
 	SCCP_SERVERCONTEXT_TLS = 1,
 #endif
 } sccp_servercontexttype_t;

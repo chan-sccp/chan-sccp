@@ -245,11 +245,5 @@ const sccp_transport_t tlstransport = {
 	.close = tls_close,
 	.destroy = tls_destroy,
 };
-
-#else  /* HAVE_OPENSSL */
-const sccp_transport_t * const tls_init(uint8_t h)
-{
-	return NULL;
-}
 #endif /* HAVE_LIBSSL */
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

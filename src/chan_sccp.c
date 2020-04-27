@@ -59,7 +59,7 @@ int load_config(void)
 	GLOB(mwiMonitorThread) = AST_PTHREADT_NULL;
 
 	memset(&GLOB(bindaddr), 0, sizeof(GLOB(bindaddr)));
-#ifdef HAVE_OPENSSL
+#ifdef HAVE_LIBSSL
 	memset(&GLOB(secbindaddr), 0, sizeof(GLOB(secbindaddr)));
 #endif
 	GLOB(allowAnonymous) = TRUE;
@@ -136,7 +136,7 @@ boolean_t sccp_prePBXLoad(void)
 	GLOB(bindaddr).ss_family = AF_INET;
 	((struct sockaddr_in *) &GLOB(bindaddr))->sin_port = DEFAULT_SCCP_PORT;
 
-#ifdef HAVE_OPENSSL
+#ifdef HAVE_LIBSSL
 	memset(&GLOB(secbindaddr), 0, sizeof(GLOB(secbindaddr)));
 	GLOB(secbindaddr).ss_family = AF_INET;
 	((struct sockaddr_in *)&GLOB(secbindaddr))->sin_port = DEFAULT_SCCP_SECURE_PORT;
@@ -207,7 +207,7 @@ boolean_t sccp_postPBX_load(void)
 		sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "bindaddr '%s'\n", sccp_netsock_stringify(&GLOB(bindaddr)));
 		GLOB(srvcontexts[SCCP_SERVERCONTEXT_TCP]) = sccp_servercontext_create(&GLOB(bindaddr), SCCP_SERVERCONTEXT_TCP);
 	}
-#ifdef HAVE_OPENSSL
+#ifdef HAVE_LIBSSL
 	if(!GLOB(srvcontexts[SCCP_SERVERCONTEXT_TLS])) {
 		sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "secbindaddr '%s'\n", sccp_netsock_stringify(&GLOB(secbindaddr)));
 		GLOB(srvcontexts[SCCP_SERVERCONTEXT_TLS]) = sccp_servercontext_create(&GLOB(secbindaddr), SCCP_SERVERCONTEXT_TLS);
@@ -255,7 +255,9 @@ int sccp_preUnload(void)
 	/* close accept thread by shutdown the socket descriptor read side -> interrupt polling and break accept loop */
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Closing Socket Accept Descriptor\n");
 	sccp_servercontext_stopListening(GLOB(srvcontexts[SCCP_SERVERCONTEXT_TCP]));
+#if HAVE_LIBSSL
 	sccp_servercontext_stopListening(GLOB(srvcontexts[SCCP_SERVERCONTEXT_TLS]));
+#endif
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Hangup open channels\n");				//! \todo make this pbx independend
 
 	/* removing devices */
@@ -331,7 +333,9 @@ int sccp_preUnload(void)
 	sccp_config_cleanup_dynamically_allocated_memory(sccp_globals, SCCP_CONFIG_GLOBAL_SEGMENT);
 	/* */
 	sccp_servercontext_destroy(GLOB(srvcontexts[SCCP_SERVERCONTEXT_TCP]));
+#if HAVE_LIBSSL
 	sccp_servercontext_destroy(GLOB(srvcontexts[SCCP_SERVERCONTEXT_TLS]));
+#endif
 
 	/* destroy locks */
 #ifndef SCCP_ATOMIC
@@ -381,7 +385,7 @@ int sccp_reload(void)
 			if(GLOB(srvcontexts[SCCP_SERVERCONTEXT_TCP])) {
 				returnval = sccp_servercontext_reload(GLOB(srvcontexts[SCCP_SERVERCONTEXT_TCP]), &GLOB(bindaddr)) ? 0 : 3;
 			}
-#ifdef HAVE_OPENSSL
+#ifdef HAVE_LIBSSL
 			if(GLOB(srvcontexts[SCCP_SERVERCONTEXT_TLS])) {
 				returnval = sccp_servercontext_reload(GLOB(srvcontexts[SCCP_SERVERCONTEXT_TLS]), &GLOB(secbindaddr)) ? 0 : 3;
 			}

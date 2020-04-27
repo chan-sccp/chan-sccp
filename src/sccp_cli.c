@@ -612,7 +612,7 @@ static int sccp_show_globals(int fd, sccp_cli_totals_t *totals, struct mansessio
 #endif
 	CLI_AMI_OUTPUT_PARAM("Server Name", CLI_AMI_LIST_WIDTH, "%s", GLOB(servername));
 	CLI_AMI_OUTPUT_PARAM("Bind Address", CLI_AMI_LIST_WIDTH, "%s", sccp_netsock_stringify(&GLOB(bindaddr)));
-#ifdef HAVE_OPENSSL
+#ifdef HAVE_LIBSSL
 	CLI_AMI_OUTPUT_PARAM("Secure Bind Address", CLI_AMI_LIST_WIDTH, "%s", sccp_netsock_stringify(&GLOB(secbindaddr)));
 	CLI_AMI_OUTPUT_PARAM("Certificate File", CLI_AMI_LIST_WIDTH, "%s", GLOB(cert_file));
 #endif
@@ -3061,9 +3061,11 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 				if(GLOB(srvcontexts[SCCP_SERVERCONTEXT_TCP])) {
 					returnval = sccp_servercontext_reload(GLOB(srvcontexts[SCCP_SERVERCONTEXT_TCP]), &GLOB(bindaddr)) ? 0 : 3;
 				}
+#if HAVE_LIBSSL
 				if(GLOB(srvcontexts[SCCP_SERVERCONTEXT_TLS])) {
 					returnval = sccp_servercontext_reload(GLOB(srvcontexts[SCCP_SERVERCONTEXT_TLS]), &GLOB(secbindaddr)) ? 0 : 3;
 				}
+#endif
 			}
 			break;
 		case CONFIG_STATUS_FILE_OLD:

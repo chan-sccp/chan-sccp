@@ -87,7 +87,7 @@ sccp_servercontext_t * sccp_servercontext_create(struct sockaddr_storage * binda
 		case SCCP_SERVERCONTEXT_TCP:
 			context->transport = tcp_init();
 			break;
-#ifdef HAVE_OPENSSL
+#ifdef HAVE_LIBSSL
 		case SCCP_SERVERCONTEXT_TLS:
 			context->transport = tls_init();
 			break;
