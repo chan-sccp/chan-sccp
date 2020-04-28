@@ -706,19 +706,6 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 				// Otherwise, there are some issues with late arrival of ringing
 				// indications on ISDN calls (chan_lcr, chan_dahdi) (-DD).
 				sccp_indicate(d, c, SCCP_CHANNELSTATE_RINGOUT);
-				if (d->earlyrtp == SCCP_EARLYRTP_IMMEDIATE) {
-					/* 
-					 * Redial button isnt't working properly in immediate mode, because the
-					 * last dialed number was being remembered too early. This fix
-					 * remembers the last dialed number in the same cases, where the dialed number
-					 * is being sent - after receiving of RINGOUT -Pavel Troller
-					 */
-					AUTO_RELEASE(sccp_linedevice_t, ld, sccp_linedevice_find(d, c->line));
-					if(ld) {
-						sccp_device_setLastNumberDialed(d, c->dialedNumber, ld);
-					}
-					sccp_astwrap_setDialedNumber(c, c->dialedNumber);
-				}
 				iPbx.set_callstate(c, AST_STATE_RING);
 				inband_if_receivechannel = TRUE;
 			}
@@ -752,19 +739,6 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 			break;
 
 		case AST_CONTROL_PROCEEDING:
-			if (d->earlyrtp == SCCP_EARLYRTP_IMMEDIATE) {
-				/* 
-					* Redial button isnt't working properly in immediate mode, because the
-					* last dialed number was being remembered too early. This fix
-					* remembers the last dialed number in the same cases, where the dialed number
-					* is being sent - after receiving of PROCEEDING -Pavel Troller
-					*/
-				AUTO_RELEASE(sccp_linedevice_t, ld, sccp_linedevice_find(d, c->line));
-				if(ld) {
-					sccp_device_setLastNumberDialed(d, c->dialedNumber, ld);
-				}
-				sccp_astwrap_setDialedNumber(c, c->dialedNumber);
-			}
 			sccp_indicate(d, c, SCCP_CHANNELSTATE_PROCEED);
 			//inband_if_receivechannel = TRUE;
 			break;
@@ -860,17 +834,6 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 			 *  - adding time to channel->scheduler.digittimeout
 			 *  - rescheduling sccp_pbx_sched_dial
 			 */
-			/*
-			if (d->earlyrtp != SCCP_EARLYRTP_IMMEDIATE) {
-				if (!c->scheduler.deny) {
-					sccp_indicate(d, c, SCCP_CHANNELSTATE_DIGITSFOLL);
-					sccp_channel_schedule_digittimeout(c, c->scheduler.digittimeout);
-				} else {
-					sccp_channel_stop_schedule_digittimout(c);
-					sccp_indicate(d, c, SCCP_CHANNELSTATE_ONHOOK);
-				}
-			}
-			*/
 			inband_if_receivechannel = TRUE;
 			res = -1;
 			break;

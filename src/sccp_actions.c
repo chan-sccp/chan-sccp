@@ -1637,13 +1637,6 @@ static void handle_speeddial(constDevicePtr d, const sccp_speed_t * k)
 	AUTO_RELEASE(sccp_channel_t, channel , sccp_device_getActiveChannel(d));
 	if (channel) {
 		//sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: applying to channel:%s with state %s\n", DEV_ID_LOG(d), channel->designator, sccp_channelstate2str(channel->state));
-		if (channel->state == SCCP_CHANNELSTATE_DIGITSFOLL || (d->earlyrtp == SCCP_EARLYRTP_IMMEDIATE && channel->state == SCCP_CHANNELSTATE_DIALING)) { /* already dialing digits following, add the speedial extension */
-			if (iPbx.send_digits) {
-				//sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: sending digits: %s\n", channel->designator, k->ext);
-				iPbx.send_digits(channel, k->ext);
-			}
-			return;
-		}
 		if (channel->state == SCCP_CHANNELSTATE_OFFHOOK || channel->state == SCCP_CHANNELSTATE_GETDIGITS || channel->state == SCCP_CHANNELSTATE_SPEEDDIAL) {
 			sccp_channel_stop_schedule_digittimout(channel);
 			len = sccp_strlen(channel->dialedNumber);
@@ -3186,12 +3179,6 @@ void handle_keypad_button(constSessionPtr s, devicePtr d, constMessagePtr msg_in
 		/* add digit to dialed number */
 		channel->dialedNumber[len++] = resp;
 		channel->dialedNumber[len] = '\0';
-
-		if (d->earlyrtp == SCCP_EARLYRTP_IMMEDIATE) {
-			sccp_channel_set_calledparty(channel, NULL, channel->dialedNumber);
-			if (len==1) { sccp_dev_set_keyset(d, lineInstance, channel->callid, KEYMODE_DIGITSFOLL);
-}
-		}
 		if (channel->dtmfmode == SCCP_DTMFMODE_SKINNY && iPbx.send_digit) {
 			sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_1 "%s: Force Sending Emulated DTMF Digit %c to %s (using pbx frame)\n", DEV_ID_LOG(d), resp, l->name);
 			iPbx.send_digit(channel, resp);

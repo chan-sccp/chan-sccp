@@ -1578,13 +1578,7 @@ channelPtr sccp_channel_newcall(constLinePtr l, constDevicePtr device, const cha
 		if(channel->wantsEarlyRTP) {
 			sccp_channel_openReceiveChannel(channel);
 		}
-		if (device->earlyrtp == SCCP_EARLYRTP_IMMEDIATE) {
-			sccp_copy_string(channel->dialedNumber, "s", sizeof(channel->dialedNumber));
-			sccp_pbx_softswitch(channel);
-			channel->dialedNumber[0] = '\0';
-		} else {
-			sccp_channel_schedule_digittimeout(channel, GLOB(firstdigittimeout));
-		}
+		sccp_channel_schedule_digittimeout(channel, GLOB(firstdigittimeout));
 	}
 
 	return channel;

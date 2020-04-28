@@ -733,23 +733,6 @@ int sccp_pbx_remote_answer(constChannelPtr channel)
 		sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: (%s) Outgoing call %s being answered by remote party\n", c->currentDeviceId, __func__, iPbx.getChannelName(c));
 		AUTO_RELEASE(sccp_device_t, d , sccp_channel_getDevice(c));
 		if (d) {
-			if (d->earlyrtp == SCCP_EARLYRTP_IMMEDIATE) {
-				/* 
-				* Redial button isnt't working properly in immediate mode, because the
-				* last dialed number was being remembered too early. This fix
-				* remembers the last dialed number in the same cases, where the dialed number
-				* is being sent - after receiving of RINGOUT -Pavel Troller
-				*/
-				// AUTO_RELEASE(sccp_linedevices_t, ld , sccp_linedevice_find(d, c->line));
-				AUTO_RELEASE(sccp_linedevice_t, ld, c->getLineDevice(c));
-				if(ld) {
-					sccp_device_setLastNumberDialed(d, c->dialedNumber, ld);
-				}
-				if (iPbx.set_dialed_number){
-					iPbx.set_dialed_number(c, c->dialedNumber);
-				}
-			}
-
 #if CS_SCCP_CONFERENCE
 			sccp_indicate(d, c, d->conference ? SCCP_CHANNELSTATE_CONNECTEDCONFERENCE : SCCP_CHANNELSTATE_CONNECTED);
 #else
@@ -1398,16 +1381,6 @@ void * sccp_pbx_softswitch(constChannelPtr channel)
 		}
 
 		iPbx.setChannelExten(c, shortenedNumber);
-#if 0														/* Remarked out by Pavel Troller for the earlyrtp immediate implementation. Checking if there will be negative fall out.
-														   It might have to check the device->earlyrtp state, to do the correct thing (Let's see). */
-
-		/* proceed call state is needed to display the called number. The phone will not display callinfo in offhook state */
-		sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
-		sccp_channel_send_callinfo(d, c);
-
-		sccp_dev_clearprompt(d, instance, c->callid);
-		sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_CALL_PROCEED, GLOB(digittimeout));
-#endif
 
 		/*! \todo DdG: Extra wait time is incurred when checking pbx_exists_extension, when a wrong number is dialed. storing extension_exists status for sccp_log use */
 		int extension_exists = SCCP_EXTENSION_NOTEXISTS;
@@ -1450,21 +1423,13 @@ void * sccp_pbx_softswitch(constChannelPtr channel)
 #endif														// CS_MANAGER_EVENTS
 						break;
 				}
-				if (d->earlyrtp != SCCP_EARLYRTP_IMMEDIATE){
-					/* 
-					 * too early to set last dialed number for immediate mode -Pavel Troller
-					 */
-					// AUTO_RELEASE(sccp_linedevices_t, ld , sccp_linedevice_find(d, c->line));
-					AUTO_RELEASE(sccp_linedevice_t, ld, c->getLineDevice(c));
-					if(ld) {
-						sccp_device_setLastNumberDialed(d, shortenedNumber, ld);
-					}
-					if (iPbx.set_dialed_number){
-						iPbx.set_dialed_number(c, shortenedNumber);
-					}
+				AUTO_RELEASE(sccp_linedevice_t, ld, c->getLineDevice(c));
+				if(ld) {
+					sccp_device_setLastNumberDialed(d, shortenedNumber, ld);
 				}
-				
-
+				if(iPbx.set_dialed_number) {
+					iPbx.set_dialed_number(c, shortenedNumber);
+				}
 			} else {
 				sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_1 "%s: (sccp_pbx_softswitch) pbx_check_hangup(chan): %d on line %s\n", DEV_ID_LOG(d), (pbx_channel && pbx_check_hangup(pbx_channel)), l->name);
 			}

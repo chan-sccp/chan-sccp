@@ -58,7 +58,6 @@ strenum channelstatereason {
 }
 
 strenum earlyrtp {
-	SCCP_EARLYRTP_IMMEDIATE,			=0,	"Immediate",
 	SCCP_EARLYRTP_OFFHOOK,				,	"OffHook",
 	SCCP_EARLYRTP_DIALING,				,	"Dialing",
 	SCCP_EARLYRTP_RINGOUT,				,	"Ringout",

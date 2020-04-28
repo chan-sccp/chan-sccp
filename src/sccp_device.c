@@ -2899,13 +2899,7 @@ static void sccp_device_indicate_offhook(constDevicePtr device, sccp_linedevice_
 	sccp_dev_starttone(device, SKINNY_TONE_INSIDEDIALTONE, ld->lineInstance, callid, SKINNY_TONEDIRECTION_USER);
 }
 
-static void __sccp_device_indicate_immediate_dialing(constDevicePtr device, const uint8_t lineInstance, const uint32_t callid)
-{
-	sccp_device_setLamp(device, SKINNY_STIMULUS_LINE, lineInstance, SKINNY_LAMP_BLINK);
-	sccp_dev_set_keyset(device, lineInstance, callid, KEYMODE_OFFHOOK);
-}
-
-static void __sccp_device_indicate_normal_dialing(constDevicePtr device, const uint8_t lineInstance, const uint32_t callid, const skinny_calltype_t calltype, sccp_callinfo_t * const callinfo, char dialedNumber[SCCP_MAX_EXTENSION])
+static void sccp_device_indicate_dialing(constDevicePtr device, const uint8_t lineInstance, const uint32_t callid, const skinny_calltype_t calltype, sccp_callinfo_t * const callinfo, char dialedNumber[SCCP_MAX_EXTENSION])
 {
 	sccp_dev_stoptone(device, lineInstance, callid);
 	sccp_device_setLamp(device, SKINNY_STIMULUS_LINE, lineInstance, SKINNY_LAMP_BLINK);
@@ -2916,15 +2910,6 @@ static void __sccp_device_indicate_normal_dialing(constDevicePtr device, const u
 		device->protocol->sendDialedNumber(device, lineInstance, callid, dialedNumber);
 	}
 	sccp_device_sendcallstate(device, lineInstance, callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
-}
-
-static void sccp_device_indicate_dialing(constDevicePtr device, const uint8_t lineInstance, const uint32_t callid, const skinny_calltype_t calltype, sccp_callinfo_t * const callinfo, char dialedNumber[SCCP_MAX_EXTENSION])
-{
-	if (device->earlyrtp == SCCP_EARLYRTP_IMMEDIATE) {
-		__sccp_device_indicate_immediate_dialing(device, lineInstance, callid);
-	} else {
-		__sccp_device_indicate_normal_dialing(device, lineInstance, callid, calltype, callinfo, dialedNumber);
-	}
 }
 
 static void sccp_device_indicate_proceed(constDevicePtr device, const uint8_t lineInstance, const uint32_t callid, const skinny_calltype_t calltype, sccp_callinfo_t * const callinfo)
