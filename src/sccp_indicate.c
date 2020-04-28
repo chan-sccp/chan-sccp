@@ -96,7 +96,6 @@ void __sccp_indicate(constDevicePtr maybe_device, channelPtr c, const sccp_chann
 					}
 				}
 				sccp_dev_set_keyset(d, lineInstance, c->callid, KEYMODE_OFFHOOK);
-				/* for earlyrtp take a look at sccp_channel_newcall because we have no c->owner here */
 			}
 			break;
 		case SCCP_CHANNELSTATE_GETDIGITS:
@@ -108,7 +107,6 @@ void __sccp_indicate(constDevicePtr maybe_device, channelPtr c, const sccp_chann
 				sccp_dev_set_keyset(d, lineInstance, c->callid, KEYMODE_DIGITSFOLL);
 				sccp_dev_set_cplane(d, lineInstance, 1);
 				sccp_dev_starttone(d, SKINNY_TONE_ZIP, lineInstance, c->callid, SKINNY_TONEDIRECTION_USER);
-				/* for earlyrtp take a look at sccp_feat_handle_callforward because we have no c->owner here */
 			}
 			break;
 		case SCCP_CHANNELSTATE_DIGITSFOLL:
@@ -144,7 +142,6 @@ void __sccp_indicate(constDevicePtr maybe_device, channelPtr c, const sccp_chann
 				//sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_ENTER_NUMBER, GLOB(digittimeout));
 				sccp_dev_set_keyset(d, lineInstance, c->callid, KEYMODE_OFFHOOK);
 				sccp_dev_set_cplane(d, lineInstance, 1);
-				/* for earlyrtp take a look at sccp_channel_newcall because we have no c->owner here */
 			}
 			break;
 		case SCCP_CHANNELSTATE_DIALING:
@@ -153,9 +150,6 @@ void __sccp_indicate(constDevicePtr maybe_device, channelPtr c, const sccp_chann
 					break;
 				}
 				d->indicate->dialing(d, lineInstance, c->callid, c->calltype, ci, c->dialedNumber);
-				if(d->earlyrtp <= SCCP_EARLYRTP_RINGOUT) {
-					sccp_channel_openReceiveChannel(c);
-				}
 			}
 			break;
 		case SCCP_CHANNELSTATE_RINGOUT:
@@ -164,14 +158,8 @@ void __sccp_indicate(constDevicePtr maybe_device, channelPtr c, const sccp_chann
 				// first ringout indicate (before connected line update */
 				sccp_device_sendcallstate(d, lineInstance, c->callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 				sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_RING_OUT, GLOB(digittimeout));
-
-				if(d->earlyrtp <= SCCP_EARLYRTP_RINGOUT) {
-					sccp_channel_openReceiveChannel(c);
-				} else {
-					sccp_dev_stoptone(d, lineInstance, c->callid);
-					sccp_dev_starttone(d, SKINNY_TONE_ALERTINGTONE, lineInstance, c->callid, SKINNY_TONEDIRECTION_USER);
-				}
-
+				sccp_dev_stoptone(d, lineInstance, c->callid);
+				sccp_dev_starttone(d, SKINNY_TONE_ALERTINGTONE, lineInstance, c->callid, SKINNY_TONEDIRECTION_USER);
 				sccp_dev_set_keyset(d, lineInstance, c->callid, KEYMODE_RINGOUT);
 				iCallInfo.Send(ci, c->callid, c->calltype, lineInstance, d, FALSE);
 			}
@@ -180,9 +168,6 @@ void __sccp_indicate(constDevicePtr maybe_device, channelPtr c, const sccp_chann
 			/* send by connected line update, to show that we know the remote end, we can now update the callinfo */
 			sccp_device_sendcallstate(d, lineInstance, c->callid, SKINNY_CALLSTATE_RINGOUT, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 			iCallInfo.Send(ci, c->callid, c->calltype, lineInstance, d, TRUE);
-			if(d->earlyrtp <= SCCP_EARLYRTP_PROGRESS) {
-				sccp_channel_openReceiveChannel(c);
-			}
 			break;
 		case SCCP_CHANNELSTATE_RINGING:
 			{
@@ -254,17 +239,10 @@ void __sccp_indicate(constDevicePtr maybe_device, channelPtr c, const sccp_chann
 			break;
 		case SCCP_CHANNELSTATE_PROGRESS:
 			{
-				if (c->previousChannelState != c->state) {
-					if (c->previousChannelState == SCCP_CHANNELSTATE_CONNECTED) {		//! this is a bug of asterisk 1.6 (it sends progress after a call is answered, when it's being diverted to some extensions with dial app)
-						sccp_log((DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "SCCP: Asterisk requests to change state from (CONNECTED) to (PROGRESS). Ignoring\n");
-					} else {
-						sccp_log((DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "SCCP: Asterisk requests to change state from (%s) to (PROGRESS)\n", sccp_channelstate2str(c->previousChannelState));
-						if(d->earlyrtp <= SCCP_EARLYRTP_PROGRESS) {
-							sccp_channel_openReceiveChannel(c);
-						}
-						sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_CALL_PROGRESS, GLOB(digittimeout));
-					}
-				}
+			if(c->wantsEarlyRTP && !c->progressSent) {
+				c->makeProgress(c);
+				sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_CALL_PROGRESS, GLOB(digittimeout));
+			}
 			}
 			break;
 		case SCCP_CHANNELSTATE_PROCEED:
@@ -274,9 +252,6 @@ void __sccp_indicate(constDevicePtr maybe_device, channelPtr c, const sccp_chann
 					break;
 				}
 				d->indicate->proceed(d, lineInstance, c->callid, c->calltype, ci);
-				if(d->earlyrtp <= SCCP_EARLYRTP_RINGOUT) {
-					sccp_channel_openReceiveChannel(c);
-				}
 			}
 			break;
 		case SCCP_CHANNELSTATE_CALLREMOTEMULTILINE:

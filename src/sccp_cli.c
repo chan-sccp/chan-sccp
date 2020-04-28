@@ -677,7 +677,7 @@ static int sccp_show_globals(int fd, sccp_cli_totals_t *totals, struct mansessio
 	CLI_AMI_OUTPUT_BOOL("Echo cancel", CLI_AMI_LIST_WIDTH, GLOB(echocancel));
 	CLI_AMI_OUTPUT_BOOL("Silence suppression", CLI_AMI_LIST_WIDTH, GLOB(silencesuppression));
 	CLI_AMI_OUTPUT_BOOL("Trust phone ip (deprecated)", CLI_AMI_LIST_WIDTH, GLOB(trustphoneip));
-	CLI_AMI_OUTPUT_PARAM("Early RTP", CLI_AMI_LIST_WIDTH, "%s", sccp_earlyrtp2str(GLOB(earlyrtp)));
+	CLI_AMI_OUTPUT_BOOL("Early RTP", CLI_AMI_LIST_WIDTH, GLOB(earlyrtp));
 	CLI_AMI_OUTPUT_PARAM("Ringtype", CLI_AMI_LIST_WIDTH, "%s", skinny_ringtype2str(GLOB(ringtype)));
 	CLI_AMI_OUTPUT_PARAM("AutoAnswer ringtime", CLI_AMI_LIST_WIDTH, "%d", GLOB(autoanswer_ring_time));
 	CLI_AMI_OUTPUT_PARAM("AutoAnswer tone", CLI_AMI_LIST_WIDTH, "%s (0x%02x)", skinny_tone2str(GLOB(autoanswer_tone)), GLOB(autoanswer_tone));
@@ -981,7 +981,7 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 	CLI_AMI_OUTPUT_PARAM("Server Address",		CLI_AMI_LIST_WIDTH, "%s", serverAddress);
 	CLI_AMI_OUTPUT_PARAM("Deny/Permit",		CLI_AMI_LIST_WIDTH, "%s", pbx_str_buffer(ha_buf));
 	CLI_AMI_OUTPUT_PARAM("PermitHosts",		CLI_AMI_LIST_WIDTH, "%s", pbx_str_buffer(permithost_buf));
-	CLI_AMI_OUTPUT_PARAM("Early RTP",		CLI_AMI_LIST_WIDTH, "%s", sccp_earlyrtp2str(d->earlyrtp));
+	CLI_AMI_OUTPUT_BOOL("Early RTP", CLI_AMI_LIST_WIDTH, d->earlyrtp);
 	CLI_AMI_OUTPUT_PARAM("Accessory State", 	CLI_AMI_LIST_WIDTH, "%s%s%s", activeAccessory ? sccp_accessory2str(activeAccessory) : "", activeAccessory ? ":" : "", sccp_accessorystate2str(activeAccessoryState));
 	CLI_AMI_OUTPUT_PARAM("Last dialed number",	CLI_AMI_LIST_WIDTH, "%s (%d)", d->redialInformation.number, d->redialInformation.lineInstance);
 	CLI_AMI_OUTPUT_PARAM("Default line instance",	CLI_AMI_LIST_WIDTH, "%d", d->defaultLineInstance);

@@ -131,7 +131,7 @@ struct sccp_global_vars {
 	skinny_ringtype_t ringtype;										/*!< RingType for incoming calls */
 	boolean_t meetme;											/*!< Meetme on/off */
 	boolean_t allowAnonymous;										/*!< Allow Anonymous/Guest Devices */
-	sccp_earlyrtp_t earlyrtp;										/*!< Channel State where to open the rtp media stream */
+	boolean_t earlyrtp;                                                                                     /*!< Channel State where to open the rtp media stream */
 
 	skinny_lampmode_t mwilamp;										/*!< MWI/Lamp (Length:3) */
 	sccp_blindtransferindication_t blindtransferindication;							/*!< Blind Transfer Indication Support (Boolean, default=on = SCCP_BLINDTRANSFER_MOH) */

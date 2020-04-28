@@ -91,21 +91,25 @@ static void setMicrophoneState(channelPtr c, boolean_t enabled)
 static void setEarlyRTP(channelPtr c, boolean_t state)
 {
 	pbx_assert(c != NULL);
+	sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "%s: (%s)\n", c->designator, __func__);
 	c->wantsEarlyRTP = state ? sccp_always_true : sccp_always_false;
 }
 
-static void setProgressSent(channelPtr c)
+static void makeProgress(channelPtr c)
 {
 	pbx_assert(c != NULL);
-	if(!sccp_rtp_getState(&c->rtp.audio, SCCP_RTP_RECEPTION)) {
-		sccp_channel_openReceiveChannel(c);
-	}
+	if(c->wantsEarlyRTP && c->progressSent == sccp_always_false) {
+		sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "%s: (%s)\n", c->designator, __func__);
+		if(!sccp_rtp_getState(&c->rtp.audio, SCCP_RTP_RECEPTION)) {
+			sccp_channel_openReceiveChannel(c);
+		}
 #if CS_SCCP_VIDEO
-	if(!sccp_rtp_getState(&c->rtp.video, SCCP_RTP_RECEPTION) && sccp_channel_getVideoMode(c) != SCCP_VIDEO_MODE_OFF) {
-		sccp_channel_openMultiMediaReceiveChannel(c);
-	}
+		if(!sccp_rtp_getState(&c->rtp.video, SCCP_RTP_RECEPTION) && sccp_channel_getVideoMode(c) != SCCP_VIDEO_MODE_OFF) {
+			sccp_channel_openMultiMediaReceiveChannel(c);
+		}
 #endif
-	c->progressSent = sccp_always_true;
+		c->progressSent = sccp_always_true;
+	}
 }
 
 /*!
@@ -219,7 +223,7 @@ channelPtr sccp_channel_allocate(constLinePtr l, constDevicePtr device)
 		channel->wantsEarlyRTP = sccp_always_false;
 		channel->setEarlyRTP = setEarlyRTP;
 		channel->progressSent = sccp_always_false;
-		channel->setProgressSent = setProgressSent;
+		channel->makeProgress = makeProgress;
 		channel->setMicrophone = setMicrophoneState;
 		channel->hangupRequest = sccp_astgenwrap_requestQueueHangup;
 		//channel->privacy = (device && (device->privacyFeature.status & SCCP_PRIVACYFEATURE_CALLPRESENT)) ? TRUE : FALSE;
@@ -348,7 +352,7 @@ void sccp_channel_setDevice(channelPtr channel, constDevicePtr device)
 #endif
 		sccp_copy_string(channel->currentDeviceId, channel->privateData->device->id, sizeof(char[StationMaxDeviceNameSize]));
 		channel->dtmfmode = channel->privateData->device->getDtmfMode(channel->privateData->device);
-		channel->setEarlyRTP(channel, channel->privateData->device->earlyrtp != SCCP_EARLYRTP_NONE);
+		channel->setEarlyRTP(channel, channel->privateData->device->earlyrtp);
 		return;
 	}
 EXIT:
@@ -362,7 +366,7 @@ EXIT:
 	// sccp_line_copyMinimumCodecSetFromLineToChannel(l, c); 
 	sccp_copy_string(channel->currentDeviceId, "SCCP", sizeof(char[StationMaxDeviceNameSize]));
 	channel->dtmfmode = SCCP_DTMFMODE_RFC2833;
-	channel->setEarlyRTP(channel, false);
+	channel->setEarlyRTP(channel, FALSE);
 }
 
 static void sccp_channel_recalculateAudioCodecFormat(channelPtr channel)

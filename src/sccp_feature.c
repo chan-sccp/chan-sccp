@@ -266,10 +266,6 @@ void sccp_feat_handle_directed_pickup(constDevicePtr d, constLinePtr l, channelP
 		sccp_indicate(d, c, SCCP_CHANNELSTATE_GETDIGITS);
 		iPbx.set_callstate(c, AST_STATE_OFFHOOK);
 		sccp_channel_stop_schedule_digittimout(c);
-
-		if (c->line->pickup_modeanswer && d->earlyrtp <= SCCP_EARLYRTP_OFFHOOK && !c->rtp.audio.instance) {
-			sccp_channel_openReceiveChannel(c);
-		}
 	}
 #else
 	pbx_log(LOG_NOTICE, "%s: (directed_pickup) no support for pickup in asterisk\n");
@@ -616,9 +612,6 @@ void sccp_feat_handle_conference(constDevicePtr d, constLinePtr l, uint8_t lineI
 		sccp_indicate(d, c, SCCP_CHANNELSTATE_DIALING);
 		iPbx.set_callstate(c, AST_STATE_OFFHOOK);
 		sccp_channel_stop_schedule_digittimout(c);
-		if (d->earlyrtp <= SCCP_EARLYRTP_OFFHOOK && !c->rtp.audio.instance) {
-			sccp_channel_openReceiveChannel(c);
-	 	}
 		sccp_pbx_softswitch(c);
 	} else {
 		pbx_log(LOG_ERROR, "%s: (sccp_feat_handle_conference) Can't allocate SCCP channel for line %s\n", DEV_ID_LOG(d), l->name);
@@ -887,10 +880,6 @@ void sccp_feat_handle_meetme(constLinePtr l, uint8_t lineInstance, constDevicePt
 	if(sccp_pbx_channel_allocate(c, NULL, NULL)) {
 		iPbx.set_callstate(c, AST_STATE_OFFHOOK);
 
-		if(d->earlyrtp <= SCCP_EARLYRTP_OFFHOOK && !c->rtp.audio.instance) {
-			sccp_channel_openReceiveChannel(c);
-		}
-
 		/* removing scheduled dial */
 		sccp_channel_stop_schedule_digittimout(c);
 	}
@@ -1109,9 +1098,6 @@ void sccp_feat_handle_barge(constLinePtr l, uint8_t lineInstance, constDevicePtr
 		sccp_indicate(d, c, SCCP_CHANNELSTATE_GETDIGITS);
 		iPbx.set_callstate(c, AST_STATE_OFFHOOK);
 		sccp_channel_stop_schedule_digittimout(c);
-		if (d->earlyrtp <= SCCP_EARLYRTP_OFFHOOK && !c->rtp.audio.instance) {
-			sccp_channel_openReceiveChannel(c);
-		}
 		if (!maybe_c) {
 			sccp_pbx_softswitch(c);
 		}
@@ -1369,10 +1355,6 @@ void sccp_feat_handle_cbarge(constLinePtr l, uint8_t lineInstance, constDevicePt
 	/* ok the number exist. allocate the asterisk channel */
 	if(sccp_pbx_channel_allocate(c, NULL, NULL)) {
 		iPbx.set_callstate(c, AST_STATE_OFFHOOK);
-
-		if(d->earlyrtp <= SCCP_EARLYRTP_OFFHOOK && !c->rtp.audio.instance) {
-			sccp_channel_openReceiveChannel(c);
-		}
 	}
 }
 

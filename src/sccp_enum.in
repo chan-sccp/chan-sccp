@@ -57,14 +57,6 @@ strenum channelstatereason {
 	SCCP_CHANNELSTATEREASON_BARGE,			,	"BARGE",
 }
 
-strenum earlyrtp {
-	SCCP_EARLYRTP_OFFHOOK,				,	"OffHook",
-	SCCP_EARLYRTP_DIALING,				,	"Dialing",
-	SCCP_EARLYRTP_RINGOUT,				,	"Ringout",
-	SCCP_EARLYRTP_PROGRESS,				,	"Progress",
-	SCCP_EARLYRTP_NONE,				,	"None",
-}												/*!< internal Chan_SCCP Call State c->callstate */
-
 strenum devicestate {
 	SCCP_DEVICESTATE_ONHOOK,			=0,	"On Hook"
 	SCCP_DEVICESTATE_OFFHOOK,			,	"Off Hook"

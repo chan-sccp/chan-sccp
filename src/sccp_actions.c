@@ -2051,9 +2051,6 @@ static void handle_stimulus_groupcallpickup(constDevicePtr d, constLinePtr l, co
 		iPbx.getPickupExtension(channel, channel->dialedNumber);
 		sccp_indicate(d, channel, SCCP_CHANNELSTATE_SPEEDDIAL);
 		iPbx.set_callstate(channel, AST_STATE_OFFHOOK);
-		if (d->earlyrtp <= SCCP_EARLYRTP_OFFHOOK && !channel->rtp.audio.instance) {
-			sccp_channel_openReceiveChannel(channel);
-		}
 		sccp_pbx_softswitch(channel);
 	}
 

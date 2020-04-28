@@ -101,7 +101,7 @@ struct sccp_channel {
 	boolean_t (*wantsEarlyRTP)(void);
 	boolean_t (*progressSent)(void);
 	void (*setEarlyRTP)(channelPtr c, boolean_t state);
-	void (*setProgressSent)(channelPtr c);
+	void (*makeProgress)(channelPtr c);
 	const char *const musicclass;										/*!< Music Class */
 
 	sccp_channel_t *parentChannel;										/*!< if we are a cfwd channel, our parent is this */
