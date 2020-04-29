@@ -486,90 +486,6 @@ const char *pbx_getformatname_multiple(char *buf, size_t size, struct ast_format
 }
 
 
-/*!
- * \brief Read from an Asterisk Channel
- * \param ast Asterisk Channel as ast_channel
- *
- * \called_from_asterisk
- *
- * \note not following the refcount rules... channel is already retained
- */
-static PBX_FRAME_TYPE *sccp_astwrap_rtp_read(PBX_CHANNEL_TYPE * ast)
-{
-	//AUTO_RELEASE(sccp_channel_t, c , NULL);									// not following the refcount rules... channel is already retained
-	sccp_channel_t *c = NULL;
-	PBX_FRAME_TYPE *frame = &ast_null_frame;
-
-	if (!(c = CS_AST_CHANNEL_PVT(ast))) {									// not following the refcount rules... channel is already retained
-		pbx_log(LOG_ERROR, "SCCP: (rtp_read) no channel pvt\n");
-		goto EXIT_FUNC;
-	}
-
-	if (!c->rtp.audio.instance) {
-		pbx_log(LOG_NOTICE, "SCCP: (rtp_read) no rtp stream yet. skip\n");
-		goto EXIT_FUNC;
-	}
-
-	switch (ast_channel_fdno(ast)) {
-
-		case 0:
-			frame = ast_rtp_instance_read(c->rtp.audio.instance, 0);					/* RTP Audio */
-			break;
-		case 1:
-			frame = ast_rtp_instance_read(c->rtp.audio.instance, 1);					/* RTCP Control Channel */
-			break;
-		case 2:
-#ifdef CS_SCCP_VIDEO
-			frame = ast_rtp_instance_read(c->rtp.video.instance, 0);					/* RTP Video */
-#else
-			pbx_log(LOG_NOTICE, "SCCP: (rtp_read) Cannot handle video rtp stream.\n");
-#endif
-			break;
-		case 3:
-#ifdef CS_SCCP_VIDEO
-			frame = ast_rtp_instance_read(c->rtp.video.instance, 1);					/* RTCP Control Channel for video */
-#else
-			pbx_log(LOG_NOTICE, "SCCP: (rtp_read) Cannot handle video rtcp stream.\n");
-#endif
-			break;
-		default:
-			// pbx_log(LOG_NOTICE, "%s: (rtp_read) Unknown Frame Type (%d). Skipping\n", c->designator, ast_channel_fdno(ast));
-			goto EXIT_FUNC;
-	}
-	//sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: read format: ast->fdno: %d, frametype: %d, %s(%d)\n", DEV_ID_LOG(c->device), ast_channel_fdno(ast), frame->frametype, pbx_getformatname(frame->subclass), frame->subclass);
-	if(frame && frame != &ast_null_frame && frame->frametype == AST_FRAME_VOICE) {
-#ifdef CS_SCCP_CONFERENCE
-		if (c->conference && (!ast_format_cache_is_slinear(ast_channel_readformat(ast)))) {
-			ast_set_read_format(ast, ast_format_slin96);
-		} else
-#endif
-		{
-			if (ast_format_cap_iscompatible_format(ast_channel_nativeformats(ast), frame->subclass.format) == AST_FORMAT_CMP_NOT_EQUAL) {
-				struct ast_format_cap *caps;
-				sccp_log(DEBUGCAT_CODEC)(VERBOSE_PREFIX_3 "%s: (rtp_read) Format changed to %s\n", c->designator, ast_format_get_name(frame->subclass.format));
-				caps = ast_format_cap_alloc(AST_FORMAT_CAP_FLAG_DEFAULT);
-				if (caps) {
-					ast_format_cap_append(caps, frame->subclass.format, 0);
-					ast_channel_nativeformats_set(ast, caps);
-					ao2_cleanup(caps);
-				}
-				ast_set_read_format(ast, ast_channel_readformat(ast));
-				ast_set_write_format(ast, ast_channel_writeformat(ast));
-			}
-		}
-	}
-
-	/* Only allow audio through if they sent progress, or if the channel is actually answered */
-	/* removed causing one way audio trouble, needs more research */
-	/*
-	if(frame && frame->frametype == AST_FRAME_VOICE && ((c->rtp.audio.reception.state & SCCP_RTP_STATUS_ACTIVE) != SCCP_RTP_STATUS_ACTIVE) && pbx_channel_state(ast) != AST_STATE_UP) {
-		ast_frfree(frame);
-		frame = &ast_null_frame;
-	}
-	*/
-EXIT_FUNC:
-	return frame;
-}
 
 /*!
  * \brief Find Asterisk/PBX channel by linkid
@@ -798,11 +714,8 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 				// indications on ISDN calls (chan_lcr, chan_dahdi) (-DD).
 				sccp_indicate(d, c, SCCP_CHANNELSTATE_RINGOUT);
 				iPbx.set_callstate(c, AST_STATE_RING);
-				inband_if_receivechannel = TRUE;
 			}
-			if (ast_channel_state(ast) != AST_STATE_RING) {
-				inband_if_receivechannel = TRUE;
-			}
+			inband_if_receivechannel = TRUE;
 			break;
 
 		case AST_CONTROL_BUSY:
@@ -820,12 +733,7 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 			if (c->remoteCapabilities.audio[0] == SKINNY_CODEC_NONE) {
 				pbx_retrieve_remote_capabilities(c);
 			}
-			if (c->state != SCCP_CHANNELSTATE_CONNECTED && c->previousChannelState != SCCP_CHANNELSTATE_CONNECTED) {
-				sccp_indicate(d, c, SCCP_CHANNELSTATE_PROGRESS);
-			} else {
-				// ORIGINATE() to SIP indicates PROGRESS after CONNECTED, causing issues with transfer
-				sccp_indicate(d, c, SCCP_CHANNELSTATE_CONNECTED);
-			}
+			sccp_indicate(d, c, SCCP_CHANNELSTATE_PROGRESS);
 			inband_if_receivechannel = TRUE;
 			break;
 
@@ -980,6 +888,90 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 	return res;
 }
 
+/*!
+ * \brief Read from an Asterisk Channel
+ * \param ast Asterisk Channel as ast_channel
+ *
+ * \called_from_asterisk
+ *
+ * \note not following the refcount rules... channel is already retained
+ */
+static PBX_FRAME_TYPE * sccp_astwrap_rtp_read(PBX_CHANNEL_TYPE * ast)
+{
+	// AUTO_RELEASE(sccp_channel_t, c , NULL);									// not following the refcount rules... channel is already retained
+	sccp_channel_t * c = NULL;
+	PBX_FRAME_TYPE * frame = &ast_null_frame;
+
+	if(!(c = CS_AST_CHANNEL_PVT(ast))) {                                        // not following the refcount rules... channel is already retained
+		pbx_log(LOG_ERROR, "SCCP: (rtp_read) no channel pvt\n");
+		goto EXIT_FUNC;
+	}
+
+	if(!c->rtp.audio.instance) {
+		pbx_log(LOG_NOTICE, "SCCP: (rtp_read) no rtp stream yet. skip\n");
+		goto EXIT_FUNC;
+	}
+
+	switch(ast_channel_fdno(ast)) {
+		case 0:
+			frame = ast_rtp_instance_read(c->rtp.audio.instance, 0); /* RTP Audio */
+			break;
+		case 1:
+			frame = ast_rtp_instance_read(c->rtp.audio.instance, 1); /* RTCP Control Channel */
+			break;
+		case 2:
+#ifdef CS_SCCP_VIDEO
+			frame = ast_rtp_instance_read(c->rtp.video.instance, 0); /* RTP Video */
+#else
+			pbx_log(LOG_NOTICE, "SCCP: (rtp_read) Cannot handle video rtp stream.\n");
+#endif
+			break;
+		case 3:
+#ifdef CS_SCCP_VIDEO
+			frame = ast_rtp_instance_read(c->rtp.video.instance, 1); /* RTCP Control Channel for video */
+#else
+			pbx_log(LOG_NOTICE, "SCCP: (rtp_read) Cannot handle video rtcp stream.\n");
+#endif
+			break;
+		default:
+			// pbx_log(LOG_NOTICE, "%s: (rtp_read) Unknown Frame Type (%d). Skipping\n", c->designator, ast_channel_fdno(ast));
+			goto EXIT_FUNC;
+	}
+	// sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: read format: ast->fdno: %d, frametype: %d, %s(%d)\n", DEV_ID_LOG(c->device), ast_channel_fdno(ast), frame->frametype, pbx_getformatname(frame->subclass),
+	// frame->subclass);
+	if(frame && frame != &ast_null_frame && frame->frametype == AST_FRAME_VOICE) {
+#ifdef CS_SCCP_CONFERENCE
+		if(c->conference && (!ast_format_cache_is_slinear(ast_channel_readformat(ast)))) {
+			ast_set_read_format(ast, ast_format_slin96);
+		} else
+#endif
+		{
+			if(ast_format_cap_iscompatible_format(ast_channel_nativeformats(ast), frame->subclass.format) == AST_FORMAT_CMP_NOT_EQUAL) {
+				struct ast_format_cap * caps;
+				sccp_log(DEBUGCAT_CODEC)(VERBOSE_PREFIX_3 "%s: (rtp_read) Format changed to %s\n", c->designator, ast_format_get_name(frame->subclass.format));
+				caps = ast_format_cap_alloc(AST_FORMAT_CAP_FLAG_DEFAULT);
+				if(caps) {
+					ast_format_cap_append(caps, frame->subclass.format, 0);
+					ast_channel_nativeformats_set(ast, caps);
+					ao2_cleanup(caps);
+				}
+				ast_set_read_format(ast, ast_channel_readformat(ast));
+				ast_set_write_format(ast, ast_channel_writeformat(ast));
+			}
+		}
+	}
+
+	/* Only allow audio through if they sent progress, or if the channel is actually answered */
+	/* removed causing one way audio trouble, needs more research */
+	/*
+	if(frame && frame->frametype == AST_FRAME_VOICE && ((c->rtp.audio.reception.state & SCCP_RTP_STATUS_ACTIVE) != SCCP_RTP_STATUS_ACTIVE) && pbx_channel_state(ast) != AST_STATE_UP) {
+		ast_frfree(frame);
+		frame = &ast_null_frame;
+	}
+	*/
+EXIT_FUNC:
+	return frame;
+}
 
 /*!
  * \brief Write to an Asterisk Channel
