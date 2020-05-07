@@ -713,6 +713,11 @@ void handle_SPCPTokenReq(constSessionPtr s, devicePtr no_d, constMessagePtr msg_
 				return;
 			}
 			if (sccp_session_check_crossdevice(s, tmpdevice) || (state != SKINNY_DEVICE_RS_FAILED && state != SKINNY_DEVICE_RS_NONE)) {
+				if(state == SKINNY_DEVICE_RS_OK) {
+					pbx_log(LOG_NOTICE, "%s: Already has a valid token and is registered\n", deviceName);
+					sccp_session_tokenAckSPCP(s, 65535);
+					return;
+				}
 				pbx_log(LOG_NOTICE, "%s: Cleaning previous session, come back later (tokenState:%s)\n", deviceName, skinny_registrationstate2str(state));
 				sccp_session_crossdevice_cleanup(s, tmpdevice->session);
 				tmpdevice->registrationTime = time(0);
