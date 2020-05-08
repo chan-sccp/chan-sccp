@@ -276,8 +276,10 @@ dnl	AC_MSG_RESULT([--enable-tls: ${ac_cv_tls}])
 AC_DEFUN([CS_WITH_LIBSSL], [
 	CS_DISABLE_TLS
 	if test "x${ac_cv_tls}" = "xyes"; then
-		AC_CHECK_LIB([crypto], [EVP_EncryptInit], [], AC_MSG_FAILURE([can't find openssl crypto lib]))
-		AC_CHECK_LIB([ssl], [SSL_CTX_new], [], AC_MSG_FAILURE([can't find openssl ssl lib]))
+		dnl AC_CHECK_LIB([crypto], [EVP_EncryptInit], [], AC_MSG_FAILURE([can't find openssl crypto lib]))
+		dnl AC_CHECK_LIB([ssl], [SSL_CTX_new], [], AC_MSG_FAILURE([can't find openssl ssl lib]))
+		AC_CHECK_LIB([crypto], [EVP_EncryptInit], [], AC_MSG_NOTICE([can't find openssl crypto lib]))
+		AC_CHECK_LIB([ssl], [SSL_CTX_new], [], AC_MSG_NOTICE([can't find openssl ssl lib]))
 	fi
 ])
 
