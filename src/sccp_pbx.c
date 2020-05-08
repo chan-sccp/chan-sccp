@@ -120,14 +120,17 @@ static void *sccp_pbx_call_autoanswer_thread(void *data)
 	struct sccp_answer_conveyor_struct *conveyor = (struct sccp_answer_conveyor_struct *)data;
 
 	int instance = 0;
+	sccp_log((DEBUGCAT_PBX))(VERBOSE_PREFIX_3 "SCCP: autoanswer thread started\n");
 
 	sleep(GLOB(autoanswer_ring_time));
 	pthread_testcancel();
 
 	if (!conveyor) {
+		pbx_log(LOG_ERROR, "SCCP: (autoanswer_thread) No conveyor\n");
 		return NULL;
 	}
 	if(!conveyor->ld) {
+		pbx_log(LOG_ERROR, "SCCP: (autoanswer_thread) No linedevice\n");
 		goto FINAL;
 	}
 
@@ -135,12 +138,14 @@ static void *sccp_pbx_call_autoanswer_thread(void *data)
 		AUTO_RELEASE(sccp_device_t, device, sccp_device_retain(conveyor->ld->device));
 
 		if (!device) {
+			pbx_log(LOG_ERROR, "SCCP: (autoanswer_thread) no device\n");
 			goto FINAL;
 		}
 
 		AUTO_RELEASE(sccp_channel_t, c , sccp_channel_find_byid(conveyor->callid));
 
 		if (!c || c->state != SCCP_CHANNELSTATE_RINGING) {
+			pbx_log(LOG_WARNING, "%s: (autoanswer_thread) %s\n", device->id, c ? "not ringing" : "no channel");
 			goto FINAL;
 		}
 
