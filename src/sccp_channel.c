@@ -1572,16 +1572,10 @@ channelPtr sccp_channel_newcall(constLinePtr l, constDevicePtr device, const cha
 	iPbx.set_callstate(channel, AST_STATE_OFFHOOK);
 	if (dial) {
 		sccp_indicate(device, channel, SCCP_CHANNELSTATE_SPEEDDIAL);
-		if(channel->wantsEarlyRTP) {
-			sccp_channel_openReceiveChannel(channel);
-		}
 		sccp_copy_string(channel->dialedNumber, dial, sizeof(channel->dialedNumber));
 		sccp_pbx_softswitch(channel);									/* we know the number to dial -> softswitch */
 	} else {
 		sccp_indicate(device, channel, SCCP_CHANNELSTATE_OFFHOOK);
-		if(channel->wantsEarlyRTP) {
-			sccp_channel_openReceiveChannel(channel);
-		}
 		sccp_channel_schedule_digittimeout(channel, GLOB(firstdigittimeout));
 	}
 
