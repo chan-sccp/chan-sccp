@@ -100,6 +100,7 @@ struct sccp_channel {
 	boolean_t (*isMicrophoneEnabled) (void);
 	boolean_t (*wantsEarlyRTP)(void);
 	boolean_t (*progressSent)(void);
+	void (*setTone)(constChannelPtr c, skinny_tone_t tone, skinny_toneDirection_t direction);
 	void (*setEarlyRTP)(channelPtr c, boolean_t state);
 	void (*makeProgress)(channelPtr c);
 	const char *const musicclass;										/*!< Music Class */

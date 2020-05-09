@@ -87,12 +87,10 @@ void __sccp_indicate(constDevicePtr maybe_device, channelPtr c, const sccp_chann
 				sccp_dev_set_cplane(d, lineInstance, 1);
 				if (SCCP_CHANNELSTATE_DOWN == c->previousChannelState) {		// new call
 					sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_ENTER_NUMBER, GLOB(digittimeout));
+					c->setTone(c, SKINNY_TONE_INSIDEDIALTONE, SKINNY_TONEDIRECTION_USER);
 					if(!(d->hasMWILight()) && d->voicemailStatistic.newmsgs) {
 						sccp_log((DEBUGCAT_INDICATE | DEBUGCAT_MWI))(VERBOSE_PREFIX_2 "%s: Device does not have MWI-light and does have messages waiting -> stutter\n", d->id);
-						sccp_dev_starttone(d, SKINNY_TONE_INSIDEDIALTONE, lineInstance, c->callid, SKINNY_TONEDIRECTION_USER);
-						sccp_dev_starttone(d, SKINNY_TONE_PARTIALDIALTONE, lineInstance, c->callid, SKINNY_TONEDIRECTION_USER); /* Add Stutter Pattern for ATA/Analog devices */
-					} else {
-						sccp_dev_starttone(d, SKINNY_TONE_INSIDEDIALTONE, lineInstance, c->callid, SKINNY_TONEDIRECTION_USER);
+						c->setTone(c, SKINNY_TONE_PARTIALDIALTONE, SKINNY_TONEDIRECTION_USER); /* Add Stutter Pattern for ATA/Analog devices */
 					}
 				}
 				sccp_dev_set_keyset(d, lineInstance, c->callid, KEYMODE_OFFHOOK);
@@ -106,7 +104,7 @@ void __sccp_indicate(constDevicePtr maybe_device, channelPtr c, const sccp_chann
 				sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_ENTER_NUMBER, GLOB(digittimeout));
 				sccp_dev_set_keyset(d, lineInstance, c->callid, KEYMODE_DIGITSFOLL);
 				sccp_dev_set_cplane(d, lineInstance, 1);
-				sccp_dev_starttone(d, SKINNY_TONE_ZIP, lineInstance, c->callid, SKINNY_TONEDIRECTION_USER);
+				c->setTone(c, SKINNY_TONE_ZIP, SKINNY_TONEDIRECTION_USER);
 			}
 			break;
 		case SCCP_CHANNELSTATE_DIGITSFOLL:
@@ -122,9 +120,9 @@ void __sccp_indicate(constDevicePtr maybe_device, channelPtr c, const sccp_chann
 					lenSecDialtoneDigits,
 					secondary_dialtone_tone);
 				if (lenSecDialtoneDigits > 0 && lenDialed == lenSecDialtoneDigits && !strncmp(c->dialedNumber, l->secondary_dialtone_digits, lenSecDialtoneDigits)) {
-					sccp_dev_starttone(d, secondary_dialtone_tone, lineInstance, c->callid, SKINNY_TONEDIRECTION_USER);
+					c->setTone(c, secondary_dialtone_tone, SKINNY_TONEDIRECTION_USER);
 				} else if (lenDialed > 0) {
-					sccp_dev_stoptone(d, lineInstance, c->callid);
+					c->setTone(c, SKINNY_TONE_SILENCE, SKINNY_TONEDIRECTION_USER);
 				}
 				sccp_dev_set_keyset(d, lineInstance, c->callid, KEYMODE_DIGITSFOLL);
 				break;
@@ -158,8 +156,7 @@ void __sccp_indicate(constDevicePtr maybe_device, channelPtr c, const sccp_chann
 				// first ringout indicate (before connected line update */
 				sccp_device_sendcallstate(d, lineInstance, c->callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 				sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_RING_OUT, GLOB(digittimeout));
-				sccp_dev_stoptone(d, lineInstance, c->callid);
-				sccp_dev_starttone(d, SKINNY_TONE_ALERTINGTONE, lineInstance, c->callid, SKINNY_TONEDIRECTION_USER);
+				c->setTone(c, SKINNY_TONE_ALERTINGTONE, SKINNY_TONEDIRECTION_USER);
 				sccp_dev_set_keyset(d, lineInstance, c->callid, KEYMODE_RINGOUT);
 				iCallInfo.Send(ci, c->callid, c->calltype, lineInstance, d, FALSE);
 			}
@@ -281,7 +278,7 @@ void __sccp_indicate(constDevicePtr maybe_device, channelPtr c, const sccp_chann
 		case SCCP_CHANNELSTATE_BUSY:
 			{
 			if(!sccp_rtp_getState(&c->rtp.audio, SCCP_RTP_RECEPTION)) {
-				sccp_dev_starttone(d, SKINNY_TONE_LINEBUSYTONE, lineInstance, c->callid, SKINNY_TONEDIRECTION_USER);
+				c->setTone(c, SKINNY_TONE_LINEBUSYTONE, SKINNY_TONEDIRECTION_USER);
 			}
 				sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_BUSY, GLOB(digittimeout));
 			}
@@ -379,7 +376,7 @@ void __sccp_indicate(constDevicePtr maybe_device, channelPtr c, const sccp_chann
 				/* this is for the earlyrtp. The 7910 does not play tones if a rtp stream is open */
 				sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_UNKNOWN_NUMBER, GLOB(digittimeout));
 				sccp_channel_closeAllMediaTransmitAndReceive(c);
-				sccp_dev_starttone(d, SKINNY_TONE_REORDERTONE, lineInstance, c->callid, SKINNY_TONEDIRECTION_USER);
+				c->setTone(c, SKINNY_TONE_REORDERTONE, SKINNY_TONEDIRECTION_USER);
 				sccp_channel_schedule_hangup(c, SCCP_HANGUP_TIMEOUT);			// wait 15 seconds, then hangup automatically
 			}
 			break;
@@ -387,7 +384,7 @@ void __sccp_indicate(constDevicePtr maybe_device, channelPtr c, const sccp_chann
 			{
 			if(!sccp_rtp_getState(&c->rtp.audio, SCCP_RTP_RECEPTION)) {
 				/* congestion will be emulated if the rtp audio stream is not yet open */
-				sccp_dev_starttone(d, SKINNY_TONE_REORDERTONE, lineInstance, c->callid, SKINNY_TONEDIRECTION_USER);
+				c->setTone(c, SKINNY_TONE_REORDERTONE, SKINNY_TONEDIRECTION_USER);
 			}
 			iCallInfo.Send(ci, c->callid, c->calltype, lineInstance, d, FALSE);
 			sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_TEMP_FAIL, GLOB(digittimeout));

@@ -287,14 +287,11 @@ void sccp_handle_backspace(constDevicePtr d, const uint8_t lineInstance, const u
 void sccp_handle_dialtone(constDevicePtr d, constLinePtr l, constChannelPtr channel)
 {
 	pbx_assert(d != NULL && l != NULL && channel != NULL);
-	uint8_t instance = 0;
 
 	//pbx_log(LOG_WARNING, "%s: handle dialtone on %s. Current state: %s\n", DEV_ID_LOG(d), channel->designator, sccp_channelstate2str(channel->state));
 	if (channel->softswitch_action != SCCP_SOFTSWITCH_DIAL || channel->scheduler.hangup_id > -1 || channel->state == SCCP_CHANNELSTATE_DIALING) {
 		return;
 	}
-
-	instance = sccp_device_find_index_for_line(d, l->name);
 
 	/* we check dialtone just in DIALING action
 	 * otherwise, you'll get secondary dialtone also
@@ -302,8 +299,7 @@ void sccp_handle_dialtone(constDevicePtr d, constLinePtr l, constChannelPtr chan
 	 * etc.
 	 * */
 	if (sccp_strlen_zero(channel->dialedNumber) && channel->state != SCCP_CHANNELSTATE_OFFHOOK) {
-		sccp_dev_stoptone(d, instance, channel->callid);
-		sccp_dev_starttone(d, SKINNY_TONE_INSIDEDIALTONE, instance, channel->callid, SKINNY_TONEDIRECTION_USER);
+		channel->setTone(channel, SKINNY_TONE_INSIDEDIALTONE, SKINNY_TONEDIRECTION_USER);
 	} else if (!sccp_strlen_zero(channel->dialedNumber)) {
 		sccp_indicate(d, channel, SCCP_CHANNELSTATE_DIGITSFOLL);
 	}

@@ -119,7 +119,6 @@ static void *sccp_pbx_call_autoanswer_thread(void *data)
 {
 	struct sccp_answer_conveyor_struct *conveyor = (struct sccp_answer_conveyor_struct *)data;
 
-	int instance = 0;
 	sccp_log((DEBUGCAT_PBX))(VERBOSE_PREFIX_3 "SCCP: autoanswer thread started\n");
 
 	sleep(GLOB(autoanswer_ring_time));
@@ -150,11 +149,7 @@ static void *sccp_pbx_call_autoanswer_thread(void *data)
 		}
 
 		sccp_channel_answer(device, c);
-
-		if (GLOB(autoanswer_tone) != SKINNY_TONE_SILENCE && GLOB(autoanswer_tone) != SKINNY_TONE_NOTONE) {
-			instance = sccp_device_find_index_for_line(device, c->line->name);
-			sccp_dev_starttone(device, GLOB(autoanswer_tone), instance, c->callid, SKINNY_TONEDIRECTION_USER);
-		}
+		c->setTone(c, GLOB(autoanswer_tone), SKINNY_TONEDIRECTION_USER);
 		if (c->autoanswer_type == SCCP_AUTOANSWER_1W) {
 			sccp_dev_set_microphone(device, SKINNY_STATIONMIC_OFF);
 		}
@@ -555,8 +550,7 @@ channelPtr sccp_pbx_hangup(constChannelPtr channel)
 					SCCP_CHANNELSTATE_IsConnected(c->state) &&
 					c == d->active_channel
 				) {
-					uint16_t instance = sccp_device_find_index_for_line(d, c->line->name);
-					sccp_dev_starttone(d, GLOB(remotehangup_tone), instance, c->callid, SKINNY_TONEDIRECTION_USER);
+					c->setTone(c, GLOB(remotehangup_tone), SKINNY_TONEDIRECTION_USER);
 				}*/
 	}
 
@@ -1209,7 +1203,7 @@ void * sccp_pbx_softswitch(constChannelPtr channel)
 				sccp_cfwd_t type = (sccp_cfwd_t)c->ss_data;
 				sccp_log((DEBUGCAT_PBX))(VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Get Forward %s Extension\n", d->id, sccp_cfwd2str(type));
 				if(!sccp_strlen_zero(shortenedNumber)) {
-					sccp_dev_starttone(d, SKINNY_TONE_ZIP, instance, c->callid, SKINNY_TONEDIRECTION_USER);
+					c->setTone(c, SKINNY_TONE_ZIP, SKINNY_TONEDIRECTION_USER);
 					sccp_line_cfwd(l, d, type, shortenedNumber);
 				}
 					sccp_channel_endcall(c);
@@ -1252,9 +1246,7 @@ void * sccp_pbx_softswitch(constChannelPtr channel)
 				}
 				sccp_dev_displayprinotify(d, SKINNY_DISP_NO_CALL_AVAILABLE_FOR_PICKUP, SCCP_MESSAGE_PRIORITY_TIMEOUT, 5);
 				if (c->state == SCCP_CHANNELSTATE_ONHOOK || c->state == SCCP_CHANNELSTATE_DOWN) {
-					sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, 0, 0, SKINNY_TONEDIRECTION_USER);
-				} else {
-					sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, instance, c->callid, SKINNY_TONEDIRECTION_USER);
+					c->setTone(c, SKINNY_TONE_BEEPBONK, SKINNY_TONEDIRECTION_USER);
 				}
 				sccp_channel_schedule_hangup(c, 500);
 				goto EXIT_FUNC;									// leave simpleswitch without dial
@@ -1314,9 +1306,7 @@ void * sccp_pbx_softswitch(constChannelPtr channel)
 				}
 				sccp_dev_displayprinotify(d, SKINNY_DISP_FAILED_TO_SETUP_BARGE, SCCP_MESSAGE_PRIORITY_TIMEOUT, 5);
 				if (c->state == SCCP_CHANNELSTATE_ONHOOK || c->state == SCCP_CHANNELSTATE_DOWN) {
-					sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, 0, 0, SKINNY_TONEDIRECTION_USER);
-				} else {
-					sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, instance, c->callid, SKINNY_TONEDIRECTION_USER);
+					c->setTone(c, SKINNY_TONE_BEEPBONK, SKINNY_TONEDIRECTION_USER);
 				}
 				sccp_channel_endcall(c);
 				goto EXIT_FUNC;									// leave simpleswitch without dial

@@ -104,7 +104,11 @@ static const sccp_line_t * sccp_sk_get_retained_line(constDevicePtr d, constLine
 		return line;
 	}
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: No line found\n", DEV_ID_LOG(d));
-	sccp_dev_starttone(d, SKINNY_TONE_ZIPZIP, lineInstance, c ? c->callid : 0, SKINNY_TONEDIRECTION_USER);
+	if(c) {
+		c->setTone(c, SKINNY_TONE_ZIPZIP, SKINNY_TONEDIRECTION_USER);
+	} else {
+		sccp_dev_starttone(d, SKINNY_TONE_ZIPZIP, lineInstance, 0, SKINNY_TONEDIRECTION_USER);
+	}
 	sccp_dev_displayprompt(d, lineInstance, 0, error_str, SCCP_DISPLAYSTATUS_TIMEOUT);
 	return NULL;
 }
