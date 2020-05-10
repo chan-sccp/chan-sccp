@@ -140,8 +140,7 @@ am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
  configure.lineno config.status.lineno
 mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/src/config.h
-CONFIG_CLEAN_FILES = README \
-	src/pbx_impl/ast${ASTERISK_VER_GROUP}/Makefile
+CONFIG_CLEAN_FILES = src/pbx_impl/ast${ASTERISK_VER_GROUP}/Makefile
 CONFIG_CLEAN_VPATH_FILES =
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
@@ -199,8 +198,8 @@ ETAGS = etags
 CTAGS = ctags
 CSCOPE = cscope
 DIST_SUBDIRS = $(SUBDIRS)
-am__DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/README.in \
-	$(top_srcdir)/amdoxygen.am $(top_srcdir)/autoconf/compile \
+am__DIST_COMMON = $(srcdir)/Makefile.in $(top_srcdir)/amdoxygen.am \
+	$(top_srcdir)/autoconf/compile \
 	$(top_srcdir)/autoconf/config.guess \
 	$(top_srcdir)/autoconf/config.rpath \
 	$(top_srcdir)/autoconf/config.sub \
@@ -208,7 +207,7 @@ am__DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/README.in \
 	$(top_srcdir)/autoconf/ltmain.sh \
 	$(top_srcdir)/autoconf/missing \
 	$(top_srcdir)/src/pbx_impl/ast${ASTERISK_VER_GROUP}/Makefile.in \
-	AUTHORS COPYING ChangeLog INSTALL NEWS README autoconf/compile \
+	AUTHORS COPYING ChangeLog INSTALL NEWS autoconf/compile \
 	autoconf/config.guess autoconf/config.rpath \
 	autoconf/config.sub autoconf/depcomp autoconf/install-sh \
 	autoconf/ltmain.sh autoconf/missing
@@ -543,7 +542,7 @@ top_srcdir = @top_srcdir@
 # LICENSE:		This program is free software and may be modified and distributed under the terms of the GNU Public License.
 # 			See the LICENSE file at the top of the source tree.
 # NOTE:			Process this file with automake to produce a makefile.in script.
-AUTOMAKE_OPTIONS = gnu
+AUTOMAKE_OPTIONS = gnu foreign
 EXTRA_DIST = .version tools conf contrib/gen_sccpconf .revision
 SUBDIRS = src doc
 ACLOCAL_AMFLAGS = -I autoconf
@@ -559,15 +558,15 @@ $(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am $(top_srcdir
 	@for dep in $?; do \
 	  case '$(am__configure_deps)' in \
 	    *$$dep*) \
-	      echo ' cd $(srcdir) && $(AUTOMAKE) --gnu'; \
-	      $(am__cd) $(srcdir) && $(AUTOMAKE) --gnu \
+	      echo ' cd $(srcdir) && $(AUTOMAKE) --foreign'; \
+	      $(am__cd) $(srcdir) && $(AUTOMAKE) --foreign \
 		&& exit 0; \
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign Makefile'; \
 	$(am__cd) $(top_srcdir) && \
-	  $(AUTOMAKE) --gnu Makefile
+	  $(AUTOMAKE) --foreign Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
 	  *config.status*) \
@@ -587,8 +586,6 @@ $(top_srcdir)/configure: @MAINTAINER_MODE_TRUE@ $(am__configure_deps)
 $(ACLOCAL_M4): @MAINTAINER_MODE_TRUE@ $(am__aclocal_m4_deps)
 	$(am__cd) $(srcdir) && $(ACLOCAL) $(ACLOCAL_AMFLAGS)
 $(am__aclocal_m4_deps):
-README: $(top_builddir)/config.status $(srcdir)/README.in
-	cd $(top_builddir) && $(SHELL) ./config.status $@
 src/pbx_impl/ast${ASTERISK_VER_GROUP}/Makefile: $(top_builddir)/config.status $(top_srcdir)/src/pbx_impl/ast${ASTERISK_VER_GROUP}/Makefile.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
 

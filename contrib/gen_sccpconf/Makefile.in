@@ -503,9 +503,9 @@ $(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am  $(am__confi
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu contrib/gen_sccpconf/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign contrib/gen_sccpconf/Makefile'; \
 	$(am__cd) $(top_srcdir) && \
-	  $(AUTOMAKE) --gnu contrib/gen_sccpconf/Makefile
+	  $(AUTOMAKE) --foreign contrib/gen_sccpconf/Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
 	  *config.status*) \

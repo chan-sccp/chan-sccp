@@ -6,7 +6,7 @@
 # NOTE:			Process this file with automake to produce a makefile.in script.
 include 		$(top_srcdir)/amdoxygen.am
 
-AUTOMAKE_OPTIONS	= gnu
+AUTOMAKE_OPTIONS	= gnu foreign
 EXTRA_DIST 		= .version tools conf contrib/gen_sccpconf .revision
 SUBDIRS 		= src doc
 ACLOCAL_AMFLAGS		= -I autoconf
