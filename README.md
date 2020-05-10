@@ -19,6 +19,25 @@ Chan_SCCP is free software. Please see the file COPYING for details.
 For documentation, please see the files in the doc subdirectory.
 For building and installation instructions please see the INSTALL file.
 
+### Table of Contents
+
+* [Table of Contents](#table-of-contents)
+* [Prerequisites](#Prerequisites)
+* [Building from source](#Building from source)
+  * [Using git (recommended)](#Using git (recommended))
+    * [Clone github repository (once)](#Clone github repository (once))
+    * [Update to latest state](#Update to latest state)
+  * [Using Released tar.gz](#Using Released tar.gz)
+* [Configuring](#Configuring)
+* [Build and Install](#Build and Install)
+* [Required Asterisk Modules](#Required Asterisk Modules)
+* [Binaries](#Binaries)
+* [Wiki](#Wiki)
+* [Mailinglist](#Mailinglist)
+* [Chat](#Chat)
+* [Donate](#Donate)
+* [License](#License)
+
 ### Prerequisites
 Make sure you have the following installed on your system:
 - c-compiler:
