@@ -855,7 +855,8 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 				/*! \todo This would also be a good moment to update the c->requestHangup to requestQueueHangup */
 				// int hangupcause = ast_channel_hangupcause(ast);
 				// sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: hangup cause set: %d\n", c->designator, hangupcause);
-				res = -1;
+				// res = -1;
+				inband_if_receivechannel = TRUE;
 			}
 			break;
 
@@ -963,12 +964,12 @@ static PBX_FRAME_TYPE * sccp_astwrap_rtp_read(PBX_CHANNEL_TYPE * ast)
 
 	/* Only allow audio through if they sent progress, or if the channel is actually answered */
 	/* removed causing one way audio trouble, needs more research */
-	/*
-	if(frame && frame->frametype == AST_FRAME_VOICE && ((c->rtp.audio.reception.state & SCCP_RTP_STATUS_ACTIVE) != SCCP_RTP_STATUS_ACTIVE) && pbx_channel_state(ast) != AST_STATE_UP) {
+	if(c->calltype != SKINNY_CALLTYPE_INBOUND && pbx_channel_state(ast) != AST_STATE_UP && c->wantsEarlyRTP() && c->progressSent() && !sccp_channel_finishHolePunch(c)) {
+		// if hole punch is not active and the channel is not active either, we transmit null packets in the meantime
+		// Only allow audio through if they sent progress
 		ast_frfree(frame);
 		frame = &ast_null_frame;
 	}
-	*/
 EXIT_FUNC:
 	return frame;
 }
@@ -996,6 +997,18 @@ static int sccp_astwrap_rtp_write(PBX_CHANNEL_TYPE * ast, PBX_FRAME_TYPE * frame
 	switch (frame->frametype) {
 		case AST_FRAME_VOICE:
 			// checking for samples to transmit
+			if(ast_format_cap_iscompatible_format(ast_channel_nativeformats(ast), frame->subclass.format) == AST_FORMAT_CMP_NOT_EQUAL) {
+				pbx_str_t * codec_buf = pbx_str_alloca(64);
+				sccp_log(DEBUGCAT_CODEC)(VERBOSE_PREFIX_3 "%s: (rtp_write) Asked to transmit frame type %s, while native formats is %s (read/write = %s/%s)\n", c->designator,
+							 ast_format_get_name(frame->subclass.format), ast_format_cap_get_names(ast_channel_nativeformats(ast), &codec_buf),
+							 ast_channel_readformat(ast) ? ast_format_get_name(ast_channel_readformat(ast)) : "",
+							 ast_channel_writeformat(ast) ? ast_format_get_name(ast_channel_writeformat(ast)) : "");
+				// return -1;
+			}
+			if(pbx_channel_state(c->owner) != AST_STATE_UP && c->wantsEarlyRTP() && !c->progressSent()) {
+				sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "%s: (rtp_write) device requested earlyRtp and we received an incoming packet calling makeProgress\n", c->designator);
+				c->makeProgress(c);
+			}
 			if (!frame->samples) {
 				if(!strcasecmp(frame->src, "ast_prod")) {
 					sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Asterisk prodded channel %s.\n", c->currentDeviceId, pbx_channel_name(ast));

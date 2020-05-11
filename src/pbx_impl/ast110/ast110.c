@@ -589,12 +589,7 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 			sccp_indicate(d, c, SCCP_CHANNELSTATE_CONGESTION);
 			break;
 		case AST_CONTROL_PROGRESS:
-			if (c->state != SCCP_CHANNELSTATE_CONNECTED && c->previousChannelState != SCCP_CHANNELSTATE_CONNECTED) {
-				sccp_indicate(d, c, SCCP_CHANNELSTATE_PROGRESS);
-			} else {
-				// ORIGINATE() to SIP indicates PROGRESS after CONNECTED, causing issues with transfer
-				sccp_indicate(d, c, SCCP_CHANNELSTATE_CONNECTED);
-			}
+			sccp_indicate(d, c, SCCP_CHANNELSTATE_PROGRESS);
 			res = 0;
 			break;
 		case AST_CONTROL_PROCEEDING:
@@ -742,6 +737,10 @@ static int sccp_astwrap_rtp_write(PBX_CHANNEL_TYPE * ast, PBX_FRAME_TYPE * frame
 	switch (frame->frametype) {
 		case AST_FRAME_VOICE:
 			// checking for samples to transmit
+			if(pbx_channel_state(c->owner) != AST_STATE_UP && c->wantsEarlyRTP() && !c->progressSent()) {
+				sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "%s: (rtp_write) device requested earlyRtp and we received an incoming packet calling makeProgress\n", c->designator);
+				c->makeProgress(c);
+			}
 			if (!frame->samples) {
 				if(!strcasecmp(frame->src, "ast_prod")) {
 					sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "%s: Asterisk prodded channel %s.\n", c->currentDeviceId, pbx_channel_name(ast));
@@ -797,7 +796,7 @@ static int sccp_astwrap_setNativeAudioFormats(const sccp_channel_t * channel, sk
 	struct ast_format fmt;
 	int i;
 	if (!channel || !channel->owner || !channel->owner->nativeformats) {
-		pbx_log(LOG_ERROR, "SCCP: (sccp_wrapper_asterisk111_setNativeAudioFormats) no channel provided!\n");
+		pbx_log(LOG_ERROR, "SCCP: (sccp_wrapper_asterisk110_setNativeAudioFormats) no channel provided!\n");
 		return 0;
 	}
 
@@ -1436,7 +1435,7 @@ static int sccp_astwrap_fixup(PBX_CHANNEL_TYPE * oldchan, PBX_CHANNEL_TYPE * new
 			}
 			sccp_astwrap_setOwner(c, newchan);
 			//! \todo force update of rtp peer for directrtp
-			// sccp_wrapper_asterisk111_update_rtp_peer(newchan, NULL, NULL, 0, 0, 0);
+			// sccp_wrapper_asterisk110_update_rtp_peer(newchan, NULL, NULL, 0, 0, 0);
 
 			//! \todo update remote capabilities after fixup
 
@@ -1683,10 +1682,9 @@ static int sccp_astwrap_update_rtp_peer(PBX_CHANNEL_TYPE * ast, PBX_RTP_TYPE * r
 			sccp_session_getOurIP(d->session, &sas, sccp_netsock_is_IPv4(&sas) ? AF_INET : AF_INET6);
 		}
 
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (asterisk111_update_rtp_peer) new remote rtp ip = '%s'\n (d->directrtp: %s && !d->nat: %s && !remote->nat_active: %s && d->acl_allow: %s) => directmedia=%s\n", c->currentDeviceId, sccp_netsock_stringify(&sas), S_COR(d->directrtp, "yes", "no"),
-					  sccp_nat2str(d->nat),
-					  S_COR(!nat_active, "yes", "no"), S_COR(directmedia, "yes", "no"), S_COR(directmedia, "yes", "no")
-		    );
+		sccp_log((DEBUGCAT_RTP))(VERBOSE_PREFIX_1 "%s: (asterisk110_update_rtp_peer) new remote rtp ip = '%s'\n (d->directrtp: %s && !d->nat: %s && !remote->nat_active: %s && d->acl_allow: %s) => directmedia=%s\n",
+					 c->currentDeviceId, sccp_netsock_stringify(&sas), S_COR(d->directrtp, "yes", "no"), sccp_nat2str(d->nat), S_COR(!nat_active, "yes", "no"), S_COR(directmedia, "yes", "no"),
+					 S_COR(directmedia, "yes", "no"));
 
 		if (rtp) {											// send peer info to phone
 			sccp_rtp_set_peer(c, &c->rtp.audio, &sas);

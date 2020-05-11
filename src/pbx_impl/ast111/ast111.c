@@ -520,6 +520,12 @@ static PBX_FRAME_TYPE *sccp_astwrap_rtp_read(PBX_CHANNEL_TYPE * ast)
 		}
 	}
 
+	if(c->calltype != SKINNY_CALLTYPE_INBOUND && pbx_channel_state(ast) != AST_STATE_UP && c->wantsEarlyRTP() && c->progressSent() && !sccp_channel_finishHolePunch(c)) {
+		// if hole punch is not active and the channel is not active either, we transmit null packets in the meantime
+		// Only allow audio through if they sent progress
+		ast_frfree(frame);
+		frame = &ast_null_frame;
+	}
 EXIT_FUNC:
 	return frame;
 }
@@ -689,12 +695,7 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 			sccp_indicate(d, c, SCCP_CHANNELSTATE_CONGESTION);
 			break;
 		case AST_CONTROL_PROGRESS:
-			if (c->state != SCCP_CHANNELSTATE_CONNECTED && c->previousChannelState != SCCP_CHANNELSTATE_CONNECTED) {
-				sccp_indicate(d, c, SCCP_CHANNELSTATE_PROGRESS);
-			} else {
-				// ORIGINATE() to SIP indicates PROGRESS after CONNECTED, causing issues with transfer
-				sccp_indicate(d, c, SCCP_CHANNELSTATE_CONNECTED);
-			}
+			sccp_indicate(d, c, SCCP_CHANNELSTATE_PROGRESS);
 			res = 0;
 			break;
 		case AST_CONTROL_PROCEEDING:
@@ -846,6 +847,10 @@ static int sccp_astwrap_rtp_write(PBX_CHANNEL_TYPE * ast, PBX_FRAME_TYPE * frame
 	switch (frame->frametype) {
 		case AST_FRAME_VOICE:
 			// checking for samples to transmit
+			if(pbx_channel_state(c->owner) != AST_STATE_UP && c->wantsEarlyRTP() && !c->progressSent()) {
+				sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "%s: (rtp_write) device requested earlyRtp and we received an incoming packet calling makeProgress\n", c->designator);
+				c->makeProgress(c);
+			}
 			if(!strcasecmp(frame->src, "ast_prod")) {
 				sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "%s: Asterisk prodded channel %s.\n", c->currentDeviceId, pbx_channel_name(ast));
 			} else {

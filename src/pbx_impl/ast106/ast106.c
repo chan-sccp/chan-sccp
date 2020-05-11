@@ -569,12 +569,7 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 			sccp_indicate(d, c, SCCP_CHANNELSTATE_CONGESTION);
 			break;
 		case AST_CONTROL_PROGRESS:
-			if (c->state != SCCP_CHANNELSTATE_CONNECTED && c->previousChannelState != SCCP_CHANNELSTATE_CONNECTED) {
-				sccp_indicate(d, c, SCCP_CHANNELSTATE_PROGRESS);
-			} else {
-				// ORIGINATE() to SIP indicates PROGRESS after CONNECTED, causing issues with transfer
-				sccp_indicate(d, c, SCCP_CHANNELSTATE_CONNECTED);
-			}
+			sccp_indicate(d, c, SCCP_CHANNELSTATE_PROGRESS);
 			res = 0;
 			break;
 		case AST_CONTROL_PROCEEDING:
@@ -694,6 +689,10 @@ static int sccp_astwrap_rtp_write(PBX_CHANNEL_TYPE * ast, PBX_FRAME_TYPE * frame
 	switch (frame->frametype) {
 		case AST_FRAME_VOICE:
 			// checking for samples to transmit
+			if(pbx_channel_state(c->owner) != AST_STATE_UP && c->wantsEarlyRTP() && !c->progressSent()) {
+				sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "%s: (rtp_write) device requested earlyRtp and we received an incoming packet calling makeProgress\n", c->designator);
+				c->makeProgress(c);
+			}
 			if (!frame->samples) {
 				if (strcasecmp(frame->src, "ast_prod")) {
 					pbx_log(LOG_ERROR, "%s: Asked to transmit frame type %d with no samples.\n", c->currentDeviceId, (int) frame->frametype);
@@ -705,21 +704,7 @@ static int sccp_astwrap_rtp_write(PBX_CHANNEL_TYPE * ast, PBX_FRAME_TYPE * frame
 						sccp_astwrap_rtp_write(c->parentChannel->owner, frame);
 					}
 				}
-			} else if (!(frame->subclass & ast->nativeformats)) {
-				// char s1[512], s2[512], s3[512];
-				// sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_4 "%s: Asked to transmit frame type %d, while native formats are %s(%lu) read/write = %s(%lu)/%s(%lu)\n", c->currentDeviceId, frame->subclass, pbx_getformatname_multiple(s1, sizeof(s1) - 1, ast->nativeformats), ast->nativeformats, pbx_getformatname_multiple(s2, sizeof(s2) - 1, ast->readformat), (uint64_t)ast->readformat, pbx_getformatname_multiple(s3, sizeof(s3) - 1, (uint64_t)ast->writeformat), (uint64_t)ast->writeformat);
-				// //! \todo correct debugging
-				// sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_4 "%s: Asked to transmit frame type %d, while native formats are %s(%lu) read/write = %s(%lu)/%s(%lu)\n", c->currentDeviceId, (int)frame->frametype, pbx_getformatname_multiple(s1, sizeof(s1) - 1, ast->nativeformats), ast->nativeformats, pbx_getformatname_multiple(s2, sizeof(s2) - 1, ast->readformat), (uint64_t)ast->readformat, pbx_getformatname_multiple(s3, sizeof(s3) - 1, (uint64_t)ast->writeformat), (uint64_t)ast->writeformat);
-				//return -1;
 			}
-#if 0
-			if ((ast->rawwriteformat = ast->writeformat) && ast->writetrans) {
-				ast_translator_free_path(ast->writetrans);
-				ast->writetrans = NULL;
-
-				ast_set_write_format(ast, frame->subclass);
-			}
-#endif
 			if (c->rtp.audio.instance) {
 				res = ast_rtp_write(c->rtp.audio.instance, frame);
 			}

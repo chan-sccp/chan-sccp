@@ -235,11 +235,10 @@ void __sccp_indicate(constDevicePtr maybe_device, channelPtr c, const sccp_chann
 			}
 			break;
 		case SCCP_CHANNELSTATE_PROGRESS:
-			{
-			if(c->wantsEarlyRTP && !c->progressSent) {
+			sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "%s (%s) wantsEarlyRTP:%s, progressSent:%s\n", c->designator, __func__, c->wantsEarlyRTP() ? "yes" : "no", c->progressSent() ? "yes" : "no");
+			if(c->wantsEarlyRTP() && !c->progressSent()) {
 				c->makeProgress(c);
 				sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_CALL_PROGRESS, GLOB(digittimeout));
-			}
 			}
 			break;
 		case SCCP_CHANNELSTATE_PROCEED:
