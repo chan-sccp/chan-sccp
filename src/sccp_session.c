@@ -85,11 +85,18 @@ sccp_servercontext_t * sccp_servercontext_create(struct sockaddr_storage * binda
 	context->type = type;
 	switch(type) {
 		case SCCP_SERVERCONTEXT_TCP:
-			context->transport = tcp_init();
+			if((context->transport = tcp_init()) == NULL) {
+				pbx_log(LOG_ERROR, "SCCP: (%s) could not initialize tcp context\n", __func__);
+				return NULL;
+			}
 			break;
 #ifdef HAVE_LIBSSL
 		case SCCP_SERVERCONTEXT_TLS:
-			context->transport = tls_init();
+			if((context->transport = tls_init()) == NULL) {
+				// pbx_log(LOG_NOTICE, "SCCP: (%s) could not initialize tls context\n", __func__);
+				sccp_log(DEBUGCAT_SOCKET)(VERBOSE_PREFIX_2 "SCCP: (%s) could not initialize tls context\n", __func__);
+				return NULL;
+			}
 			break;
 #endif
 	}
@@ -97,7 +104,7 @@ sccp_servercontext_t * sccp_servercontext_create(struct sockaddr_storage * binda
 	context->stopListening = sccp_servercontext_stopListening;
 	context->sc.fd = -1;
 	context->accept_tid = AST_PTHREADT_NULL;
-	return sccp_servercontext_reload(context, bindaddr) ? context : FALSE;
+	return sccp_servercontext_reload(context, bindaddr) ? context : NULL;
 }
 
 int sccp_servercontext_stopListening(sccp_servercontext_t * context)
@@ -126,6 +133,11 @@ int sccp_servercontext_reload(sccp_servercontext_t * context, struct sockaddr_st
 		sccp_session_stop_accept_thread(context);
 	}
 	return context->bind_and_listen(context, bindaddr);
+}
+
+const struct sockaddr_storage * const sccp_servercontext_getBoundAddr(sccp_servercontext_t * context)
+{
+	return context ? &context->boundaddr : NULL;
 }
 
 /*!

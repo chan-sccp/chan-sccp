@@ -611,9 +611,11 @@ static int sccp_show_globals(int fd, sccp_cli_totals_t *totals, struct mansessio
 	CLI_AMI_OUTPUT_PARAM("Platform byte order", CLI_AMI_LIST_WIDTH, "%s", "BIG ENDIAN");
 #endif
 	CLI_AMI_OUTPUT_PARAM("Server Name", CLI_AMI_LIST_WIDTH, "%s", GLOB(servername));
-	CLI_AMI_OUTPUT_PARAM("Bind Address", CLI_AMI_LIST_WIDTH, "%s", sccp_netsock_stringify(&GLOB(bindaddr)));
+	CLI_AMI_OUTPUT_PARAM("Bind Address", CLI_AMI_LIST_WIDTH, "%s",
+			     GLOB(srvcontexts[SCCP_SERVERCONTEXT_TCP]) ? sccp_netsock_stringify(sccp_servercontext_getBoundAddr(GLOB(srvcontexts[SCCP_SERVERCONTEXT_TCP]))) : "(null)");
 #ifdef HAVE_LIBSSL
-	CLI_AMI_OUTPUT_PARAM("Secure Bind Address", CLI_AMI_LIST_WIDTH, "%s", sccp_netsock_stringify(&GLOB(secbindaddr)));
+	CLI_AMI_OUTPUT_PARAM("Secure Bind Address", CLI_AMI_LIST_WIDTH, "%s",
+			     GLOB(srvcontexts[SCCP_SERVERCONTEXT_TLS]) ? sccp_netsock_stringify(sccp_servercontext_getBoundAddr(GLOB(srvcontexts[SCCP_SERVERCONTEXT_TLS]))) : "(null)");
 	CLI_AMI_OUTPUT_PARAM("Certificate File", CLI_AMI_LIST_WIDTH, "%s", GLOB(cert_file));
 #endif
 	CLI_AMI_OUTPUT_PARAM("Extern IP", CLI_AMI_LIST_WIDTH, "%s", !sccp_netsock_is_any_addr(&GLOB(externip)) ? sccp_netsock_stringify_addr(&GLOB(externip)) : (GLOB(externhost) ? "Not Set -> using externhost" : "Not Set -> falling back to Incoming Interface IP-addres (expect issue if running natted !)."));

@@ -101,7 +101,10 @@ static boolean_t configure_context(SSL_CTX * ctx)
 		cert_file = ast_strdupa(PBX_CERTFILE);
 	}
 
-	if(access(cert_file, F_OK) == 0) {
+	if(access(cert_file, F_OK) != 0) {
+		sccp_log(DEBUGCAT_SOCKET)(VERBOSE_PREFIX_3 "TLS/SSL no certificate file not found\n");
+		return FALSE;
+	} else {
 		if(SSL_CTX_use_certificate_file(ctx, cert_file, SSL_FILETYPE_PEM) <= 0) {
 			pbx_log(LOG_WARNING, "TLS/SSL error loading public key (certificate) from <%s>.\n", cert_file);
 			write_openssl_error_to_log();

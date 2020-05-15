@@ -204,13 +204,17 @@ boolean_t sccp_postPBX_load(void)
 	pbx_rwlock_unlock(&GLOB(lock));
 
 	if(!GLOB(srvcontexts[SCCP_SERVERCONTEXT_TCP])) {
-		sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "bindaddr '%s'\n", sccp_netsock_stringify(&GLOB(bindaddr)));
 		GLOB(srvcontexts[SCCP_SERVERCONTEXT_TCP]) = sccp_servercontext_create(&GLOB(bindaddr), SCCP_SERVERCONTEXT_TCP);
+		if(GLOB(srvcontexts[SCCP_SERVERCONTEXT_TCP])) {
+			sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "bindaddr '%s'\n", sccp_netsock_stringify(sccp_servercontext_getBoundAddr(GLOB(srvcontexts[SCCP_SERVERCONTEXT_TCP]))));
+		}
 	}
 #ifdef HAVE_LIBSSL
 	if(!GLOB(srvcontexts[SCCP_SERVERCONTEXT_TLS])) {
-		sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "secbindaddr '%s'\n", sccp_netsock_stringify(&GLOB(secbindaddr)));
 		GLOB(srvcontexts[SCCP_SERVERCONTEXT_TLS]) = sccp_servercontext_create(&GLOB(secbindaddr), SCCP_SERVERCONTEXT_TLS);
+		if(GLOB(srvcontexts[SCCP_SERVERCONTEXT_TLS])) {
+			sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "secbindaddr '%s'\n", sccp_netsock_stringify(sccp_servercontext_getBoundAddr(GLOB(srvcontexts[SCCP_SERVERCONTEXT_TLS]))));
+		}
 	}
 #endif
 	return TRUE /* ? */;

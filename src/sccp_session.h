@@ -27,6 +27,7 @@ SCCP_API sccp_servercontext_t * SCCP_CALL sccp_servercontext_create(struct socka
 SCCP_API int SCCP_CALL sccp_servercontext_stopListening(sccp_servercontext_t * context);
 SCCP_API int SCCP_CALL sccp_servercontext_destroy(sccp_servercontext_t * context);
 SCCP_API int SCCP_CALL sccp_servercontext_reload(sccp_servercontext_t * context, struct sockaddr_storage * bindaddr);
+SCCP_API const struct sockaddr_storage * const SCCP_CALL sccp_servercontext_getBoundAddr(sccp_servercontext_t * context);
 SCCP_API int SCCP_CALL sccp_session_getFD(sccp_session_t * s);
 SCCP_API void SCCP_CALL sccp_session_setFD(sccp_session_t * s, int fd);
 SCCP_API ssl_t * SCCP_CALL sccp_session_getSSL(sccp_session_t * s);
