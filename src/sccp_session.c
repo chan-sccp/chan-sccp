@@ -87,6 +87,7 @@ sccp_servercontext_t * sccp_servercontext_create(struct sockaddr_storage * binda
 		case SCCP_SERVERCONTEXT_TCP:
 			if((context->transport = tcp_init()) == NULL) {
 				pbx_log(LOG_ERROR, "SCCP: (%s) could not initialize tcp context\n", __func__);
+				sccp_free(context);
 				return NULL;
 			}
 			break;
@@ -95,6 +96,7 @@ sccp_servercontext_t * sccp_servercontext_create(struct sockaddr_storage * binda
 			if((context->transport = tls_init()) == NULL) {
 				// pbx_log(LOG_NOTICE, "SCCP: (%s) could not initialize tls context\n", __func__);
 				sccp_log(DEBUGCAT_SOCKET)(VERBOSE_PREFIX_2 "SCCP: (%s) could not initialize tls context\n", __func__);
+				sccp_free(context);
 				return NULL;
 			}
 			break;
