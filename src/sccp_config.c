@@ -2780,10 +2780,11 @@ sccp_configurationchange_t sccp_config_applyDeviceConfiguration(devicePtr d, PBX
  * \brief Find the Correct Config File
  * \return Asterisk Config Object as ast_config
  */
-sccp_config_file_status_t sccp_config_getConfig(boolean_t force, char * filename)
+sccp_config_file_status_t sccp_config_getConfig(boolean_t force, const char * const filename)
 {
 	// struct ast_flags config_flags = { CONFIG_FLAG_WITHCOMMENTS & CONFIG_FLAG_FILEUNCHANGED };
 	sccp_config_file_status_t res = 0;
+	char * newfilename = "sccp.conf";
 	struct ast_flags config_flags = { CONFIG_FLAG_FILEUNCHANGED };
 	if (force) {
 		if (GLOB(cfg)) {
@@ -2792,39 +2793,42 @@ sccp_config_file_status_t sccp_config_getConfig(boolean_t force, char * filename
 		}
 		pbx_clear_flag(&config_flags, CONFIG_FLAG_FILEUNCHANGED);
 	}
-	if(sccp_strlen_zero(filename)) {
-		filename = pbx_strdupa("sccp.conf");
-	}
-	if(GLOB(config_file_name)) {
+
+	if(filename && !sccp_strlen_zero(filename)) {
+		newfilename = (char *)filename;
+	} else if(GLOB(config_file_name) && !sccp_strlen_zero(GLOB(config_file_name))) {
+		newfilename = GLOB(config_file_name);
 		sccp_free(GLOB(config_file_name));
 	}
-	GLOB(config_file_name) = pbx_strdup(filename);
-	GLOB(cfg) = pbx_config_load(GLOB(config_file_name), "chan_sccp", config_flags);
+	GLOB(cfg) = pbx_config_load(newfilename, "chan_sccp", config_flags);
 	if (GLOB(cfg) == CONFIG_STATUS_FILEMISSING) {
-		pbx_log(LOG_ERROR, "Config file '%s' not found, aborting (re)load.\n", GLOB(config_file_name));
+		pbx_log(LOG_ERROR, "Config file '%s' not found, aborting (re)load.\n", newfilename);
 		GLOB(cfg) = NULL;
 		res = CONFIG_STATUS_FILE_NOT_FOUND;
 		goto FUNC_EXIT;
 	} else if (GLOB(cfg) == CONFIG_STATUS_FILEINVALID) {
-		pbx_log(LOG_ERROR, "Config file '%s' specified is not a valid config file, aborting (re)load.\n", GLOB(config_file_name));
+		pbx_log(LOG_ERROR, "Config file '%s' specified is not a valid config file, aborting (re)load.\n", newfilename);
 		GLOB(cfg) = NULL;
 		res = CONFIG_STATUS_FILE_INVALID;
 		goto FUNC_EXIT;
 	} else if (GLOB(cfg) == CONFIG_STATUS_FILEUNCHANGED) {
 		// ugly solution, but we always need to have a valid config file loaded.
 		pbx_clear_flag(&config_flags, CONFIG_FLAG_FILEUNCHANGED);
-		GLOB(cfg) = pbx_config_load(GLOB(config_file_name), "chan_sccp", config_flags);
+		GLOB(cfg) = pbx_config_load(newfilename, "chan_sccp", config_flags);
 		if (!force) {
-			pbx_log(LOG_NOTICE, "Config file '%s' has not changed, aborting (re)load.\n", GLOB(config_file_name));
+			pbx_log(LOG_NOTICE, "Config file '%s' has not changed, aborting (re)load.\n", newfilename);
 			res = CONFIG_STATUS_FILE_NOT_CHANGED;
 			goto FUNC_EXIT;
 		} else {
-			pbx_log(LOG_NOTICE, "Config file '%s' has not changed, forcing reload.\n", GLOB(config_file_name));
+			pbx_log(LOG_NOTICE, "Config file '%s' has not changed, forcing reload.\n", newfilename);
 		}
 	}
 	if (GLOB(cfg)) {
 		if (ast_variable_browse(GLOB(cfg), "devices")) {						/* Warn user when old entries exist in sccp.conf */
-			pbx_log(LOG_ERROR, "\n\n --> You are using an old configuration format, please update '%s'!!\n --> Loading of module chan_sccp with current sccp.conf has terminated\n --> Check http://chan-sccp-b.sourceforge.net/doc_setup.shtml for more information.\n\n", GLOB(config_file_name));
+			pbx_log(LOG_ERROR,
+				"\n\n --> You are using an old configuration format, please update '%s'!!\n --> Loading of module chan_sccp with current sccp.conf has terminated\n --> Check "
+				"http://chan-sccp-b.sourceforge.net/doc_setup.shtml for more information.\n\n",
+				newfilename);
 			pbx_config_destroy(GLOB(cfg));
 			GLOB(cfg) = NULL;
 			res = CONFIG_STATUS_FILE_OLD;
@@ -2842,9 +2846,10 @@ sccp_config_file_status_t sccp_config_getConfig(boolean_t force, char * filename
 		res = CONFIG_STATUS_FILE_NOT_FOUND;
 		goto FUNC_EXIT;
 	}
-	pbx_log(LOG_NOTICE, "Config file '%s' loaded.\n", GLOB(config_file_name));
+	pbx_log(LOG_NOTICE, "Config file '%s' loaded.\n", newfilename);
 	res = CONFIG_STATUS_FILE_OK;
 FUNC_EXIT:
+	GLOB(config_file_name) = pbx_strdup(newfilename);
 	return res;
 }
 
