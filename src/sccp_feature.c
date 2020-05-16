@@ -609,6 +609,8 @@ void sccp_feat_handle_conference(constDevicePtr d, constLinePtr l, uint8_t lineI
 		c->softswitch_action = SCCP_SOFTSWITCH_GETCONFERENCEROOM;
 		c->ss_data = 0;											/* not needed here */
 		c->calltype = SKINNY_CALLTYPE_OUTBOUND;
+		sccp_device_sendcallstate(d, lineInstance, c->callid, SKINNY_CALLSTATE_OFFHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+		sccp_channel_set_calledparty(c, "Conferencing...", "100");
 		sccp_indicate(d, c, SCCP_CHANNELSTATE_DIALING);
 		iPbx.set_callstate(c, AST_STATE_OFFHOOK);
 		sccp_channel_stop_schedule_digittimout(c);

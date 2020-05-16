@@ -324,7 +324,6 @@ sccp_conference_t *sccp_conference_create(devicePtr device, channelPtr channel)
 		participant->device = sccp_device_retain(device);
 		participant->conferenceBridgePeer = channel->owner;
 		sccp_conference_update_callInfo(channel, participant->conferenceBridgePeer, participant, conference->id);
-		sccp_indicate(device, channel, SCCP_CHANNELSTATE_CONNECTEDCONFERENCE);
 		//ast_set_flag(&(participant->features.feature_flags), AST_BRIDGE_CHANNEL_FLAG_DISSOLVE_HANGUP);
 		
 		if (pbx_pthread_create_background(&participant->joinThread, NULL, sccp_conference_thread, participant) < 0) {
@@ -344,10 +343,8 @@ sccp_conference_t *sccp_conference_create(devicePtr device, channelPtr channel)
 		channel->calltype=SKINNY_CALLTYPE_OUTBOUND;
 		participant->isModerator = TRUE;
 		device->conferencelist_active = device->conf_show_conflist;					// Activate conflist
-		sccp_dev_set_keyset(device, sccp_device_find_index_for_line(device, channel->line->name), channel->callid, KEYMODE_CONNCONF);
 		pbx_builtin_setvar_int_helper(channel->owner, "__SCCP_CONFERENCE_ID", conference->id);
 		pbx_builtin_setvar_int_helper(channel->owner, "__SCCP_CONFERENCE_PARTICIPANT_ID", participant->id);
-		sccp_indicate(device, channel, SCCP_CHANNELSTATE_CONNECTEDCONFERENCE);
 		sccp_log((DEBUGCAT_CORE + DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Added Moderator %d (Channel: %s)\n", conference->id, participant->id, pbx_channel_name(participant->conferenceBridgePeer));
 	}
 
@@ -420,6 +417,14 @@ static void sccp_conference_connect_bridge_channels_to_participants(constConfere
 		if (participant && participant->bridge_channel != bridge_channel) {
 			sccp_log((DEBUGCAT_CORE + DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Connecting Bridge Channel %p to Participant %d.\n", conference->id, bridge_channel, participant->id);
 			participant->bridge_channel = bridge_channel;
+			if(participant->isModerator) {
+				sccp_device_t * device = participant->device;
+				sccp_channel_t * channel = participant->channel;
+				if(device && channel) {
+					sccp_indicate(device, channel, SCCP_CHANNELSTATE_CONNECTEDCONFERENCE);
+					sccp_dev_set_keyset(device, sccp_device_find_index_for_line(device, channel->line->name), channel->callid, KEYMODE_CONNCONF);
+				}
+			}
 		}
 	}
 	ao2_unlock(bridge);
@@ -581,7 +586,6 @@ boolean_t sccp_conference_addParticipatingChannel(conferencePtr conference, cons
 			if(device) {
 				participant->playback_announcements = device->conf_play_part_announce;
 				iPbx.setChannelLinkedId(channel, conference->linkedid);
-				sccp_indicate(device, channel, SCCP_CHANNELSTATE_CONNECTEDCONFERENCE);
 #if CS_REFCOUNT_DEBUG
 				sccp_refcount_addRelationship(device, participant);
 				sccp_refcount_addRelationship(channel, participant);
@@ -600,9 +604,7 @@ boolean_t sccp_conference_addParticipatingChannel(conferencePtr conference, cons
 					participant->channel->conference_id = conference->id;
 					participant->channel->conference_participant_id = participant->id;
 					participant->playback_announcements = device->conf_play_part_announce;
-					sccp_indicate(device, channel, SCCP_CHANNELSTATE_CONNECTEDCONFERENCE);
 					//device->conferencelist_active = device->conf_show_conflist;                   // Activate conflist on all sccp participants
-					sccp_dev_set_keyset(device, sccp_device_find_index_for_line(device, channel->line->name), channel->callid, KEYMODE_CONNCONF);
 				} else {									// PBX Channel
 					iPbx.setPBXChannelLinkedId(participant->conferenceBridgePeer, conference->linkedid);
 				}
@@ -742,7 +744,7 @@ void sccp_conference_start(conferencePtr conference)
 #endif
 }
 
-/*!
+/*!k
  * \brief This function is called when the minimal number of occupants of a confernce is reached or when the last moderator hangs-up
  */
 void sccp_conference_end(sccp_conference_t * conference)

@@ -1255,14 +1255,12 @@ void * sccp_pbx_softswitch(constChannelPtr channel)
 			case SCCP_SOFTSWITCH_GETCONFERENCEROOM:
 				sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Conference request\n", d->id);
 				if (c->owner && !pbx_check_hangup(c->owner)) {
-					sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 					sccp_channel_setChannelstate(c, SCCP_CHANNELSTATE_PROCEED);
 					iPbx.set_callstate(channel, AST_STATE_UP);
 					if (!d->conference) {
 						if (!(d->conference = sccp_conference_create(d, c))) {
 							goto EXIT_FUNC;
 						}
-						sccp_indicate(d, c, SCCP_CHANNELSTATE_CONNECTEDCONFERENCE);
 					} else {
 						pbx_log(LOG_NOTICE, "%s: There is already a conference running on this device.\n", DEV_ID_LOG(d));
 						sccp_channel_endcall(c);
