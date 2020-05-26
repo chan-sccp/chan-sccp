@@ -885,28 +885,24 @@ void handle_register(constSessionPtr s, devicePtr maybe_d, constMessagePtr msg_i
 	device->device_features = protocolFeatures;
 	device->linesRegistered = FALSE;
 
-	struct sockaddr_storage register_sasIPv6 = { 0 };
 	if (!sccp_strlen_zero(msg_in->data.RegisterMessage.ipv6Address)) {
-		register_sasIPv6.ss_family = AF_INET6;
-		struct sockaddr_in6 *sin6 = (struct sockaddr_in6 *) &register_sasIPv6;
+		device->ipv6.ss_family = AF_INET6;
+		struct sockaddr_in6 * sin6 = (struct sockaddr_in6 *)&device->ipv6;
 		memcpy(&sin6->sin6_addr, &msg_in->data.RegisterMessage.ipv6Address, sizeof(sin6->sin6_addr));
 		sin6->sin6_port = htons(sccp_session_getClientPort(s));
-		phone_ipv6 = pbx_strdupa(sccp_netsock_stringify_host(&register_sasIPv6));
+		phone_ipv6 = pbx_strdupa(sccp_netsock_stringify_host(&device->ipv6));
 	}
 
 	/* set our IPv4 address */
-	struct sockaddr_storage register_sasIPv4 = { 0 };
-	{
-		register_sasIPv4.ss_family = AF_INET;
-		struct sockaddr_in *sin4 = (struct sockaddr_in *) &register_sasIPv4;
+	if(msg_in->data.RegisterMessage.stationIpAddr != 0) {
+		device->ipv4.ss_family = AF_INET;
+		struct sockaddr_in * sin4 = (struct sockaddr_in *)&device->ipv4;
 		memcpy(&sin4->sin_addr, &msg_in->data.RegisterMessage.stationIpAddr, sizeof(sin4->sin_addr));
 		sin4->sin_port = htons(sccp_session_getClientPort(s));
-		phone_ipv4 = pbx_strdupa(sccp_netsock_stringify_host(&register_sasIPv4));
-		if(msg_in->data.RegisterMessage.stationIpAddr != 0) {
-			sccp_session_setOurIP4Address(s, &register_sasIPv4);
-		}
+		phone_ipv4 = pbx_strdupa(sccp_netsock_stringify_host(&device->ipv4));
+		sccp_session_setOurIP4Address(s, &device->ipv4);
 	}
-	
+
 	/* */
 	//sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: device load_info='%s', maxNumberOfLines='%d', supports dynamic_messages='%s', supports abbr_dial='%s'\n", deviceName, msg_in->data.RegisterMessage.loadInfo, maxNumberOfLines, (device->device_features & SKINNY_PHONE_FEATURES_DYNAMIC_MESSAGES) == 0 ? "no" : "yes", (device->device_features & SKINNY_PHONE_FEATURES_ABBRDIAL) == 0 ? "no" : "yes");
 	//sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: ipv4Address: %s, ipV4AddressScope: %d, ipv6Address: %s, ipV6AddressScope: %d\n", deviceName, phone_ipv4, ipV4AddressScope, phone_ipv6, ipV6AddressScope);
@@ -927,7 +923,7 @@ void handle_register(constSessionPtr s, devicePtr maybe_d, constMessagePtr msg_i
 			if (GLOB(localaddr) && sccp_apply_ha_default(GLOB(localaddr), &session_sas, AST_SENSE_DENY) != AST_SENSE_ALLOW) {	// if device->sin falls in localnet scope
 				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Auto Detected NAT. Session IP '%s' (Phone: '%s') is outside of localnet('%s') scope. We will use externip or externhost for the RTP stream\n", deviceName, session_ipv4, phone_ipv4, pbx_str_buffer(ha_localnet_buf));
 				device->nat = SCCP_NAT_AUTO_ON;
-			} else if (sccp_netsock_cmp_addr(&session_sas, &register_sasIPv4)) {				// compare device->sin to the phones reported ipaddr
+			} else if(sccp_netsock_cmp_addr(&session_sas, &device->ipv4)) {                                        // compare device->sin to the phones reported ipaddr
 				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Auto Detected Remote NAT. Session IP '%s' does not match IpAddr '%s' Reported by Device.  We will use externip or externhost for the RTP stream\n", deviceName, session_ipv4, phone_ipv4);
 				device->nat = SCCP_NAT_AUTO_ON;
 			//} else {
@@ -935,7 +931,7 @@ void handle_register(constSessionPtr s, devicePtr maybe_d, constMessagePtr msg_i
 			}
 		} else {
 			char *session_ipv6 = pbx_strdupa(sccp_netsock_stringify_host(&session_sas));
-			if (sccp_netsock_cmp_addr(&session_sas, &register_sasIPv6)) {
+			if(sccp_netsock_cmp_addr(&session_sas, &device->ipv6)) {
 				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Auto Detected Remote NAT. Session IP '%s' does not match IpAddr '%s' Reported by Device.  We will use externip or externhost for the RTP stream\n", deviceName, session_ipv6, phone_ipv6);
 				device->nat = SCCP_NAT_AUTO_ON;
 			//} else {
