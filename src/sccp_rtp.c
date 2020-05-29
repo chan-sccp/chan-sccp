@@ -444,29 +444,21 @@ void sccp_rtp_print(constChannelPtr c, sccp_rtp_type_t type, struct ast_str * bu
 			return;
 	}
 	AUTO_RELEASE(sccp_device_t, d, sccp_channel_getDevice(c));
-	char buf1[NI_MAXHOST + NI_MAXSERV];
-	char buf2[NI_MAXHOST + NI_MAXSERV];
-	sccp_copy_string(buf1, sccp_netsock_stringify(&rtp->phone), sizeof(buf1));
-	sccp_copy_string(buf2, sccp_netsock_stringify(&rtp->phone_remote), sizeof(buf2));
+	if(!d || !rtp) {
+		return;
+	}
+
+	boolean_t isNatted = d->nat >= SCCP_NAT_ON ? TRUE : FALSE;
+	boolean_t isIPv4 = sccp_netsock_is_IPv4(&rtp->phone_remote) || sccp_netsock_ipv4_mapped(&rtp->phone_remote, (struct sockaddr_storage *)&rtp->phone_remote) ? TRUE : FALSE;
+	boolean_t isDirectRTP = d->directrtp;
+	const struct sockaddr_storage * const ip = isIPv4 ? &d->ipv4 : &d->ipv6;
 
 	pbx_str_reset(buf);
-	if(d && rtp && d->nat >= SCCP_NAT_ON) {
-		char buf3[NI_MAXHOST + NI_MAXSERV];
-		if(sccp_netsock_is_IPv4(&rtp->phone_remote) || sccp_netsock_ipv4_mapped(&rtp->phone_remote, (struct sockaddr_storage *)&rtp->phone_remote))
-			sccp_copy_string(buf3, sccp_netsock_stringify(&d->ipv4), sizeof(buf3));
-		else
-			sccp_copy_string(buf3, sccp_netsock_stringify(&d->ipv6), sizeof(buf3));
-		if(d->directrtp) {
-			pbx_str_append(&buf, 0, "PH1:%s -> FW:%s ----> FW:%s --> PH2:%s\n", buf3, buf1, "", buf2);
-		} else {
-			pbx_str_append(&buf, 0, "PH:%s -> FW:%s ----> FW:%s --> %s:AST\n", buf3, buf1, "", buf2);
-		}
+	if(isNatted) {
+		pbx_str_append(&buf, 0, "PH1:%s -> FW:%s ----> FW:%s --> %s:%s\n", sccp_netsock_stringify(ip), sccp_netsock_stringify(&rtp->phone), "", isDirectRTP ? sccp_netsock_stringify(&rtp->phone_remote) : "",
+			       isDirectRTP ? "AST" : "PH");
 	} else {
-		if(d->directrtp) {
-			pbx_str_append(&buf, 0, "PH:%s --> PH:%s\n", buf1, buf2);
-		} else {
-			pbx_str_append(&buf, 0, "PH:%s --> %s:AST\n", buf1, buf2);
-		}
+		pbx_str_append(&buf, 0, "PH1:%s ----> %s:%s\n", sccp_netsock_stringify(&rtp->phone), isDirectRTP ? sccp_netsock_stringify(&rtp->phone_remote) : "", isDirectRTP ? "AST" : "PH");
 	}
 }
 
