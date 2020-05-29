@@ -87,18 +87,13 @@ void __sccp_indicate(constDevicePtr maybe_device, channelPtr c, const sccp_chann
 				sccp_dev_set_cplane(d, lineInstance, 1);
 				if (SCCP_CHANNELSTATE_DOWN == c->previousChannelState) {		// new call
 					sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_ENTER_NUMBER, GLOB(digittimeout));
-					if (d->earlyrtp != SCCP_EARLYRTP_IMMEDIATE) {
-						if (!(d->hasMWILight()) && d->voicemailStatistic.newmsgs) {
-							sccp_log((DEBUGCAT_INDICATE | DEBUGCAT_MWI))(VERBOSE_PREFIX_2 "%s: Device does not have MWI-light and does have messages waiting -> stutter\n", d->id);
-							sccp_dev_starttone(d, SKINNY_TONE_INSIDEDIALTONE, lineInstance, c->callid, SKINNY_TONEDIRECTION_USER);
-							sccp_dev_starttone(d, SKINNY_TONE_PARTIALDIALTONE, lineInstance, c->callid, SKINNY_TONEDIRECTION_USER);	/* Add Stutter Pattern for ATA/Analog devices */
-						} else {
-							sccp_dev_starttone(d, SKINNY_TONE_INSIDEDIALTONE, lineInstance, c->callid, SKINNY_TONEDIRECTION_USER);
-						}
+					c->setTone(c, SKINNY_TONE_INSIDEDIALTONE, SKINNY_TONEDIRECTION_USER);
+					if(!(d->hasMWILight()) && d->voicemailStatistic.newmsgs) {
+						sccp_log((DEBUGCAT_INDICATE | DEBUGCAT_MWI))(VERBOSE_PREFIX_2 "%s: Device does not have MWI-light and does have messages waiting -> stutter\n", d->id);
+						c->setTone(c, SKINNY_TONE_PARTIALDIALTONE, SKINNY_TONEDIRECTION_USER); /* Add Stutter Pattern for ATA/Analog devices */
 					}
 				}
 				sccp_dev_set_keyset(d, lineInstance, c->callid, KEYMODE_OFFHOOK);
-				/* for earlyrtp take a look at sccp_channel_newcall because we have no c->owner here */
 			}
 			break;
 		case SCCP_CHANNELSTATE_GETDIGITS:
@@ -109,8 +104,7 @@ void __sccp_indicate(constDevicePtr maybe_device, channelPtr c, const sccp_chann
 				sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_ENTER_NUMBER, GLOB(digittimeout));
 				sccp_dev_set_keyset(d, lineInstance, c->callid, KEYMODE_DIGITSFOLL);
 				sccp_dev_set_cplane(d, lineInstance, 1);
-				sccp_dev_starttone(d, SKINNY_TONE_ZIP, lineInstance, c->callid, SKINNY_TONEDIRECTION_USER);
-				/* for earlyrtp take a look at sccp_feat_handle_callforward because we have no c->owner here */
+				c->setTone(c, SKINNY_TONE_ZIP, SKINNY_TONEDIRECTION_USER);
 			}
 			break;
 		case SCCP_CHANNELSTATE_DIGITSFOLL:
@@ -126,9 +120,9 @@ void __sccp_indicate(constDevicePtr maybe_device, channelPtr c, const sccp_chann
 					lenSecDialtoneDigits,
 					secondary_dialtone_tone);
 				if (lenSecDialtoneDigits > 0 && lenDialed == lenSecDialtoneDigits && !strncmp(c->dialedNumber, l->secondary_dialtone_digits, lenSecDialtoneDigits)) {
-					sccp_dev_starttone(d, secondary_dialtone_tone, lineInstance, c->callid, SKINNY_TONEDIRECTION_USER);
+					c->setTone(c, secondary_dialtone_tone, SKINNY_TONEDIRECTION_USER);
 				} else if (lenDialed > 0) {
-					sccp_dev_stoptone(d, lineInstance, c->callid);
+					c->setTone(c, SKINNY_TONE_SILENCE, SKINNY_TONEDIRECTION_USER);
 				}
 				sccp_dev_set_keyset(d, lineInstance, c->callid, KEYMODE_DIGITSFOLL);
 				break;
@@ -146,7 +140,6 @@ void __sccp_indicate(constDevicePtr maybe_device, channelPtr c, const sccp_chann
 				//sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_ENTER_NUMBER, GLOB(digittimeout));
 				sccp_dev_set_keyset(d, lineInstance, c->callid, KEYMODE_OFFHOOK);
 				sccp_dev_set_cplane(d, lineInstance, 1);
-				/* for earlyrtp take a look at sccp_channel_newcall because we have no c->owner here */
 			}
 			break;
 		case SCCP_CHANNELSTATE_DIALING:
@@ -155,39 +148,15 @@ void __sccp_indicate(constDevicePtr maybe_device, channelPtr c, const sccp_chann
 					break;
 				}
 				d->indicate->dialing(d, lineInstance, c->callid, c->calltype, ci, c->dialedNumber);
-				if(d->earlyrtp <= SCCP_EARLYRTP_RINGOUT) {
-					sccp_channel_openReceiveChannel(c);
-				}
 			}
 			break;
 		case SCCP_CHANNELSTATE_RINGOUT:
 			{
 				// we already send out the ringing state before */
-				if (d->earlyrtp == SCCP_EARLYRTP_IMMEDIATE) {
-					/* Pavel Troller / Immediate Mode
-					fixes a problem with remembering dialed numbers in case of overlap dialing onto the trunks. It adds sending the DialedNumber message also to a situation, when a PROCEEDING signal is received
-					from the B-side (the trunk). Many public trunk types (SS7, ISDN etc) don't always send RINGOUT, sometimes they send only PROCEEDING. In such a case, the
-					complete number was never set to the phone and it remembered only a part of the number or possibly even nothing. We are already sending DialedNumber
-					message upon receiving of the RINGOUT state, so it's just extension to do the same for another state and I hope it won't break anything. BTW the primary
-					meaning of the PROCEEDING signal is "number complete, attempting to make the connection", so it's a really good place to send the number back to the caller
-					*/ 
-					if( !sccp_strequals(c->dialedNumber, "s") ){
-						d->protocol->sendDialedNumber(d, lineInstance, c->callid, c->dialedNumber);
-					}
-					iCallInfo.Send(ci, c->callid, c->calltype, lineInstance, d, d->earlyrtp == SCCP_EARLYRTP_IMMEDIATE ? TRUE : FALSE);
-				}
-
 				// first ringout indicate (before connected line update */
 				sccp_device_sendcallstate(d, lineInstance, c->callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 				sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_RING_OUT, GLOB(digittimeout));
-
-				if(d->earlyrtp <= SCCP_EARLYRTP_RINGOUT) {
-					sccp_channel_openReceiveChannel(c);
-				} else {
-					sccp_dev_stoptone(d, lineInstance, c->callid);
-					sccp_dev_starttone(d, SKINNY_TONE_ALERTINGTONE, lineInstance, c->callid, SKINNY_TONEDIRECTION_USER);
-				}
-
+				c->setTone(c, SKINNY_TONE_ALERTINGTONE, SKINNY_TONEDIRECTION_USER);
 				sccp_dev_set_keyset(d, lineInstance, c->callid, KEYMODE_RINGOUT);
 				iCallInfo.Send(ci, c->callid, c->calltype, lineInstance, d, FALSE);
 			}
@@ -196,9 +165,6 @@ void __sccp_indicate(constDevicePtr maybe_device, channelPtr c, const sccp_chann
 			/* send by connected line update, to show that we know the remote end, we can now update the callinfo */
 			sccp_device_sendcallstate(d, lineInstance, c->callid, SKINNY_CALLSTATE_RINGOUT, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 			iCallInfo.Send(ci, c->callid, c->calltype, lineInstance, d, TRUE);
-			if(d->earlyrtp <= SCCP_EARLYRTP_PROGRESS) {
-				sccp_channel_openReceiveChannel(c);
-			}
 			break;
 		case SCCP_CHANNELSTATE_RINGING:
 			{
@@ -269,18 +235,10 @@ void __sccp_indicate(constDevicePtr maybe_device, channelPtr c, const sccp_chann
 			}
 			break;
 		case SCCP_CHANNELSTATE_PROGRESS:
-			{
-				if (c->previousChannelState != c->state) {
-					if (c->previousChannelState == SCCP_CHANNELSTATE_CONNECTED) {		//! this is a bug of asterisk 1.6 (it sends progress after a call is answered, when it's being diverted to some extensions with dial app)
-						sccp_log((DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "SCCP: Asterisk requests to change state from (CONNECTED) to (PROGRESS). Ignoring\n");
-					} else {
-						sccp_log((DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "SCCP: Asterisk requests to change state from (%s) to (PROGRESS)\n", sccp_channelstate2str(c->previousChannelState));
-						if(d->earlyrtp <= SCCP_EARLYRTP_PROGRESS) {
-							sccp_channel_openReceiveChannel(c);
-						}
-						sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_CALL_PROGRESS, GLOB(digittimeout));
-					}
-				}
+			sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "%s (%s) wantsEarlyRTP:%s, progressSent:%s\n", c->designator, __func__, c->wantsEarlyRTP() ? "yes" : "no", c->progressSent() ? "yes" : "no");
+			if(c->wantsEarlyRTP() && !c->progressSent()) {
+				c->makeProgress(c);
+				sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_CALL_PROGRESS, GLOB(digittimeout));
 			}
 			break;
 		case SCCP_CHANNELSTATE_PROCEED:
@@ -289,19 +247,7 @@ void __sccp_indicate(constDevicePtr maybe_device, channelPtr c, const sccp_chann
 					sccp_log((DEBUGCAT_INDICATE + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: Asterisk requests to change state to (Progress) after (Connected). Ignoring\n");
 					break;
 				}
-				if (d->earlyrtp == SCCP_EARLYRTP_IMMEDIATE) {
-					/* Pavel Troller / Immediate Mode / Overlap Dialing
-					Suppresses sending of the DialedNumber message in the case, when the number is just "s" (initial dial string in immeediate mode)
-					*/
-					if( !sccp_strequals(c->dialedNumber, "s") ){
-						d->protocol->sendDialedNumber(d, lineInstance, c->callid, c->dialedNumber);
-					}
-					iCallInfo.Send(ci, c->callid, c->calltype, lineInstance, d, d->earlyrtp == SCCP_EARLYRTP_IMMEDIATE ? TRUE : FALSE);
-				}
 				d->indicate->proceed(d, lineInstance, c->callid, c->calltype, ci);
-				if(d->earlyrtp <= SCCP_EARLYRTP_RINGOUT) {
-					sccp_channel_openReceiveChannel(c);
-				}
 			}
 			break;
 		case SCCP_CHANNELSTATE_CALLREMOTEMULTILINE:
@@ -331,7 +277,7 @@ void __sccp_indicate(constDevicePtr maybe_device, channelPtr c, const sccp_chann
 		case SCCP_CHANNELSTATE_BUSY:
 			{
 			if(!sccp_rtp_getState(&c->rtp.audio, SCCP_RTP_RECEPTION)) {
-				sccp_dev_starttone(d, SKINNY_TONE_LINEBUSYTONE, lineInstance, c->callid, SKINNY_TONEDIRECTION_USER);
+				c->setTone(c, SKINNY_TONE_LINEBUSYTONE, SKINNY_TONEDIRECTION_USER);
 			}
 				sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_BUSY, GLOB(digittimeout));
 			}
@@ -391,7 +337,7 @@ void __sccp_indicate(constDevicePtr maybe_device, channelPtr c, const sccp_chann
 				sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_TRANSFER, GLOB(digittimeout));
 				sccp_dev_set_ringer(d, SKINNY_RINGTYPE_OFF, SKINNY_RINGDURATION_NORMAL, lineInstance, c->callid);
 				sccp_device_sendcallstate(d, lineInstance, c->callid, SKINNY_CALLSTATE_CALLTRANSFER, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
-				iCallInfo.Send(ci, c->callid, c->calltype, lineInstance, d, d->earlyrtp == SCCP_EARLYRTP_IMMEDIATE ? TRUE : FALSE);
+				iCallInfo.Send(ci, c->callid, c->calltype, lineInstance, d, FALSE);
 			}
 			break;
 		case SCCP_CHANNELSTATE_BLINDTRANSFER:							// \todo SCCP_CHANNELSTATE_BLINDTRANSFER To be implemented
@@ -429,7 +375,7 @@ void __sccp_indicate(constDevicePtr maybe_device, channelPtr c, const sccp_chann
 				/* this is for the earlyrtp. The 7910 does not play tones if a rtp stream is open */
 				sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_UNKNOWN_NUMBER, GLOB(digittimeout));
 				sccp_channel_closeAllMediaTransmitAndReceive(c);
-				sccp_dev_starttone(d, SKINNY_TONE_REORDERTONE, lineInstance, c->callid, SKINNY_TONEDIRECTION_USER);
+				c->setTone(c, SKINNY_TONE_REORDERTONE, SKINNY_TONEDIRECTION_USER);
 				sccp_channel_schedule_hangup(c, SCCP_HANGUP_TIMEOUT);			// wait 15 seconds, then hangup automatically
 			}
 			break;
@@ -437,11 +383,11 @@ void __sccp_indicate(constDevicePtr maybe_device, channelPtr c, const sccp_chann
 			{
 			if(!sccp_rtp_getState(&c->rtp.audio, SCCP_RTP_RECEPTION)) {
 				/* congestion will be emulated if the rtp audio stream is not yet open */
-				sccp_dev_starttone(d, SKINNY_TONE_REORDERTONE, lineInstance, c->callid, SKINNY_TONEDIRECTION_USER);
+				c->setTone(c, SKINNY_TONE_REORDERTONE, SKINNY_TONEDIRECTION_USER);
 			}
-				iCallInfo.Send(ci, c->callid, c->calltype, lineInstance, d, d->earlyrtp == SCCP_EARLYRTP_IMMEDIATE ? TRUE : FALSE);
-				sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_TEMP_FAIL, GLOB(digittimeout));
-				sccp_channel_schedule_hangup(c, SCCP_HANGUP_TIMEOUT);			// wait 15 seconds, then hangup automatically
+			iCallInfo.Send(ci, c->callid, c->calltype, lineInstance, d, FALSE);
+			sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_TEMP_FAIL, GLOB(digittimeout));
+			sccp_channel_schedule_hangup(c, SCCP_HANGUP_TIMEOUT);                                        // wait 15 seconds, then hangup automatically
 			}
 			break;
 		case SCCP_CHANNELSTATE_ONHOOK:

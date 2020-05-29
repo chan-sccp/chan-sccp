@@ -1,4 +1,5 @@
-/*! * \file        sccp_channel.c
+/*!
+ * \file        sccp_channel.c
  * \brief       SCCP Channel Class
  * \author      Sergio Chersovani <mlists [at] c-net.it>
  * \date
@@ -59,6 +60,11 @@ struct sccp_private_channel_data {
 	SCCP_LIST_HEAD (, sccp_threadpool_job_t) cleanup_jobs;
 	boolean_t microphone;					/*!< Flag to mute the microphone when calling a baby phone */
 	boolean_t isAnswering;
+	struct {
+		skinny_tone_t active;
+		skinny_toneDirection_t direction;
+	} tone;
+	boolean_t firewall_holepunch;
 };
 
 /*!
@@ -85,6 +91,54 @@ static void setMicrophoneState(channelPtr c, boolean_t enabled)
 		if(sccp_rtp_getState(&c->rtp.audio, SCCP_RTP_TRANSMISSION)) {
 			sccp_dev_set_microphone(d, SKINNY_STATIONMIC_OFF);
 		}
+	}
+}
+
+/*
+ * \brief statemachine to Start/Stop device tone generation
+ */
+static void setTone(constChannelPtr c, skinny_tone_t tone, skinny_toneDirection_t direction)
+{
+	pbx_assert(c && c->privateData && c->privateData->ld);
+	if(c->privateData->tone.active == tone && c->privateData->tone.direction == direction) {
+		return;
+	}
+	sccp_linedevice_t * ld = c->privateData->ld;
+	if(c->privateData->tone.active) {
+		sccp_dev_stoptone(ld->device, ld->lineInstance, c->callid);
+	}
+	if(tone != SKINNY_TONE_SILENCE) {
+		if(c->state == SCCP_CHANNELSTATE_ONHOOK || c->state == SCCP_CHANNELSTATE_DOWN) {
+			sccp_dev_starttone(ld->device, tone, 0, 0, direction);
+		} else {
+			sccp_dev_starttone(ld->device, tone, ld->lineInstance, c->callid, direction);
+		}
+	}
+	c->privateData->tone.active = tone;
+	c->privateData->tone.direction = direction;
+}
+
+static void setEarlyRTP(channelPtr c, boolean_t state)
+{
+	pbx_assert(c != NULL);
+	sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "%s: (%s) %s\n", c->designator, __func__, state ? "ON" : "OFF");
+	c->wantsEarlyRTP = state ? sccp_always_true : sccp_always_false;
+}
+
+static void makeProgress(channelPtr c)
+{
+	pbx_assert(c != NULL);
+	if(c->wantsEarlyRTP() && c->progressSent == sccp_always_false) {
+		sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "%s: (%s)\n", c->designator, __func__);
+		if(!sccp_rtp_getState(&c->rtp.audio, SCCP_RTP_RECEPTION)) {
+			sccp_channel_openReceiveChannel(c);
+		}
+#if CS_SCCP_VIDEO
+		if(!sccp_rtp_getState(&c->rtp.video, SCCP_RTP_RECEPTION) && sccp_channel_getVideoMode(c) != SCCP_VIDEO_MODE_OFF) {
+			sccp_channel_openMultiMediaReceiveChannel(c);
+		}
+#endif
+		c->progressSent = sccp_always_true;
 	}
 }
 
@@ -196,13 +250,19 @@ channelPtr sccp_channel_allocate(constLinePtr l, constDevicePtr device)
 		channel->isMicrophoneEnabled = sccp_always_true;
 		channel->isHangingUp = FALSE;
 		channel->isRunningPbxThread = FALSE;
+		channel->wantsEarlyRTP = sccp_always_false;
+		channel->setEarlyRTP = setEarlyRTP;
+		channel->progressSent = sccp_always_false;
+		channel->makeProgress = makeProgress;
 		channel->setMicrophone = setMicrophoneState;
 		channel->hangupRequest = sccp_astgenwrap_requestQueueHangup;
 		//channel->privacy = (device && (device->privacyFeature.status & SCCP_PRIVACYFEATURE_CALLPRESENT)) ? TRUE : FALSE;
 		if (device) {
 			channel->dtmfmode = device->getDtmfMode(device);
+			channel->setTone = setTone;
 		} else {
 			channel->dtmfmode = SCCP_DTMFMODE_RFC2833;
+			channel->setTone = NULL;
 		}
 
 		if (l->preferences_set_on_line_level) {
@@ -324,6 +384,8 @@ void sccp_channel_setDevice(channelPtr channel, constDevicePtr device)
 #endif
 		sccp_copy_string(channel->currentDeviceId, channel->privateData->device->id, sizeof(char[StationMaxDeviceNameSize]));
 		channel->dtmfmode = channel->privateData->device->getDtmfMode(channel->privateData->device);
+		channel->setEarlyRTP(channel, channel->privateData->device->earlyrtp);
+		channel->setTone = setTone;
 		return;
 	}
 EXIT:
@@ -337,6 +399,8 @@ EXIT:
 	// sccp_line_copyMinimumCodecSetFromLineToChannel(l, c); 
 	sccp_copy_string(channel->currentDeviceId, "SCCP", sizeof(char[StationMaxDeviceNameSize]));
 	channel->dtmfmode = SCCP_DTMFMODE_RFC2833;
+	channel->setEarlyRTP(channel, FALSE);
+	channel->setTone = NULL;
 }
 
 static void sccp_channel_recalculateAudioCodecFormat(channelPtr channel)
@@ -645,6 +709,44 @@ void sccp_channel_StatisticsRequest(constChannelPtr channel)
 	d->protocol->sendConnectionStatisticsReq(d, channel, SKINNY_STATSPROCESSING_CLEAR);
 }
 
+/*
+ * \brief a simple way to punch a whole in the firewall by sending a short burst of packets during progress
+ * transmission will be stopped again as soon as the first packet has been received from the device in astwrap_rtp_read
+ */
+static void sccp_channel_startHolePunch(constChannelPtr c)
+{
+	pbx_assert(c != NULL && c->privateData && !c->privateData->firewall_holepunch);
+	sccp_rtp_t * audio = (sccp_rtp_t *)&(c->rtp.audio);
+	/*! \todo
+		// punching is only necessary if the rtp-instance ip-address+mask differs from the rtp->phone+mask
+		// ie: they are in different networks and there is a potential firewall in between
+		sccp_rtp_t * audio = (sccp_rtp_t *)&(c->rtp.audio);
+		apply_netmask()
+		if (sccp_netsock_cmp_addr(&audio->phone, &audio->phone_remote)) {
+	*/
+	if(!sccp_rtp_getState(audio, SCCP_RTP_TRANSMISSION) && pbx_channel_state(c->owner) != AST_STATE_UP && c->wantsEarlyRTP()) {
+		sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "%s: (%s) start Punching a hole through the firewall (if necessary)\n", c->designator, __func__);
+		c->privateData->firewall_holepunch = TRUE;
+		sccp_channel_startMediaTransmission(c);
+	}
+}
+
+boolean_t sccp_channel_finishHolePunch(constChannelPtr c)
+{
+	pbx_assert(c != NULL && c->privateData);
+	if(pbx_channel_state(c->owner) == AST_STATE_UP) {
+		c->privateData->firewall_holepunch = FALSE;
+		return FALSE;
+	}
+	sccp_rtp_t * audio = (sccp_rtp_t *)&(c->rtp.audio);
+	if(c->privateData->firewall_holepunch && ((sccp_rtp_getState(audio, SCCP_RTP_TRANSMISSION) & SCCP_RTP_STATUS_ACTIVE) == SCCP_RTP_STATUS_ACTIVE)) {
+		sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "%s: (%s) stop punching a hole through the firewall\n", c->designator, __func__);
+		sccp_channel_stopMediaTransmission(c, TRUE);
+		c->privateData->firewall_holepunch = FALSE;
+	}
+	return c->privateData->firewall_holepunch;
+}
+
 /*!
  * \brief Tell Device to Open a RTP Receive Channel
  *
@@ -683,9 +785,7 @@ void sccp_channel_openReceiveChannel(constChannelPtr channel)
 	/* create the rtp stuff. It must be create before setting the channel AST_STATE_UP. otherwise no audio will be played */
 	if (!channel->rtp.audio.instance && !sccp_rtp_createServer(d, (channelPtr)channel, SCCP_RTP_AUDIO)) {			// discard const
 		pbx_log(LOG_WARNING, "%s: Error opening RTP for channel %s\n", d->id, channel->designator);
-
-		uint16_t instance = sccp_device_find_index_for_line(d, channel->line->name);
-		sccp_dev_starttone(d, SKINNY_TONE_REORDERTONE, instance, channel->callid, SKINNY_TONEDIRECTION_USER);
+		channel->setTone(channel, SKINNY_TONE_REORDERTONE, SKINNY_TONEDIRECTION_USER);
 		return;
 	}
 
@@ -719,7 +819,7 @@ int sccp_channel_receiveChannelOpen(sccp_device_t *d, sccp_channel_t *c)
 		return SCCP_RTP_STATUS_INACTIVE;
 	}
 
-	sccp_dev_stoptone(d, sccp_device_find_index_for_line(d, c->line->name), c->callid);
+	c->setTone(c, SKINNY_TONE_SILENCE, SKINNY_TONEDIRECTION_USER);
 	if(c->isHangingUp || !c->owner || pbx_check_hangup_locked(c->owner) || pbx_channel_hangupcause(c->owner) == AST_CAUSE_ANSWERED_ELSEWHERE || SCCP_CHANNELSTATE_Idling(c->state)
 	   || SCCP_CHANNELSTATE_IsTerminating(c->state)) {
 		if (c->state == SCCP_CHANNELSTATE_INVALIDNUMBER || c->state == SCCP_CHANNELSTATE_CONGESTION) {
@@ -737,6 +837,9 @@ int sccp_channel_receiveChannelOpen(sccp_device_t *d, sccp_channel_t *c)
 	if(c->owner && !pbx_check_hangup_locked(c->owner)) {
 		sccp_rtp_runCallback(audio, SCCP_RTP_RECEPTION, c);
 		if(c->calltype != SKINNY_CALLTYPE_INBOUND) {
+			if(d->nat >= SCCP_NAT_ON) {
+				sccp_channel_startHolePunch(c);
+			}
 			iPbx.queue_control(c->owner, (enum ast_control_frame_type)-1);						// 'PROD' the remote side to let them know
 																// we can receive inband signalling from this
 																// moment onwards -> inband signalling required
@@ -877,7 +980,7 @@ int sccp_channel_mediaTransmissionStarted(devicePtr d, channelPtr c)
 	   || SCCP_CHANNELSTATE_IsTerminating(c->state)) {
 		if (c->state == SCCP_CHANNELSTATE_INVALIDNUMBER || c->state == SCCP_CHANNELSTATE_CONGESTION) {
 			sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Stop Tone %s\n", DEV_ID_LOG(d), sccp_channelstate2str(c->state));
-			sccp_dev_stoptone(d, sccp_device_find_index_for_line(d, c->line->name), c->callid);
+			c->setTone(c, SKINNY_TONE_SILENCE, SKINNY_TONEDIRECTION_USER);
 			return SCCP_RTP_STATUS_ACTIVE;
 		}
 		sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_RTP))(VERBOSE_PREFIX_3 "%s: (mediaTransmissionStarted) Channel is already terminating. Giving up... (%s)\n", DEV_ID_LOG(d), sccp_channelstate2str(c->state));
@@ -1017,7 +1120,7 @@ int sccp_channel_receiveMultiMediaChannelOpen(constDevicePtr d, channelPtr c)
 	   || SCCP_CHANNELSTATE_IsTerminating(c->state)) {
 		if (c->state == SCCP_CHANNELSTATE_INVALIDNUMBER || c->state == SCCP_CHANNELSTATE_CONGESTION) {
 			sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Stop Tone %s\n", DEV_ID_LOG(d), sccp_channelstate2str(c->state));
-			sccp_dev_stoptone(d, sccp_device_find_index_for_line(d, c->line->name), c->callid);
+			c->setTone(c, SKINNY_TONE_SILENCE, SKINNY_TONEDIRECTION_USER);
 			return SCCP_RTP_STATUS_ACTIVE;
 		}
 		sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_RTP))(VERBOSE_PREFIX_3 "%s: (receiveMultiMediaChannelOpen) Channel is already terminating. Giving up... (%s)\n", DEV_ID_LOG(d), sccp_channelstate2str(c->state));
@@ -1174,7 +1277,7 @@ int sccp_channel_multiMediaTransmissionStarted(constDevicePtr d, channelPtr c)
 	   || SCCP_CHANNELSTATE_IsTerminating(c->state)) {
 		if (c->state == SCCP_CHANNELSTATE_INVALIDNUMBER || c->state == SCCP_CHANNELSTATE_CONGESTION) {
 			sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Stop Tone %s\n", DEV_ID_LOG(d), sccp_channelstate2str(c->state));
-			sccp_dev_stoptone(d, sccp_device_find_index_for_line(d, c->line->name), c->callid);
+			c->setTone(c, SKINNY_TONE_SILENCE, SKINNY_TONEDIRECTION_USER);
 			return SCCP_RTP_STATUS_ACTIVE;
 		}
 		sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_RTP))(VERBOSE_PREFIX_3 "%s: (multiMediaTransmissionStarted) Channel is already terminating. Giving up... (%s)\n", DEV_ID_LOG(d), sccp_channelstate2str(c->state));
@@ -1484,8 +1587,7 @@ channelPtr sccp_channel_getEmptyChannel(constLinePtr l, constDevicePtr d, channe
 			AUTO_RELEASE(const sccp_device_t, call_associated_device, c->getDevice(c));
 			if (c->state == SCCP_CHANNELSTATE_OFFHOOK && sccp_strlen_zero(c->dialedNumber)) {		// reuse unused channel
 				sccp_log(DEBUGCAT_CORE)("%s: (getEmptyChannel) channel not in use -> reuse it.\n", d->id);
-				int lineInstance = sccp_device_find_index_for_line(d, c->line->name);
-				sccp_dev_stoptone(d, lineInstance, (c && c->callid) ? c->callid : 0);
+				c->setTone(c, SKINNY_TONE_SILENCE, SKINNY_TONEDIRECTION_USER);
 				channel = sccp_channel_retain(c);
 				channel->calltype = calltype;
 				return channel;
@@ -1542,23 +1644,11 @@ channelPtr sccp_channel_newcall(constLinePtr l, constDevicePtr device, const cha
 	iPbx.set_callstate(channel, AST_STATE_OFFHOOK);
 	if (dial) {
 		sccp_indicate(device, channel, SCCP_CHANNELSTATE_SPEEDDIAL);
-		if (device->earlyrtp <= SCCP_EARLYRTP_OFFHOOK && !channel->rtp.audio.instance) {
-			sccp_channel_openReceiveChannel(channel);
-		}
 		sccp_copy_string(channel->dialedNumber, dial, sizeof(channel->dialedNumber));
 		sccp_pbx_softswitch(channel);									/* we know the number to dial -> softswitch */
 	} else {
 		sccp_indicate(device, channel, SCCP_CHANNELSTATE_OFFHOOK);
-		if (device->earlyrtp <= SCCP_EARLYRTP_OFFHOOK && !channel->rtp.audio.instance) {
-			sccp_channel_openReceiveChannel(channel);
-		}
-		if (device->earlyrtp == SCCP_EARLYRTP_IMMEDIATE) {
-			sccp_copy_string(channel->dialedNumber, "s", sizeof(channel->dialedNumber));
-			sccp_pbx_softswitch(channel);
-			channel->dialedNumber[0] = '\0';
-		} else {
-			sccp_channel_schedule_digittimeout(channel, GLOB(firstdigittimeout));
-		}
+		sccp_channel_schedule_digittimeout(channel, GLOB(firstdigittimeout));
 	}
 
 	return channel;
@@ -2618,7 +2708,7 @@ void sccp_channel_transfer_complete(channelPtr sccp_destination_local_channel)
 
 	if (GLOB(transfer_tone) && sccp_destination_local_channel->state == SCCP_CHANNELSTATE_CONNECTED) {
 		/* while connected not all the tones can be played */
-		sccp_dev_starttone(d, GLOB(autoanswer_tone), instance, sccp_destination_local_channel->callid, SKINNY_TONEDIRECTION_USER);
+		sccp_destination_local_channel->setTone(sccp_destination_local_channel, GLOB(autoanswer_tone), SKINNY_TONEDIRECTION_USER);
 	}
 
 #if ASTERISK_VERSION_GROUP >= 108
@@ -2926,9 +3016,7 @@ int sccp_channel_callwaiting_tone_interval(constDevicePtr device, constChannelPt
 				sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: Handle Callwaiting Tone on channel %d\n", c->callid);
 				if (c && c->owner && (SCCP_CHANNELSTATE_CALLWAITING == c->state || SCCP_CHANNELSTATE_RINGING == c->state)) {
 					sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Sending Call Waiting Tone \n", d->id);
-					int instance = sccp_device_find_index_for_line(d, c->line->name);
-
-					sccp_dev_starttone(d, GLOB(callwaiting_tone), instance, c->callid, SKINNY_TONEDIRECTION_USER);
+					c->setTone(c, GLOB(callwaiting_tone), SKINNY_TONEDIRECTION_USER);
 					return 0;
 				} 
 				sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: (sccp_channel_callwaiting_tone_interval) channel has been hungup or pickuped up by another phone\n");

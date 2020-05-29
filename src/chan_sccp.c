@@ -170,7 +170,7 @@ boolean_t sccp_prePBXLoad(void)
 	#endif
 	GLOB(amaflags) = pbx_channel_string2amaflag("documentation");
 	GLOB(callanswerorder) = SCCP_ANSWER_OLDEST_FIRST;
-	GLOB(earlyrtp) = SCCP_EARLYRTP_PROGRESS;
+	GLOB(earlyrtp) = TRUE;
 	GLOB(global_jbconf) = (struct ast_jb_conf *) sccp_calloc(sizeof(struct ast_jb_conf),1);
 	if (GLOB(global_jbconf)) {
 		GLOB(global_jbconf)->max_size = -1;

@@ -677,7 +677,7 @@ static int sccp_show_globals(int fd, sccp_cli_totals_t *totals, struct mansessio
 	CLI_AMI_OUTPUT_BOOL("Echo cancel", CLI_AMI_LIST_WIDTH, GLOB(echocancel));
 	CLI_AMI_OUTPUT_BOOL("Silence suppression", CLI_AMI_LIST_WIDTH, GLOB(silencesuppression));
 	CLI_AMI_OUTPUT_BOOL("Trust phone ip (deprecated)", CLI_AMI_LIST_WIDTH, GLOB(trustphoneip));
-	CLI_AMI_OUTPUT_PARAM("Early RTP", CLI_AMI_LIST_WIDTH, "%s", sccp_earlyrtp2str(GLOB(earlyrtp)));
+	CLI_AMI_OUTPUT_BOOL("Early RTP", CLI_AMI_LIST_WIDTH, GLOB(earlyrtp));
 	CLI_AMI_OUTPUT_PARAM("Ringtype", CLI_AMI_LIST_WIDTH, "%s", skinny_ringtype2str(GLOB(ringtype)));
 	CLI_AMI_OUTPUT_PARAM("AutoAnswer ringtime", CLI_AMI_LIST_WIDTH, "%d", GLOB(autoanswer_ring_time));
 	CLI_AMI_OUTPUT_PARAM("AutoAnswer tone", CLI_AMI_LIST_WIDTH, "%s (0x%02x)", skinny_tone2str(GLOB(autoanswer_tone)), GLOB(autoanswer_tone));
@@ -977,11 +977,13 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 	CLI_AMI_OUTPUT_YES_NO("Videosupport?",		CLI_AMI_LIST_WIDTH, sccp_device_isVideoSupported(d));
 	CLI_AMI_OUTPUT_BOOL("Direct RTP",		CLI_AMI_LIST_WIDTH, d->directrtp);
 	CLI_AMI_OUTPUT_BOOL("Trust phone ip (deprecated)", CLI_AMI_LIST_WIDTH, d->trustphoneip);
+	CLI_AMI_OUTPUT_PARAM("Phone IPv4", CLI_AMI_LIST_WIDTH, "%s", sccp_netsock_stringify(&d->ipv4));
+	CLI_AMI_OUTPUT_PARAM("Phone IPv6", CLI_AMI_LIST_WIDTH, "%s", sccp_netsock_stringify(&d->ipv6));
 	CLI_AMI_OUTPUT_PARAM("Bind Address",		CLI_AMI_LIST_WIDTH, "%s", clientAddress);
 	CLI_AMI_OUTPUT_PARAM("Server Address",		CLI_AMI_LIST_WIDTH, "%s", serverAddress);
 	CLI_AMI_OUTPUT_PARAM("Deny/Permit",		CLI_AMI_LIST_WIDTH, "%s", pbx_str_buffer(ha_buf));
 	CLI_AMI_OUTPUT_PARAM("PermitHosts",		CLI_AMI_LIST_WIDTH, "%s", pbx_str_buffer(permithost_buf));
-	CLI_AMI_OUTPUT_PARAM("Early RTP",		CLI_AMI_LIST_WIDTH, "%s", sccp_earlyrtp2str(d->earlyrtp));
+	CLI_AMI_OUTPUT_BOOL("Early RTP", CLI_AMI_LIST_WIDTH, d->earlyrtp);
 	CLI_AMI_OUTPUT_PARAM("Accessory State", 	CLI_AMI_LIST_WIDTH, "%s%s%s", activeAccessory ? sccp_accessory2str(activeAccessory) : "", activeAccessory ? ":" : "", sccp_accessorystate2str(activeAccessoryState));
 	CLI_AMI_OUTPUT_PARAM("Last dialed number",	CLI_AMI_LIST_WIDTH, "%s (%d)", d->redialInformation.number, d->redialInformation.lineInstance);
 	CLI_AMI_OUTPUT_PARAM("Default line instance",	CLI_AMI_LIST_WIDTH, "%d", d->defaultLineInstance);
@@ -1582,6 +1584,7 @@ static int sccp_show_channels(int fd, sccp_cli_totals_t *totals, struct mansessi
 	int local_line_total = 0;
 	char tmpname[25];
 	char addrStr[INET6_ADDRSTRLEN] = "";
+	pbx_str_t * buf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
 
 #define CLI_AMI_TABLE_NAME Channels
 #define CLI_AMI_TABLE_PER_ENTRY_NAME Channel
@@ -1590,18 +1593,22 @@ static int sccp_show_channels(int fd, sccp_cli_totals_t *totals, struct mansessi
 #define CLI_AMI_TABLE_LIST_LOCK SCCP_RWLIST_RDLOCK
 #define CLI_AMI_TABLE_LIST_ITERATOR SCCP_RWLIST_TRAVERSE
 #define CLI_AMI_TABLE_LIST_UNLOCK SCCP_RWLIST_UNLOCK
-#define CLI_AMI_TABLE_BEFORE_ITERATION 												\
-		AUTO_RELEASE(sccp_line_t, l , sccp_line_retain(line));								\
-		SCCP_LIST_LOCK(&l->channels);											\
-		SCCP_LIST_TRAVERSE(&l->channels, channel, list) {								\
-			if (channel->conference_id) {										\
-				snprintf(tmpname, sizeof(tmpname), "SCCPCONF/%03d/%03d", channel->conference_id, channel->conference_participant_id);	\
-			} else {												\
-				snprintf(tmpname, sizeof(tmpname), "%s", channel->designator);					\
-			}													\
-			if (&channel->rtp) {											\
-				sccp_copy_string(addrStr,sccp_netsock_stringify(&channel->rtp.audio.phone), sizeof(addrStr));	\
-			}
+#define CLI_AMI_TABLE_BEFORE_ITERATION                                                                                                        \
+	AUTO_RELEASE(sccp_line_t, l, sccp_line_retain(line));                                                                                 \
+	SCCP_LIST_LOCK(&l->channels);                                                                                                         \
+	SCCP_LIST_TRAVERSE(&l->channels, channel, list) {                                                                                     \
+		if(channel->conference_id) {                                                                                                  \
+			snprintf(tmpname, sizeof(tmpname), "SCCPCONF/%03d/%03d", channel->conference_id, channel->conference_participant_id); \
+		} else {                                                                                                                      \
+			snprintf(tmpname, sizeof(tmpname), "%s", channel->designator);                                                        \
+		}                                                                                                                             \
+		if(&channel->rtp) {                                                                                                           \
+			sccp_copy_string(addrStr, sccp_netsock_stringify(&channel->rtp.audio.phone), sizeof(addrStr));                        \
+		}                                                                                                                             \
+		sccp_rtp_print(channel, SCCP_RTP_AUDIO, buf, DEFAULT_PBX_STR_BUFFERSIZE);                                                     \
+		sccp_log(DEBUGCAT_RTP)("%s: %s\n", channel->designator, pbx_str_buffer(buf));                                                 \
+		sccp_rtp_print(channel, SCCP_RTP_VIDEO, buf, DEFAULT_PBX_STR_BUFFERSIZE);                                                     \
+		sccp_log(DEBUGCAT_RTP)("%s: %s\n", channel->designator, pbx_str_buffer(buf));
 
 #define CLI_AMI_TABLE_AFTER_ITERATION 												\
 		}														\

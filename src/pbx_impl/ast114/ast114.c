@@ -706,19 +706,6 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 				// Otherwise, there are some issues with late arrival of ringing
 				// indications on ISDN calls (chan_lcr, chan_dahdi) (-DD).
 				sccp_indicate(d, c, SCCP_CHANNELSTATE_RINGOUT);
-				if (d->earlyrtp == SCCP_EARLYRTP_IMMEDIATE) {
-					/* 
-					 * Redial button isnt't working properly in immediate mode, because the
-					 * last dialed number was being remembered too early. This fix
-					 * remembers the last dialed number in the same cases, where the dialed number
-					 * is being sent - after receiving of RINGOUT -Pavel Troller
-					 */
-					AUTO_RELEASE(sccp_linedevice_t, ld, sccp_linedevice_find(d, c->line));
-					if(ld) {
-						sccp_device_setLastNumberDialed(d, c->dialedNumber, ld);
-					}
-					sccp_astwrap_setDialedNumber(c, c->dialedNumber);
-				}
 				iPbx.set_callstate(c, AST_STATE_RING);
 				inband_if_receivechannel = TRUE;
 			}
@@ -742,29 +729,18 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 			if (c->remoteCapabilities.audio[0] == SKINNY_CODEC_NONE) {
 				pbx_retrieve_remote_capabilities(c);
 			}
+			sccp_indicate(d, c, SCCP_CHANNELSTATE_PROGRESS);
+			/*
 			if (c->state != SCCP_CHANNELSTATE_CONNECTED && c->previousChannelState != SCCP_CHANNELSTATE_CONNECTED) {
 				sccp_indicate(d, c, SCCP_CHANNELSTATE_PROGRESS);
 			} else {
 				// ORIGINATE() to SIP indicates PROGRESS after CONNECTED, causing issues with transfer
 				sccp_indicate(d, c, SCCP_CHANNELSTATE_CONNECTED);
-			}
+			}*/
 			inband_if_receivechannel = TRUE;
 			break;
 
 		case AST_CONTROL_PROCEEDING:
-			if (d->earlyrtp == SCCP_EARLYRTP_IMMEDIATE) {
-				/* 
-					* Redial button isnt't working properly in immediate mode, because the
-					* last dialed number was being remembered too early. This fix
-					* remembers the last dialed number in the same cases, where the dialed number
-					* is being sent - after receiving of PROCEEDING -Pavel Troller
-					*/
-				AUTO_RELEASE(sccp_linedevice_t, ld, sccp_linedevice_find(d, c->line));
-				if(ld) {
-					sccp_device_setLastNumberDialed(d, c->dialedNumber, ld);
-				}
-				sccp_astwrap_setDialedNumber(c, c->dialedNumber);
-			}
 			sccp_indicate(d, c, SCCP_CHANNELSTATE_PROCEED);
 			//inband_if_receivechannel = TRUE;
 			break;
@@ -860,17 +836,6 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 			 *  - adding time to channel->scheduler.digittimeout
 			 *  - rescheduling sccp_pbx_sched_dial
 			 */
-			/*
-			if (d->earlyrtp != SCCP_EARLYRTP_IMMEDIATE) {
-				if (!c->scheduler.deny) {
-					sccp_indicate(d, c, SCCP_CHANNELSTATE_DIGITSFOLL);
-					sccp_channel_schedule_digittimeout(c, c->scheduler.digittimeout);
-				} else {
-					sccp_channel_stop_schedule_digittimout(c);
-					sccp_indicate(d, c, SCCP_CHANNELSTATE_ONHOOK);
-				}
-			}
-			*/
 			inband_if_receivechannel = TRUE;
 			res = -1;
 			break;
@@ -881,7 +846,8 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 				/*! \todo This would also be a good moment to update the c->requestHangup to requestQueueHangup */
 				// int hangupcause = ast_channel_hangupcause(ast);
 				// sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: hangup cause set: %d\n", c->designator, hangupcause);
-				res = -1;
+				// res = -1;
+				inband_if_receivechannel = TRUE;
 			}
 			break;
 
@@ -987,6 +953,12 @@ static PBX_FRAME_TYPE *sccp_astwrap_rtp_read(PBX_CHANNEL_TYPE * ast)
 		}
 	}
 
+	if(c->calltype != SKINNY_CALLTYPE_INBOUND && pbx_channel_state(ast) != AST_STATE_UP && c->wantsEarlyRTP() && c->progressSent() && !sccp_channel_finishHolePunch(c)) {
+		// if hole punch is not active and the channel is not active either, we transmit null packets in the meantime
+		// Only allow audio through if they sent progress
+		ast_frfree(frame);
+		frame = &ast_null_frame;
+	}
 EXIT_FUNC:
 	return frame;
 }
@@ -1024,6 +996,10 @@ static int sccp_astwrap_rtp_write(PBX_CHANNEL_TYPE * ast, PBX_FRAME_TYPE * frame
 					ast_channel_writeformat(ast) ? ast_format_get_name(ast_channel_writeformat(ast)) : ""
 				);
 				//return -1;
+			}
+			if(pbx_channel_state(c->owner) != AST_STATE_UP && c->wantsEarlyRTP() && !c->progressSent()) {
+				sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "%s: (rtp_write) device requested earlyRtp and we received an incoming packet calling makeProgress\n", c->designator);
+				c->makeProgress(c);
 			}
 			if (!frame->samples) {
 				if(!strcasecmp(frame->src, "ast_prod")) {

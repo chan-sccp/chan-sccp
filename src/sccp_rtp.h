@@ -46,6 +46,7 @@ SCCP_API void SCCP_CALL sccp_rtp_destroy(constChannelPtr c);
 SCCP_API void SCCP_CALL sccp_rtp_set_peer(constChannelPtr c, rtpPtr rtp, struct sockaddr_storage * new_peer);
 SCCP_API void SCCP_CALL sccp_rtp_set_phone(constChannelPtr c, rtpPtr rtp, struct sockaddr_storage * new_peer);
 SCCP_API int SCCP_CALL sccp_rtp_updateNatRemotePhone(constChannelPtr c, rtpPtr rtp);
+SCCP_API void SCCP_CALL sccp_rtp_print(constChannelPtr c, sccp_rtp_type_t type, struct ast_str * buf, int buflen);
 
 SCCP_API boolean_t SCCP_CALL sccp_rtp_getAudioPeer(constChannelPtr c, struct sockaddr_storage **new_peer);
 SCCP_API sccp_rtp_info_t SCCP_CALL sccp_rtp_getAudioPeerInfo(constChannelPtr c, sccp_rtp_t **rtp);

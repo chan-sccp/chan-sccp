@@ -208,6 +208,7 @@ sccp_value_changed_t sccp_config_parse_jbflags_impl(void * const dest, const siz
 sccp_value_changed_t sccp_config_parse_jbflags_jbresyncthreshold(void * const dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
 sccp_value_changed_t sccp_config_checkButton(sccp_buttonconfig_list_t *buttonconfigList, int buttonindex, sccp_config_buttontype_t type, const char *name, const char *options, const char *args);
 sccp_value_changed_t sccp_config_parse_webdir(void * const dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
+sccp_value_changed_t sccp_config_parse_earlyrtp(void * const dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
 
 #include "sccp_config_entries.hh"
 
@@ -1391,7 +1392,6 @@ sccp_value_changed_t sccp_config_parse_debug(void * const dest, const size_t siz
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	uint32_t debug_new = 0;
-
 	char *debug_arr[1];
 
 	for (; v; v = v->next) {
@@ -1400,6 +1400,28 @@ sccp_value_changed_t sccp_config_parse_debug(void * const dest, const size_t siz
 	}
 	if (*(uint32_t *) dest != debug_new) {
 		*(uint32_t *) dest = debug_new;
+		changed = SCCP_CONFIG_CHANGE_CHANGED;
+	}
+	return changed;
+}
+
+/*!
+ * \brief Config Converter/Parser for Earlyrtp
+ *
+ * temporary "any string" to boolean for earlyrtp
+ */
+sccp_value_changed_t sccp_config_parse_earlyrtp(void * const dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
+{
+	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
+	boolean_t old = *(boolean_t *)dest;
+	boolean_t new = !sccp_false(v->value);
+
+	if(sccp_strcaseequals(v->value, "none")) {
+		new = FALSE;
+	}
+
+	if(new != old) {
+		*(boolean_t *)dest = new;
 		changed = SCCP_CONFIG_CHANGE_CHANGED;
 	}
 	return changed;

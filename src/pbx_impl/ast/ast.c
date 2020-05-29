@@ -668,7 +668,7 @@ static boolean_t sccp_astgenwrap_handleHangup(constChannelPtr channel, const cha
 			if(pbx_test_flag(pbx_channel_flags(pbx_channel), AST_FLAG_BLOCKING)) { /* not sure if required */
 				// blocking while being the initiator of the call, strange
 				sccp_log(DEBUGCAT_PBX)("%s: (%s): Blocker detected, SIGURG signal sent\n", c->designator, hanguptype);
-				pthread_kill(ast_channel_blocker(pbx_channel), SIGURG);
+				pthread_kill(pbx_channel_blocker(pbx_channel), SIGURG);
 				sched_yield();
 				pbx_safe_sleep(pbx_channel, 1000);
 				pbx_channel_unlock(pbx_channel);

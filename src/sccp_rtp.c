@@ -158,7 +158,8 @@ boolean_t sccp_rtp_createServer(constDevicePtr d, channelPtr c, sccp_rtp_type_t 
 	char buf[NI_MAXHOST + NI_MAXSERV];
 	sccp_copy_string(buf, sccp_netsock_stringify(phone_remote), sizeof(buf));
 	boolean_t isMappedIPv4 = sccp_netsock_ipv4_mapped(phone_remote, phone_remote);
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: (sccp_rtp_createRtpServer) updated phone %s destination to : %s, family:%s, mapped: %s\n", c->designator, sccp_rtp_type2str(type), buf, sccp_netsock_is_IPv4(phone_remote) ? "IPv4" : "IPv6", isMappedIPv4 ? "True" : "False");
+	sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "%s: (sccp_rtp_createRtpServer) setting new phone %s destination to: %s, family:%s, mapped: %s\n", c->designator, sccp_rtp_type2str(type), buf,
+			       sccp_netsock_is_IPv4(phone_remote) ? "IPv4" : "IPv6", isMappedIPv4 ? "True" : "False");
 
 	return rtp->instance_active;
 }
@@ -425,6 +426,49 @@ int sccp_rtp_updateNatRemotePhone(constChannelPtr c, rtpPtr rtp)
 	return res;
 }
 
+void sccp_rtp_print(constChannelPtr c, sccp_rtp_type_t type, struct ast_str * buf, int buflen)
+{
+	pbx_assert(c && buf);
+	const sccp_rtp_t * rtp;
+	switch(type) {
+		case SCCP_RTP_AUDIO:
+			rtp = &(c->rtp.audio);
+			break;
+#if CS_SCCP_VIDEO
+		case SCCP_RTP_VIDEO:
+			rtp = &(c->rtp.video);
+			break;
+#endif
+		default:
+			pbx_log(LOG_ERROR, "%s: (sccp_rtp_print) unknown/unhandled rtp type, cancelling\n", c->designator);
+			return;
+	}
+	AUTO_RELEASE(sccp_device_t, d, sccp_channel_getDevice(c));
+	char buf1[NI_MAXHOST + NI_MAXSERV];
+	char buf2[NI_MAXHOST + NI_MAXSERV];
+	sccp_copy_string(buf1, sccp_netsock_stringify(&rtp->phone), sizeof(buf1));
+	sccp_copy_string(buf2, sccp_netsock_stringify(&rtp->phone_remote), sizeof(buf2));
+
+	pbx_str_reset(buf);
+	if(d && rtp && d->nat >= SCCP_NAT_ON) {
+		char buf3[NI_MAXHOST + NI_MAXSERV];
+		if(sccp_netsock_is_IPv4(&rtp->phone_remote) || sccp_netsock_ipv4_mapped(&rtp->phone_remote, (struct sockaddr_storage *)&rtp->phone_remote))
+			sccp_copy_string(buf3, sccp_netsock_stringify(&d->ipv4), sizeof(buf3));
+		else
+			sccp_copy_string(buf3, sccp_netsock_stringify(&d->ipv6), sizeof(buf3));
+		if(d->directrtp) {
+			pbx_str_append(&buf, 0, "PH1:%s -> FW:%s ----> FW:%s --> PH2:%s\n", buf3, buf1, "", buf2);
+		} else {
+			pbx_str_append(&buf, 0, "PH:%s -> FW:%s ----> FW:%s --> %s:AST\n", buf3, buf1, "", buf2);
+		}
+	} else {
+		if(d->directrtp) {
+			pbx_str_append(&buf, 0, "PH:%s --> PH:%s\n", buf1, buf2);
+		} else {
+			pbx_str_append(&buf, 0, "PH:%s --> %s:AST\n", buf1, buf2);
+		}
+	}
+}
 
 /*!
  * \brief Get Audio Peer RTP Information

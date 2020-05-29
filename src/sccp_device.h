@@ -139,7 +139,7 @@ struct sccp_device {
 	skinny_devicetype_t skinny_type;									/*!< Model of this Phone sent by the station, devicetype */
 	//uint8_t device_features[3];										/*!< device features (contains protocolversion in 8bit first segement */
 	StationProtocolFeatures_t device_features;
-	sccp_earlyrtp_t earlyrtp;										/*!< RTP Channel State where to open the RTP Media Stream */
+	boolean_t earlyrtp;                                                                                     /*!< RTP Channel State where to open the RTP Media Stream */
 	uint16_t keepalive;											/*!< Station Specific Keepalive Timeout */
 	uint16_t keepaliveinterval;										/*!< Currently set Keepalive Timeout */
 	uint8_t protocolversion;										/*!< Skinny Supported Protocol Version */
@@ -313,6 +313,9 @@ struct sccp_device {
 #ifdef CS_AST_HAS_STASIS_ENDPOINT
 	PBX_ENDPOINT_TYPE *endpoint;
 #endif
+	struct sockaddr_storage ipv4;
+	struct sockaddr_storage ipv6;
+
 	boolean_t pendingDelete;										/*!< this bit will tell the scheduler to delete this line when unused */
 	boolean_t pendingUpdate;										/*!< this will contain the updated line struct once reloaded from config to update the line when unused */
 };
