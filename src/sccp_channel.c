@@ -97,6 +97,23 @@ static void setMicrophoneState(channelPtr c, boolean_t enabled)
 /*
  * \brief statemachine to Start/Stop device tone generation
  */
+static void setToneWithoutLineDevice(constChannelPtr c, skinny_tone_t tone, skinny_toneDirection_t direction)
+{
+	pbx_assert(c);
+	AUTO_RELEASE(sccp_device_t, d, sccp_channel_getDevice(c));
+	if(!d) {
+		pbx_log(LOG_NOTICE, "%s: (%s) No device attached to this channel\n", c->designator, __func__);
+		return;
+	}
+	sccp_dev_stoptone(d, 0, c->callid);
+	if(tone != SKINNY_TONE_SILENCE) {
+		sccp_dev_starttone(d, tone, 0, c->callid, direction);
+	}
+}
+
+/*
+ * \brief statemachine to Start/Stop device tone generation
+ */
 static void setTone(constChannelPtr c, skinny_tone_t tone, skinny_toneDirection_t direction)
 {
 	pbx_assert(c && c->privateData && c->privateData->ld);
@@ -262,7 +279,7 @@ channelPtr sccp_channel_allocate(constLinePtr l, constDevicePtr device)
 			channel->setTone = setTone;
 		} else {
 			channel->dtmfmode = SCCP_DTMFMODE_RFC2833;
-			channel->setTone = NULL;
+			channel->setTone = setToneWithoutLineDevice;
 		}
 
 		if (l->preferences_set_on_line_level) {
@@ -400,7 +417,7 @@ EXIT:
 	sccp_copy_string(channel->currentDeviceId, "SCCP", sizeof(char[StationMaxDeviceNameSize]));
 	channel->dtmfmode = SCCP_DTMFMODE_RFC2833;
 	channel->setEarlyRTP(channel, FALSE);
-	channel->setTone = NULL;
+	channel->setTone = setToneWithoutLineDevice;
 }
 
 static void sccp_channel_recalculateAudioCodecFormat(channelPtr channel)
