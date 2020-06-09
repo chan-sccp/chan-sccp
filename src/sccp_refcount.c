@@ -793,9 +793,9 @@ void sccp_refcount_removeRelationship(const void * const parentWeakPtr, const vo
 gcc_inline void * const sccp_refcount_retain(const void * const ptr, const char *filename, int lineno, const char *func)
 {
 #	if CS_REFCOUNT_DEBUG
-	pbx_assert(ptr != NULL);
+	pbx_assert(ptr != NULL && !isPointerDead(ptr));
 #	else
-	if (ptr == NULL) {											// soft failure
+	if(ptr == NULL || isPointerDead(ptr)) {                                        // soft failure
 		pbx_log(LOG_WARNING, "SCCP: (refcount_retain) tried to retain a NULL pointer\n");
 		usleep(10);
 		return NULL;
@@ -836,9 +836,9 @@ gcc_inline void * const sccp_refcount_retain(const void * const ptr, const char 
 gcc_inline void * const sccp_refcount_release(const void * * const ptr, const char *filename, int lineno, const char *func)
 {
 #if CS_REFCOUNT_DEBUG
-	pbx_assert(ptr != NULL && *ptr != NULL);
+	pbx_assert(ptr != NULL && *ptr != NULL && !isPointerDead(*ptr));
 #else
-	if (ptr == NULL || *ptr == NULL) {									// soft failure
+	if(ptr == NULL || *ptr == NULL || isPointerDead(*ptr)) {                                        // soft failure
 		pbx_log(LOG_WARNING, "SCCP: (refcount_release) tried to release a NULL pointer\n");
 		usleep(10);
 		return NULL;
