@@ -1048,7 +1048,8 @@ uint8_t sccp_dev_build_buttontemplate(devicePtr d, btnlist * btn)
 			d->useHookFlash = sccp_device_trueResult;
 			break;
 		case SKINNY_DEVICETYPE_CISCO7920:
-			for (i = 0; i < 4; i++) {
+			// only four lines are displayed, but scrolling down shows two additional ones
+			for(i = 0; i < 6; i++) {
 				btn[btn_index++].type = SCCP_BUTTONTYPE_MULTI;
 			}
 			break;
