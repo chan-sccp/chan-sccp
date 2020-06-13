@@ -170,6 +170,7 @@ typedef struct SCCPConfigOption {
 #define sccp_config_parse_jbflags_maxsize "200"
 #define sccp_config_parse_jbflags_jbresyncthreshold "1000"
 #define sccp_config_parse_jbflags_impl "fixed"
+#define sccp_config_parse_earlyrtp                  "(earlyrtp)=on|off"
 
 uint32_t (sccp_enum_str2intval) (const char *lookup_str);
 const char * const (sccp_enum_all_entries)(void);
