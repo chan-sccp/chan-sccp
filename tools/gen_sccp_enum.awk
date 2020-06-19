@@ -45,7 +45,7 @@ function my_strtonum(str,        ret, n, i, k, c)
     } else
         ret = "NOT-A-NUMBER"
 
-    return ret
+    return sprintf("%d", ret)
 }
 
 BEGIN {
@@ -396,10 +396,10 @@ codeSkip == 1			{ next }
 				if (Entry_ifdef[i] == "") {
 					if (Entry_val[i] != "") {
 						last_value = my_strtonum(Entry_val[i])
-						value_map = sprintf("%s%s,", value_map, last_value)
+						value_map = sprintf("%s%d,", value_map, last_value)
 					} else {
 						last_value = last_value + 1
-						value_map = sprintf("%s%s,", value_map, last_value)
+						value_map = sprintf("%s%d,", value_map, last_value)
 					}
 				}
 			}
