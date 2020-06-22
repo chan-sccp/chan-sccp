@@ -433,6 +433,9 @@ static void sccp_channel_recalculateAudioCodecFormat(channelPtr channel)
 	skinny_capabilities_t *preferences = &(channel->preferences);
 	sccp_rtp_t * audio = (sccp_rtp_t *)&(channel->rtp.audio);
 
+	if(iPbx.retrieve_remote_capabilities && channel->remoteCapabilities.audio[0] == SKINNY_CODEC_NONE) {
+		iPbx.retrieve_remote_capabilities(channel);
+	}
 	if(sccp_rtp_areBothInvalid(audio)) {
 		if(channel->privateData->device && !channel->line->preferences_set_on_line_level) {
 			preferences = &(channel->privateData->device->preferences);
@@ -495,7 +498,9 @@ static boolean_t sccp_channel_recalculateVideoCodecFormat(channelPtr channel)
 		sccp_codec_reduceSet(preferences->video, channel->capabilities.video);
 		joint = sccp_codec_findBestJoint(channel, preferences->video, channel->remoteCapabilities.video, FALSE);
 		if (joint == SKINNY_CODEC_NONE) {
-			sccp_channel_setVideoMode(channel, "off");
+			if(channel->state > SCCP_GROUPED_CHANNELSTATE_DIALING) {
+				sccp_channel_setVideoMode(channel, "off");
+			}
 			return FALSE;
 		}
 		//if (channel->rtp.video.instance) {
@@ -532,9 +537,6 @@ static boolean_t sccp_channel_recalculateVideoCodecFormat(channelPtr channel)
  */
 void sccp_channel_updateChannelCapability(channelPtr channel)
 {
-	if (iPbx.retrieve_remote_capabilities && channel->remoteCapabilities.audio[0] == SKINNY_CODEC_NONE) {
-		iPbx.retrieve_remote_capabilities(channel);
-	}
 	sccp_channel_recalculateAudioCodecFormat(channel);
 #if CS_SCCP_VIDEO
 	sccp_channel_recalculateVideoCodecFormat(channel);
@@ -807,7 +809,7 @@ void sccp_channel_openReceiveChannel(constChannelPtr channel)
 	}
 
 	if (channel->owner && channel->rtp.audio.reception.format == SKINNY_CODEC_NONE) {
-		sccp_channel_updateChannelCapability((channelPtr)channel);							// discard const
+		sccp_channel_recalculateAudioCodecFormat((channelPtr)channel);                                        // discard const
 	}
 
 	sccp_log((DEBUGCAT_RTP + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s, OpenReceiveChannel with format %s, payload %d, echocancel: %s, passthrupartyid: %u, pbx_channel_name: %s\n",
@@ -966,7 +968,7 @@ void sccp_channel_startMediaTransmission(constChannelPtr channel)
 
 	if (audio->transmission.format == SKINNY_CODEC_NONE) {
 		if (audio->reception.format == SKINNY_CODEC_NONE) {
-			sccp_channel_updateChannelCapability((sccp_channel_t *)channel);
+			sccp_channel_recalculateAudioCodecFormat((channelPtr)channel);                                        // discard const
 		} else {
 			audio->transmission.format = audio->reception.format;
 		}
@@ -1104,10 +1106,10 @@ void sccp_channel_openMultiMediaReceiveChannel(constChannelPtr channel)
 		return;
 	}
 
-	if (channel->owner && SKINNY_CODEC_NONE == video->reception.format && !sccp_channel_recalculateVideoCodecFormat((channelPtr)channel)) {
+	if(SKINNY_CODEC_NONE == video->reception.format && !sccp_channel_recalculateVideoCodecFormat((channelPtr)channel)) {
 		return;
 	}
-	
+
 	//if (d->nat >= SCCP_NAT_ON) {
 	//	sccp_rtp_updateNatRemotePhone(channel, video);
 	//}

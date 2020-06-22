@@ -921,9 +921,6 @@ boolean_t sccp_pbx_channel_allocate(constChannelPtr channel, const void * ids, c
 		pbx_log(LOG_ERROR, "%s: Unable to allocate asterisk channel on line %s\n", c->designator, l->name);
 		goto error_exit;
 	}
-	//sccp_channel_updateChannelCapability(c);
-	//iPbx.set_nativeAudioFormats(c, c->preferences.audio, 1);
-	//iPbx.set_nativeAudioFormats(c, c->preferences.audio, ARRAY_LEN(c->preferences.audio));
 	iPbx.setChannelName(c, c->designator);
 
 	// \todo: Bridge?
