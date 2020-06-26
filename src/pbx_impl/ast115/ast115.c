@@ -1008,8 +1008,8 @@ static int sccp_astwrap_rtp_write(PBX_CHANNEL_TYPE * ast, PBX_FRAME_TYPE * frame
 				);
 				//return -1;
 			}
-			if(pbx_channel_state(c->owner) != AST_STATE_UP && c->wantsEarlyRTP() && !c->progressSent()) {
-				sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "%s: (rtp_write) device requested earlyRtp and we received an incoming packet calling makeProgress\n", c->designator);
+			if(pbx_channel_state(c->owner) != AST_STATE_UP && c->state > SCCP_GROUPED_CHANNELSTATE_DIALING && c->wantsEarlyRTP() && !c->progressSent()) {
+				sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "%s: (rtp_write) device requested earlyRtp and we received an incoming audio packet calling makeProgress\n", c->designator);
 				c->makeProgress(c);
 			}
 			if (!frame->samples) {
@@ -1031,12 +1031,20 @@ static int sccp_astwrap_rtp_write(PBX_CHANNEL_TYPE * ast, PBX_FRAME_TYPE * frame
 				if(ast_format_cmp(ast_format_h264, frame->subclass.format) != AST_FORMAT_CMP_EQUAL) {
 					sccp_channel_closeMultiMediaReceiveChannel(c, TRUE);
 					sccp_channel_stopMultiMediaTransmission(c, TRUE);
+					sccp_channel_setVideoMode(c, "off");
+					return -1;
 				}
-				if(!sccp_rtp_getState(&c->rtp.video, SCCP_RTP_RECEPTION)) {
-					sccp_log((DEBUGCAT_RTP))(VERBOSE_PREFIX_3 "%s: got video frame %s\n", c->currentDeviceId, "H264");
-					c->rtp.video.reception.format = SKINNY_CODEC_H264;
+				sccp_rtp_status_t receptionstate = sccp_rtp_getState(&c->rtp.video, SCCP_RTP_RECEPTION);
+				if(pbx_channel_state(c->owner) != AST_STATE_UP && c->state > SCCP_GROUPED_CHANNELSTATE_DIALING) {
+					if(c->wantsEarlyRTP() && !c->progressSent()) {
+						sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "%s: (rtp_write) device requested earlyRtp and we received an incoming video packet calling makeProgress\n", c->designator);
+						c->makeProgress(c);
+					}
+				} else if(!receptionstate) {
+					sccp_log((DEBUGCAT_RTP))(VERBOSE_PREFIX_3 "%s: got first video frame %s\n", c->currentDeviceId, "H264");
 					sccp_channel_openMultiMediaReceiveChannel(c);
-				} else if((sccp_rtp_getState(&c->rtp.video, SCCP_RTP_RECEPTION) & SCCP_RTP_STATUS_ACTIVE)) {
+				}
+				if(receptionstate & SCCP_RTP_STATUS_ACTIVE) {
 					res = ast_rtp_instance_write(c->rtp.video.instance, frame);
 				}
 			}
