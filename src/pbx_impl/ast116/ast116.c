@@ -1005,7 +1005,7 @@ static int sccp_astwrap_rtp_write(PBX_CHANNEL_TYPE * ast, PBX_FRAME_TYPE * frame
 							 ast_channel_writeformat(ast) ? ast_format_get_name(ast_channel_writeformat(ast)) : "");
 				// return -1;
 			}
-			if(pbx_channel_state(c->owner) != AST_STATE_UP && c->wantsEarlyRTP() && !c->progressSent()) {
+			if(pbx_channel_state(c->owner) != AST_STATE_UP && c->state > SCCP_GROUPED_CHANNELSTATE_DIALING && c->wantsEarlyRTP() && !c->progressSent()) {
 				sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "%s: (rtp_write) device requested earlyRtp and we received an incoming audio packet calling makeProgress\n", c->designator);
 				c->makeProgress(c);
 			}
@@ -1032,7 +1032,7 @@ static int sccp_astwrap_rtp_write(PBX_CHANNEL_TYPE * ast, PBX_FRAME_TYPE * frame
 					return -1;
 				}
 				sccp_rtp_status_t receptionstate = sccp_rtp_getState(&c->rtp.video, SCCP_RTP_RECEPTION);
-				if(pbx_channel_state(c->owner) != AST_STATE_UP) {
+				if(pbx_channel_state(c->owner) != AST_STATE_UP && c->state > SCCP_GROUPED_CHANNELSTATE_DIALING) {
 					if(c->wantsEarlyRTP() && !c->progressSent()) {
 						sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "%s: (rtp_write) device requested earlyRtp and we received an incoming video packet calling makeProgress\n", c->designator);
 						c->makeProgress(c);

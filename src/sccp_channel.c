@@ -145,7 +145,7 @@ static void setEarlyRTP(channelPtr c, boolean_t state)
 static void makeProgress(channelPtr c)
 {
 	pbx_assert(c != NULL);
-	if(c->wantsEarlyRTP() && c->progressSent == sccp_always_false && c->state > SCCP_GROUPED_CHANNELSTATE_DIALING) {
+	if(c->wantsEarlyRTP() && c->progressSent == sccp_always_false) {
 		sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "%s: (%s)\n", c->designator, __func__);
 		if(!sccp_rtp_getState(&c->rtp.audio, SCCP_RTP_RECEPTION)) {
 			sccp_channel_openReceiveChannel(c);
