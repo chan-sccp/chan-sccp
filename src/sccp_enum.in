@@ -212,10 +212,10 @@ enum message_priority {
 	SCCP_MESSAGE_PRIORITY_IDLE,			=0,	"Message Priority Idle",
 	SCCP_MESSAGE_PRIORITY_VOICEMAIL,		=1,	"Message Priority Voicemail",
 	SCCP_MESSAGE_PRIORITY_MONITOR,			=2,	"Message Priority Monitor",
-	SCCP_MESSAGE_PRIORITY_PRIVACY,			=2,	"Message Priority Privacy",
+	SCCP_MESSAGE_PRIORITY_PRIVACY,			=3,	"Message Priority Privacy",
 	SCCP_MESSAGE_PRIORITY_DND,			=4,	"Message Priority Do not disturb",
-	SCCP_MESSAGE_PRIORITY_CFWD,			=4,	"Message Priority Call Forward",
-	SCCP_MESSAGE_PRIORITY_TIMEOUT,			=5,	"Message Priority Timeout",
+	SCCP_MESSAGE_PRIORITY_CFWD,			=5,	"Message Priority Call Forward",
+	SCCP_MESSAGE_PRIORITY_TIMEOUT,			=6,	"Message Priority Timeout",
 }
 
 enum push_result {
