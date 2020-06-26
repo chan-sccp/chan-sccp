@@ -280,7 +280,7 @@ struct sccp_device {
 #ifndef SCCP_ATOMIC
 		sccp_mutex_t lock;										/*!< Message Stack Lock */
 #endif
-		char *(messages[SCCP_MESSAGE_PRIORITY_SENTINEL - 1]); /*!< Message Stack Array */
+		char *(messages[SCCP_MESSAGE_PRIORITY_SENTINEL]); /*!< Message Stack Array */
 	} messageStack;
 	
 	sccp_call_statistics_t call_statistics[2];								/*!< Call statistics */
