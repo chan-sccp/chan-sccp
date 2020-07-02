@@ -248,9 +248,10 @@ static const SCCPConfigOption sccpDeviceConfigOptions[] = {
 																																					" - button = line,98099@+12:Phone2@ButtonLabel!silent           ; same as the previous line\n"
 																																					" - button = line,98099@=12:Phone2!silent                       ; overwrite line-cid instead of appending\n"
 																																					" - button = speeddial,Phone 2 Line 1, 98021, 98021@hints\n"
+																																					" - button = feature,PDefault,ParkingLot,default                ; feature, name, feature_type, parkinglotContext[, OptionalArguments]\n"
+        																						                                                                          					" - button = feature,PDefault,ParkingLot,default,RetrieveSingle ; Automatically retrieve the parked call if there is only one. <= this is the default when no optional arguments are specified\n"
+																																					" - button = feature,PDefault,ParkingLot,default,AlwaysShowMenu ; Force the menu even if there is only one call\n"
 																																					" - button = feature,cfwdall,1234\n                             ; feature, label, feature_type=cfwdall, exten\n"
-																																					" - button = feature,PDefault,ParkingLot,default                ; feature, label, feature_type=ParkingLot, parkinglotContext[,RetrieveSingle]\n"
-																																					" - button = feature,PDefault,ParkingLot,default,RetrieveSingle ; feature, label, feature_type=ParkingLot, parkinglotContext[,RetrieveSinglen]\n"
 																																					" - button = feature,TriStateDND,DND                            ; feature, label, feature_type=DND\n"
 																																					" - button = feature,BusyDND,DND,busy                           ; feature, label, feature_type=DND, busy\n"
 																																					" - button = feature,SilentDND,DND,silent                       ; feature, label, feature_type=DND, silent\n"},

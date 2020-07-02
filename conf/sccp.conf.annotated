@@ -218,8 +218,9 @@ button = ""                                                                     
                                                                                   ;  - button = line,98099@=12:Phone2!silent                       ; overwrite line-cid instead of appending
                                                                                   ;  - button = speeddial,Phone 2 Line 1, 98021, 98021@hints
                                                                                   ;  - button = feature,cfwdall,1234
-                                                                                  ;  - button = feature,PDefault,ParkingLot,default                ; feature, name, feature_type, parkinglotContext[,RetrieveSingle]
-                                                                                  ;  - button = feature,PDefault,ParkingLot,default,RetrieveSingle ; feature, name, feature_type, parkinglotContext[,RetrieveSinglen]
+                                                                                  ;  - button = feature,PDefault,ParkingLot,default                ; feature, name, feature_type, parkinglotContext[, OptionalArguments]
+                                                                                  ;  - button = feature,PDefault,ParkingLot,default,RetrieveSingle ; Automatically retrieve the parked call if there is only one. <= this is the default when no optional arguments are specified
+                                                                                  ;  - button = feature,PDefault,ParkingLot,default,AlwaysShowMenu ; Force the menu even if there is only one call
 ;allowRinginNotification = no                                                     ; allow ringin notification for hinted extensions. experimental configuration param that may be removed in further version
 ;conf_allow = yes                                                                 ; Allow the use of conference
 ;conf_music_on_hold_class = default                                               ; Play music on hold of this class when no moderator is listening on the conference. If set to an empty string, no music on hold will be played.
