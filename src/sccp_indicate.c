@@ -87,7 +87,7 @@ void __sccp_indicate(constDevicePtr maybe_device, channelPtr c, const sccp_chann
 				sccp_dev_set_cplane(d, lineInstance, 1);
 				if (SCCP_CHANNELSTATE_DOWN == c->previousChannelState) {		// new call
 					sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_ENTER_NUMBER, GLOB(digittimeout));
-					c->setTone(c, SKINNY_TONE_INSIDEDIALTONE, SKINNY_TONEDIRECTION_USER);
+					c->setTone(c, l->initial_dialtone_tone, SKINNY_TONEDIRECTION_USER);
 					if(!(d->hasMWILight()) && d->voicemailStatistic.newmsgs) {
 						sccp_log((DEBUGCAT_INDICATE | DEBUGCAT_MWI))(VERBOSE_PREFIX_2 "%s: Device does not have MWI-light and does have messages waiting -> stutter\n", d->id);
 						c->setTone(c, SKINNY_TONE_PARTIALDIALTONE, SKINNY_TONEDIRECTION_USER); /* Add Stutter Pattern for ATA/Analog devices */

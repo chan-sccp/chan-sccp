@@ -37,6 +37,7 @@ struct sccp_line {
 	} statistic;												/*!< Statistics for Line Structure */
 
 	uint8_t incominglimit;											/*!< max incoming calls limit */
+	skinny_tone_t initial_dialtone_tone;                                                                    /*!< initial dialtone tone */
 	skinny_tone_t secondary_dialtone_tone;									/*!< secondary dialtone tone */
 	char secondary_dialtone_digits[SCCP_MAX_SECONDARY_DIALTONE_DIGITS];					/*!< secondary dialtone digits */
 
