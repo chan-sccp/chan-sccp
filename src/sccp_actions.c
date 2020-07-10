@@ -1506,10 +1506,26 @@ void handle_line_number(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 		d->protocol->sendLineStatResp(d, lineNumber, "", "", "");
 		return;
 	}
+
+	if(l && d->defaultLineInstance == SCCP_FIRST_LINEINSTANCE) {
+		/* set default line on device if based on "default" config option */
+		SCCP_LIST_LOCK(&d->buttonconfig);
+		SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
+			if(config->type == LINE && config->instance == lineNumber) {
+				if(config->button.line.options && strcasestr(config->button.line.options, "default")) {
+					d->defaultLineInstance = lineNumber;
+					sccp_log((DEBUGCAT_LINE))(VERBOSE_PREFIX_3 "set defaultLineInstance to: %u\n", lineNumber);
+				}
+				break;
+			}
+		}
+		SCCP_LIST_UNLOCK(&d->buttonconfig);
+	}
+
 	char *dirNumber = ((l) ? l->name : k.name);
 	/* setting the device description for the first line, so it will be display on top of device -MC */
 	/* otherwise set the line description of speeddial name */
-	char *fullyQualifiedDisplayName = (lineNumber == 1 || !l) ? d->description : ((l && l->description) ? l->description : k.name);
+	char * fullyQualifiedDisplayName = (!l || (d->defaultLineInstance == lineNumber && d->description && !sccp_strlen_zero(d->description))) ? d->description : ((l && l->description) ? l->description : k.name);
 
 	char displayName[SCCP_MAX_LABEL + 1];
 	if (l) {
@@ -1534,21 +1550,6 @@ void handle_line_number(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 	}
 
 	d->protocol->sendLineStatResp(d, lineNumber, dirNumber, fullyQualifiedDisplayName, displayName);
-
-	if (l) {
-		/* set default line on device if based on "default" config option */
-		SCCP_LIST_LOCK(&d->buttonconfig);
-		SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
-			if (config->type == LINE && config->instance == lineNumber) {
-				if (config->button.line.options && strcasestr(config->button.line.options, "default")) {
-					d->defaultLineInstance = lineNumber;
-					sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "set defaultLineInstance to: %u\n", lineNumber);
-				}
-				break;
-			}
-		}
-		SCCP_LIST_UNLOCK(&d->buttonconfig);
-	}
 }
 
 /*!
