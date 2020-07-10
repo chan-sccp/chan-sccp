@@ -1523,8 +1523,11 @@ void handle_line_number(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 	}
 
 	char *dirNumber = ((l) ? l->name : k.name);
-	/* setting the device description for the first line, so it will be display on top of device -MC */
-	/* otherwise set the line description of speeddial name */
+
+	/* the description on the top bar on the phone is taken from the device description or the first default line description whichever is provided (-MC) */
+	/* logic: */
+	/* If no device description is provided the description is taken from the first line marked as d->defaultLineInstance */
+	/* if neither are provided the desciption will use the first speeddial name */
 	char * fullyQualifiedDisplayName = (!l || (d->defaultLineInstance == lineNumber && d->description && !sccp_strlen_zero(d->description))) ? d->description : ((l && l->description) ? l->description : k.name);
 
 	char displayName[SCCP_MAX_LABEL + 1];
