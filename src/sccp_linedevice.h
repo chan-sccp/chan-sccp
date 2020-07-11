@@ -36,10 +36,6 @@ struct sccp_linedevice {
 	sccp_subscription_id_t subscriptionId;                                        //!< for addressing individual devices on shared line
 	char label[SCCP_MAX_LABEL];                                                   //!<
 	uint8_t lineInstance;                                                         //!< line instance of this->line on this->device
-
-	void (*resetPickup)(lineDevicePtr ld);
-	void (*disallowPickup)(lineDevicePtr ld);
-	boolean_t (*isPickupAllowed)(void);
 }; /*!< SCCP Line-Device Structure */
 
 SCCP_API void SCCP_CALL sccp_linedevice_create(constDevicePtr d, constLinePtr line, uint8_t lineInstance, sccp_subscription_id_t * subscriptionId);

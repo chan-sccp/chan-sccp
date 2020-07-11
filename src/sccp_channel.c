@@ -2279,10 +2279,6 @@ void sccp_channel_clean(channelPtr channel)
 		sccp_dev_check_displayprompt(d);
 	}
 	if (channel->privateData) {
-		if(channel->privateData->ld) {
-			channel->privateData->ld->resetPickup(channel->privateData->ld);
-		}
-
 		if (channel->privateData->device) {
 			sccp_channel_setDevice(channel, NULL);
 		}

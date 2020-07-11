@@ -135,27 +135,6 @@ static void regcontext_exten(constLineDevicePtr ld, int onoff)
 	}
 }
 
-static void resetPickup(lineDevicePtr ld)
-{
-	ld->isPickupAllowed = sccp_always_false;
-#ifdef CS_SCCP_PICKUP
-	if(ld->line->pickupgroup
-#	ifdef CS_AST_HAS_NAMEDGROUP
-	   || !sccp_strlen_zero(ld->line->namedpickupgroup)
-#	endif
-	) {
-		sccp_log(DEBUGCAT_LINE)(VERBOSE_PREFIX_3 "%s: (enable Pickup) on line:%s.\n", ld->device->id, ld->line->name);
-		ld->isPickupAllowed = sccp_always_true;
-	}
-#endif
-}
-
-static void disallowPickup(lineDevicePtr ld)
-{
-	sccp_log(DEBUGCAT_LINE)(VERBOSE_PREFIX_3 "%s: (disable Pickup) on line:%s.\n", ld->device->id, ld->line->name);
-	ld->isPickupAllowed = sccp_always_false;
-}
-
 /*!
  * \brief Set a Call Forward on a specific Line
  * \param line SCCP Line
@@ -252,10 +231,6 @@ void sccp_linedevice_create(constDevicePtr d, constLinePtr l, uint8_t lineInstan
 	*(sccp_device_t **)&(ld->device) = sccp_device_retain(device);                                        // const cast to emplace device
 	*(sccp_line_t **)&(ld->line) = sccp_line_retain(line);                                                // const cast to emplace line
 	ld->lineInstance = lineInstance;
-	ld->resetPickup = &resetPickup;
-	ld->disallowPickup = &disallowPickup;
-
-	ld->resetPickup(ld);
 	if(NULL != subscriptionId) {
 		memcpy(&ld->subscriptionId, subscriptionId, sizeof(ld->subscriptionId));
 	}
