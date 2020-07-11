@@ -1504,7 +1504,7 @@ void handle_line_number(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 	uint8_t lineNumber = letohl(msg_in->data.LineStatReqMessage.lel_lineNumber);
 
 	char * dirNumber = "<undef>";
-	char * fullyQualifiedDisplayName = "<undef>";
+	char * fullyQualifiedDisplayName = "";
 	sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Configuring line number %d\n", d->id, lineNumber);
 
 	/* the description on the top bar on the phone is taken from the device description or the first default line description whichever is provided (-MC) */
@@ -1515,8 +1515,6 @@ void handle_line_number(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 			fullyQualifiedDisplayName = d->description;
 		else if(!sccp_strlen_zero(l->description))
 			fullyQualifiedDisplayName = l->description;
-		else if(!sccp_strlen_zero(l->label))
-			fullyQualifiedDisplayName = l->label;
 	} else {
 		/* if we find no regular line - it can be a speeddial with hint */
 		sccp_dev_speed_find_byindex(d, lineNumber, TRUE, &k);
