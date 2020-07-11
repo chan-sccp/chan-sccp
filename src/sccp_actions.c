@@ -1267,7 +1267,7 @@ static btnlist *sccp_make_button_template(devicePtr d)
 		buttonconfig = SCCP_LIST_FIRST(&d->buttonconfig);
 		btn[i].type = SKINNY_BUTTONTYPE_LINE;
 		btn[i].ptr = sccp_line_retain(GLOB(hotline)->line);
-		buttonconfig->instance = btn[i].instance = SCCP_FIRST_LINEINSTANCE;
+		buttonconfig->instance = btn[i].instance = d->defaultLineInstance = SCCP_FIRST_LINEINSTANCE;
 		sccp_linedevice_create(d, btn[i].ptr, btn[i].instance, buttonconfig->button.line.subscriptionId);
 	}
 
@@ -1278,6 +1278,15 @@ static btnlist *sccp_make_button_template(devicePtr d)
 		}
 	}
 
+	SCCP_LIST_LOCK(&d->buttonconfig);
+	SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
+		if(buttonconfig->button.line.options && strcasestr(buttonconfig->button.line.options, "default")) {
+			d->defaultLineInstance = buttonconfig->instance;
+			sccp_log((DEBUGCAT_LINE))(VERBOSE_PREFIX_3 "set defaultLineInstance to: %u\n", buttonconfig->instance);
+			break;
+		}
+	}
+	SCCP_LIST_UNLOCK(&d->buttonconfig);
 	return btn;
 }
 
@@ -1493,42 +1502,31 @@ void handle_line_number(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 	sccp_speed_t k;
 	sccp_buttonconfig_t * config = NULL;
 	uint8_t lineNumber = letohl(msg_in->data.LineStatReqMessage.lel_lineNumber);
+
+	char * dirNumber = "<undef>";
+	char * fullyQualifiedDisplayName = "<undef>";
 	sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Configuring line number %d\n", d->id, lineNumber);
 
-	/* if we find no regular line - it can be a speeddial with hint */
-	AUTO_RELEASE(sccp_line_t, l , sccp_line_find_byid(d, lineNumber));
-	if (!l) {
-		sccp_dev_speed_find_byindex(d, lineNumber, TRUE, &k);
-	}
-
-	if (!l && !k.valid) {
-		pbx_log(LOG_ERROR, "%s: requested a line configuration for unknown line/speeddial %d\n", sccp_session_getDesignator(s), lineNumber);
-		d->protocol->sendLineStatResp(d, lineNumber, "", "", "");
-		return;
-	}
-
-	if(l && d->defaultLineInstance == SCCP_FIRST_LINEINSTANCE) {
-		/* set default line on device if based on "default" config option */
-		SCCP_LIST_LOCK(&d->buttonconfig);
-		SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
-			if(config->type == LINE && config->instance == lineNumber) {
-				if(config->button.line.options && strcasestr(config->button.line.options, "default")) {
-					d->defaultLineInstance = lineNumber;
-					sccp_log((DEBUGCAT_LINE))(VERBOSE_PREFIX_3 "set defaultLineInstance to: %u\n", lineNumber);
-				}
-				break;
-			}
-		}
-		SCCP_LIST_UNLOCK(&d->buttonconfig);
-	}
-
-	char *dirNumber = ((l) ? l->name : k.name);
-
 	/* the description on the top bar on the phone is taken from the device description or the first default line description whichever is provided (-MC) */
-	/* logic: */
-	/* If no device description is provided the description is taken from the first line marked as d->defaultLineInstance */
-	/* if neither are provided the desciption will use the first speeddial name */
-	char * fullyQualifiedDisplayName = (!l || (d->defaultLineInstance == lineNumber && d->description && !sccp_strlen_zero(d->description))) ? d->description : ((l && l->description) ? l->description : k.name);
+	AUTO_RELEASE(sccp_line_t, l , sccp_line_find_byid(d, lineNumber));
+	if(l) {
+		dirNumber = l->name;
+		if(d->defaultLineInstance == lineNumber && !sccp_strlen_zero(d->description))
+			fullyQualifiedDisplayName = d->description;
+		else if(!sccp_strlen_zero(l->description))
+			fullyQualifiedDisplayName = l->description;
+		else if(!sccp_strlen_zero(l->label))
+			fullyQualifiedDisplayName = l->label;
+	} else {
+		/* if we find no regular line - it can be a speeddial with hint */
+		sccp_dev_speed_find_byindex(d, lineNumber, TRUE, &k);
+		if(!k.valid) {
+			pbx_log(LOG_ERROR, "%s: requested a line configuration for unknown line/speeddial %d\n", sccp_session_getDesignator(s), lineNumber);
+			d->protocol->sendLineStatResp(d, lineNumber, "", "", "");
+			return;
+		}
+		fullyQualifiedDisplayName = dirNumber = k.name;
+	}
 
 	char displayName[SCCP_MAX_LABEL + 1];
 	if (l) {
