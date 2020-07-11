@@ -262,6 +262,8 @@ int sccp_preUnload(void)
 #if HAVE_LIBSSL
 	sccp_servercontext_stopListening(GLOB(srvcontexts[SCCP_SERVERCONTEXT_TLS]));
 #endif
+	sccp_hint_module_stop();
+
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Hangup open channels\n");				//! \todo make this pbx independend
 
 	/* removing devices */
@@ -313,7 +315,6 @@ int sccp_preUnload(void)
 	sccp_conference_module_stop();
 #endif
 	sccp_softkey_clear();
-	sccp_hint_module_stop();
 	sccp_threadpool_destroy(GLOB(general_threadpool));
 	sccp_refcount_destroy();
 
