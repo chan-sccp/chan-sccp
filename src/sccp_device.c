@@ -2879,7 +2879,7 @@ static void sccp_device_indicate_onhook(constDevicePtr device, const uint8_t lin
 	}
 	sccp_dev_set_ringer(device, SKINNY_RINGTYPE_OFF, SKINNY_RINGDURATION_NORMAL, lineInstance, callid);
 }
-
+/* currently unused and out of sync with sccp_indications.c */
 static void sccp_device_indicate_offhook(constDevicePtr device, sccp_linedevice_t * ld, uint32_t callid)
 {
 	sccp_dev_set_speaker(device, SKINNY_STATIONSPEAKER_ON);
@@ -2891,7 +2891,7 @@ static void sccp_device_indicate_offhook(constDevicePtr device, sccp_linedevice_
 	sccp_dev_set_cplane(device, ld->lineInstance, 1);
 	sccp_dev_displayprompt(device, ld->lineInstance, callid, SKINNY_DISP_ENTER_NUMBER, GLOB(digittimeout));
 	sccp_dev_set_keyset(device, ld->lineInstance, callid, KEYMODE_OFFHOOK);
-	sccp_dev_starttone(device, SKINNY_TONE_INSIDEDIALTONE, ld->lineInstance, callid, SKINNY_TONEDIRECTION_USER);
+	sccp_dev_starttone(device, ld->line->initial_dialtone_tone, ld->lineInstance, callid, SKINNY_TONEDIRECTION_USER);
 }
 
 static void sccp_device_indicate_dialing(constDevicePtr device, const uint8_t lineInstance, const uint32_t callid, const skinny_calltype_t calltype, sccp_callinfo_t * const callinfo, char dialedNumber[SCCP_MAX_EXTENSION])

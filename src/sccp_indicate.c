@@ -81,17 +81,18 @@ void __sccp_indicate(constDevicePtr maybe_device, channelPtr c, const sccp_chann
 			break;
 		case SCCP_CHANNELSTATE_OFFHOOK:
 			{
-				sccp_dev_set_speaker(d, SKINNY_STATIONSPEAKER_ON);
-				sccp_device_setLamp(d, SKINNY_STIMULUS_LINE, lineInstance, SKINNY_LAMP_ON);
-				sccp_device_sendcallstate(d, lineInstance, c->callid, SKINNY_CALLSTATE_OFFHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
-				sccp_dev_set_cplane(d, lineInstance, 1);
-				if (SCCP_CHANNELSTATE_DOWN == c->previousChannelState) {		// new call
-					sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_ENTER_NUMBER, GLOB(digittimeout));
-					c->setTone(c, l->initial_dialtone_tone, SKINNY_TONEDIRECTION_USER);
-					if(!(d->hasMWILight()) && d->voicemailStatistic.newmsgs) {
-						sccp_log((DEBUGCAT_INDICATE | DEBUGCAT_MWI))(VERBOSE_PREFIX_2 "%s: Device does not have MWI-light and does have messages waiting -> stutter\n", d->id);
-						c->setTone(c, SKINNY_TONE_PARTIALDIALTONE, SKINNY_TONEDIRECTION_USER); /* Add Stutter Pattern for ATA/Analog devices */
-					}
+			// should use d->indicate->offhook instead
+			sccp_dev_set_speaker(d, SKINNY_STATIONSPEAKER_ON);
+			sccp_device_setLamp(d, SKINNY_STIMULUS_LINE, lineInstance, SKINNY_LAMP_ON);
+			sccp_device_sendcallstate(d, lineInstance, c->callid, SKINNY_CALLSTATE_OFFHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+			sccp_dev_set_cplane(d, lineInstance, 1);
+			if(SCCP_CHANNELSTATE_DOWN == c->previousChannelState) {                                        // new call
+				sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_ENTER_NUMBER, GLOB(digittimeout));
+				c->setTone(c, l->initial_dialtone_tone, SKINNY_TONEDIRECTION_USER);
+				if(!(d->hasMWILight()) && d->voicemailStatistic.newmsgs) {
+					sccp_log((DEBUGCAT_INDICATE | DEBUGCAT_MWI))(VERBOSE_PREFIX_2 "%s: Device does not have MWI-light and does have messages waiting -> stutter\n", d->id);
+					c->setTone(c, SKINNY_TONE_PARTIALDIALTONE, SKINNY_TONEDIRECTION_USER); /* Add Stutter Pattern for ATA/Analog devices */
+				}
 				}
 				sccp_dev_set_keyset(d, lineInstance, c->callid, KEYMODE_OFFHOOK);
 			}

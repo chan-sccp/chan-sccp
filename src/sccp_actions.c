@@ -299,7 +299,7 @@ void sccp_handle_dialtone(constDevicePtr d, constLinePtr l, constChannelPtr chan
 	 * etc.
 	 * */
 	if (sccp_strlen_zero(channel->dialedNumber) && channel->state != SCCP_CHANNELSTATE_OFFHOOK) {
-		channel->setTone(channel, SKINNY_TONE_INSIDEDIALTONE, SKINNY_TONEDIRECTION_USER);
+		channel->setTone(channel, l->initial_dialtone_tone, SKINNY_TONEDIRECTION_USER);
 	} else if (!sccp_strlen_zero(channel->dialedNumber)) {
 		sccp_indicate(d, channel, SCCP_CHANNELSTATE_DIGITSFOLL);
 	}
