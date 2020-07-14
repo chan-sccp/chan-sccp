@@ -520,7 +520,9 @@ static PBX_FRAME_TYPE *sccp_astwrap_rtp_read(PBX_CHANNEL_TYPE * ast)
 		}
 	}
 
-	if(c->calltype != SKINNY_CALLTYPE_INBOUND && pbx_channel_state(ast) != AST_STATE_UP && c->wantsEarlyRTP() && c->progressSent() && !sccp_channel_finishHolePunch(c)) {
+	/* Only allow audio through if they sent progress, or if the channel is actually answered */
+	/* removed causing one way audio trouble, needs more research */
+	if(c->calltype != SKINNY_CALLTYPE_INBOUND && pbx_channel_state(ast) != AST_STATE_UP && c->wantsEarlyRTP() && c->progressSent() && (frame == &ast_null_frame || !sccp_channel_finishHolePunch(c))) {
 		// if hole punch is not active and the channel is not active either, we transmit null packets in the meantime
 		// Only allow audio through if they sent progress
 		ast_frfree(frame);
