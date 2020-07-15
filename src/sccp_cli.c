@@ -388,7 +388,7 @@ static char *sccp_complete_set(OLDCONST char *line, OLDCONST char *word, int pos
 	char *types[] = { "device", "channel", "line", "fallback", "debug" };
 
 	char *properties_channel[] = { "hold" };
-	char *properties_device[] = { "ringtone;", "backgroundImage" };
+	char * properties_device[] = { "ringtone", "backgroundImage" };
 	char *properties_fallback[] = { "true", "false", "odd", "even", "path" };
 
 	char *values_hold[] = { "on", "off" };
