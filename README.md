@@ -124,6 +124,7 @@ We also provide prebuild binaries for:
   - [openSUSE-Leap_15.2](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-16/openSUSE_Leap_15.2/)
   - [Ubuntu 19.10](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-16/xUbuntu_19.10)
 - Asterisk-17
+  - _Note: Temporarily build against asterisk-17.6.0 from [chan-sccp-b:branches:network:telephony](https://download.opensuse.org/repositories/home:/chan-sccp-b:/branches:/network:/telephony/)_
   - [openSUSE-Leap_15.1](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-17/openSUSE_Leap_15.1/)
   - [openSUSE-Leap_15.2](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-17/openSUSE_Leap_15.2/)
   - [openSUSE-Factory](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-17/openSUSE_Factory/)
