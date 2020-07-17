@@ -95,41 +95,47 @@ module:
  - res_stasis_device_state
 
 ### Binaries
-We also provide prebuild binaries for:
+We provide prebuild binaries for:
 - [Ubuntu Lauchpad (PPA)](https://launchpad.net/~chan-sccp-b/+archive/ubuntu/ppa)
+  This resposity is build for amd64, arm64, armhf, i386, powerpc, ppc64el and s390x
 
   Note: The Ubuntu PPA Packages are build against the asterisk version delivered with ubuntu on the ppa build platform. The chan-sccp driver
   is compatible only with the exact asterisk version it was build against. Please check the build log, to make sure you have the correct one.
   See [PPA Package Details](https://launchpad.net/~chan-sccp-b/+archive/ubuntu/ppa/+packages).
-- Asterisk-11
-  - [Debian-8.0](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-11/Debian_8.0/)
-- Asterisk-13
-  - [Debian-9.0](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-13/Debian_9.0/)
-  - [Fedora-23](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-13/Fedora_23/)
-  - [Fedora-24](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-13/Fedora_24/)
-  - [Fedora-25](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-13/Fedora_25/)
-  - [Fedora-26](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-13/Fedora_26/)
-  - [Ubuntu-16.04](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-13/xUbuntu_16.04/)
-  - [Ubuntu-16.10](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-13/xUbuntu_16.10/)
-  - [Ubuntu-17.04](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-13/xUbuntu_17.04/)
-  - [Ubuntu-17.10](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-13/xUbuntu_17.10/)
-  - [Ubuntu-18.04](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-13/xUbuntu_18.04/)
-- Asterisk-16
-  - [Debian-10](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-16/Debian_10/)
-  - [Fedora-28](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-16/Fedora_28/)
-  - [Fedora-29](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-16/Fedora_29/)
-  - [Fedora-30](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-16/Fedora_30/)
-  - [Fedora-31](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-16/Fedora_31/)
-  - [Fedora-Rawhide](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-16/Fedora_Rawhide/) (unstable)
-  - [openSUSE-Leap_15.2](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-16/openSUSE_Leap_15.2/)
-  - [Ubuntu 19.10](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-16/xUbuntu_19.10)
-- Asterisk-17
-  - _Note: Temporarily build against asterisk-17.6.0 from [chan-sccp-b:branches:network:telephony](https://download.opensuse.org/repositories/home:/chan-sccp-b:/branches:/network:/telephony/)_
-  - [openSUSE-Leap_15.1](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-17/openSUSE_Leap_15.1/)
-  - [openSUSE-Leap_15.2](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-17/openSUSE_Leap_15.2/)
-  - [openSUSE-Factory](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-17/openSUSE_Factory/)
-  - [openSUSE-Factory_ARM](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-17/openSUSE_Factory_ARM/)
-  - [openSUSE_Factory_PPC](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-17/openSUSE_Factory_PPC/)
+- [OpenSuSE Build Service](https://build.opensuse.org/project/show/home:chan-sccp-b):
+  - Asterisk-11
+    - [Debian-8.0](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-11/Debian_8.0/)
+  - Asterisk-13
+    - [Debian-9.0](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-13/Debian_9.0/)
+    - [Fedora-23](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-13/Fedora_23/)
+    - [Fedora-24](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-13/Fedora_24/)
+    - [Fedora-25](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-13/Fedora_25/)
+    - [Fedora-26](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-13/Fedora_26/)
+    - [Ubuntu-16.04](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-13/xUbuntu_16.04/)
+    - [Ubuntu-16.10](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-13/xUbuntu_16.10/)
+    - [Ubuntu-17.04](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-13/xUbuntu_17.04/)
+    - [Ubuntu-17.10](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-13/xUbuntu_17.10/)
+    - [Ubuntu-18.04](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-13/xUbuntu_18.04/)
+  - Asterisk-16
+    - [Debian-10](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-16/Debian_10/) (x86_64,i586)
+    - [Debian-Testing](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-16/Debian_Testing/) (x86_64)
+    - [Debian-Unstanble](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-16/Debian_Unstable/) (x86_64)
+    - [Fedora-28](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-16/Fedora_28/) (x86_64)
+    - [Fedora-29](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-16/Fedora_29/) (x86_64,i586,armv7l,aarch64,ppc64le)
+    - [Fedora-30](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-16/Fedora_30/) (x86_64,i586,armv7l,aarch64,ppc64le)
+    - [Fedora-31](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-16/Fedora_31/) (x86_64,i586,armv7l,aarch64,ppc64le)
+    - [openSUSE-Leap_15.2](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-16/openSUSE_Leap_15.2/) (x86_64)
+    - [Rasbian 9.0](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-16/Raspbian_9.0) (armv7l)
+    - [Rasbian 10](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-16/Raspbian_10) (armv7l)
+    - [Ubuntu 19.10](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-16/xUbuntu_19.10) (x86_64)
+    - [Ubuntu 20.04](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-16/xUbuntu_20.04) (x86_64)
+  - Asterisk-17
+    - _Note: Temporarily build against asterisk-17.6.0 from [chan-sccp-b:branches:network:telephony](https://download.opensuse.org/repositories/home:/chan-sccp-b:/branches:/network:/telephony/)_ until upstream is updated/upgraded.
+    - [openSUSE-Leap_15.1](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-17/openSUSE_Leap_15.1/) (x86_64)
+    - [openSUSE-Leap_15.2](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-17/openSUSE_Leap_15.2/) (x86_64)
+    - [openSUSE-Factory](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-17/openSUSE_Factory/) (x86_64,i586)
+    - [openSUSE-Factory_ARM](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-17/openSUSE_Factory_ARM/) (aarch64,armv6l,armv7l)
+    - [openSUSE_Factory_PPC](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-17/openSUSE_Factory_PPC/) (ppc64,ppc64le)
 
 ### Wiki
 You can find more information and documentation on our [![Wiki](https://img.shields.io/badge/Wiki-new-blue.svg)](https://github.com/chan-sccp/chan-sccp/wiki/)
