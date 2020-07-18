@@ -24,6 +24,35 @@
 
 SCCP_FILE_VERSION(__FILE__, "");
 
+/*** DOCUMENTATION
+    <manager name="SCCPStartCall" language="en_US">
+	<synopsis>
+	    Description: start a new call on a device/line.
+	</synopsis>
+	<syntax>
+	    <xi:include xpointer="xpointer(/docs/manager[@name='Login']/syntax/parameter[@name='ActionID'])" />
+	    <parameter name="DeviceName" required="true">
+		<para>Name of the skinny device to use to make the new call.</para>
+	    </parameter>
+	    <parameter name="LineName">
+		<para>Name of the line to use on the device to make this call.</para>
+		<para>If the LineName is not provided the default line of the device will be used.</para>
+	    </parameter>
+	    <parameter name="Number" required="true">
+		<para>Extension to call.</para>
+	    </parameter>
+	    <parameter name="ChannelId">
+		<para>ChannelId, which will be copied to the uniqueid of the channel that will be created to make this call.</para>
+		<para>This is available to ease the developement of automated scripts.</para>
+		<para>Note: Only available on asterisk-12 and higher.</para>
+	    </parameter>
+	</syntax>
+	<description>
+	    <para>Make a new call to an extension on the device and line combination supplied.</para>
+	</description>
+    </manager>
+ ***/
+
 /*
  * Descriptions
  */
@@ -35,12 +64,6 @@ static char management_device_update_desc[] = "Description: restart a given devi
 static char management_device_set_dnd_desc[] = "Description: set dnd on device\n" "\n" "Variables:\n" "   Devicename: Name of device\n" "  DNDState: off / reject / silent";
 static char management_line_fwd_update_desc[] = "Description: update forward status for line\n" "\n" "Variables:\n" "  Devicename: Name of device\n" "  Linename: Name of line\n" "  Forwardtype: type of cfwd (all | busy | noAnswer)\n" "  Disable: yes Disable call forward (optional)\n" "  Number: number to forward calls (optional)";
 static char management_fetch_config_metadata_desc[] = "Description: fetch configuration metadata\n" "\n" "Variables:\n" "  segment: Config Segment Name (if empty returns all segments).\n";
-
-#if ASTERISK_VERSION_GROUP >= 112
-static char management_startcall_desc[] = "Description: start a new call on a device/line\n" "\n" "Variables:\n" "  Devicename: Name of the Device\n" "  Linename: Name of the line\n" "  number: Number to call\n" "  ChannelId: Channel UniqueId to be set on the channel\n";
-#else
-static char management_startcall_desc[] = "Description: start a new call on a device/line\n" "\n" "Variables:\n" "  Devicename: Name of the Device\n" "  Linename: Name of the line\n" "  number: Number to call";
-#endif
 static char management_answercall_desc[] = "Description: answer a ringing channel. (DEPRECATED in favor of SCCPAnswerCall1)\n" "\n" "Variables:\n" "  Devicename: Name of the Device\n" "  channelId: Id of the channel to pickup\n";
 static char management_hangupcall_desc[] = "Description: hangup a channel/call\n" "\n" "Variables:\n" "  channelId: Id of the Channel to hangup\n";
 static char management_hold_desc[] = "Description: hold/resume a call\n" "\n" "Variables:\n" "  channelId: Id of the channel to hold/unhold\n" "  hold: hold=true / resume=false\n" "  Devicename: Name of the Device\n" "  SwapChannels: Swap channels when resuming and an active channel is present (true/false)\n";
@@ -93,7 +116,7 @@ int sccp_register_management(void)
 	result |= pbx_manager_register("SCCPDeviceUpdate", _MAN_FLAGS, sccp_manager_device_update, "add a line to device", management_device_update_desc);
 	result |= pbx_manager_register("SCCPDeviceSetDND", _MAN_FLAGS, sccp_manager_device_set_dnd, "set dnd on device", management_device_set_dnd_desc);
 	result |= pbx_manager_register("SCCPLineForwardUpdate", _MAN_FLAGS, sccp_manager_line_fwd_update, "set call-forward on a line", management_line_fwd_update_desc);
-	result |= pbx_manager_register("SCCPStartCall", _MAN_FLAGS, sccp_manager_startCall, "start a new call on device", management_startcall_desc);
+	result |= pbx_manager_register_xml("SCCPStartCall", _MAN_FLAGS, sccp_manager_startCall);
 	result |= pbx_manager_register("SCCPAnswerCall", _MAN_FLAGS, sccp_manager_answerCall2, "answer a ringin channel", management_answercall_desc);
 	result |= pbx_manager_register("SCCPHangupCall", _MAN_FLAGS, sccp_manager_hangupCall, "hangup a channel", management_hangupcall_desc);
 	result |= pbx_manager_register("SCCPHoldCall", _MAN_FLAGS, sccp_manager_holdCall, "hold/unhold a call", management_hold_desc);
