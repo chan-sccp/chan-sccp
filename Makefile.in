@@ -548,7 +548,7 @@ SUBDIRS = src doc
 ACLOCAL_AMFLAGS = -I autoconf
 AM_CPPFLAGS = $(LTDLINCL)
 distdir = $(PACKAGE)-$(SCCP_VERSION)_$(SCCP_BRANCH)_r$(SCCP_REVISION)
-XML_chan_sccp_en_US = $(top_srcdir)/src/sccp_appfunctions.c
+XML_chan_sccp_en_US = $(top_srcdir)/src/sccp_appfunctions.c $(top_srcdir)/src/sccp_management.c $(top_srcdir)/src/sccp_cli.c
 all: all-recursive
 
 .SUFFIXES:

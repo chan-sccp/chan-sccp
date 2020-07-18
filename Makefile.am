@@ -102,7 +102,7 @@ install-data-local: chan_sccp-en_US.xml
 	@test -d $(DESTDIR)$(PBX_DATADIR)/documentation/thirdparty || $(mkinstalldirs) $(DESTDIR)$(PBX_DATADIR)/documentation/thirdparty;
 	@$(INSTALL) -m 644 chan_sccp-en_US.xml "$(DESTDIR)$(PBX_DATADIR)/documentation/thirdparty";
 
-XML_chan_sccp_en_US=$(top_srcdir)/src/sccp_appfunctions.c
+XML_chan_sccp_en_US=$(top_srcdir)/src/sccp_appfunctions.c $(top_srcdir)/src/sccp_management.c $(top_srcdir)/src/sccp_cli.c
 chan_sccp-en_US.xml: $(top_builddir)/src/stamp-h1 $(XML_chan_sccp_en_US)
 	@printf "Building Documentation..."
 	@echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" > $@
