@@ -3085,7 +3085,7 @@ static int sccp_wrapper_register_manager(const char * action, int authority, int
 #if defined(__cplusplus) || defined(c_plusplus)
 	return 0;
 #else
-	return ast_manager_register2(action, authority, func, pbx_module_info->self, synopsis, description);
+	return ast_manager_register2(action, authority, func, ast_module_info->self, synopsis, description);
 #endif
 }
 
