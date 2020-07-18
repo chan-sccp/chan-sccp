@@ -2871,14 +2871,14 @@ static const struct ast_msg_tech sccp_msg_tech = {
 /*!
  * \brief pbx_manager_register
  *
- * \note this functions needs to be defined here, because it depends on the static declaration of ast_module_info->self
+ * \note this functions needs to be defined here, because it depends on the static declaration of pbx_module_info->self
  */
-int pbx_manager_register(const char *action, int authority, int (*func) (struct mansession * s, const struct message * m), const char *synopsis, const char *description)
+static int sccp_wrapper_register_manager(const char * action, int authority, int (*func)(struct mansession * s, const struct message * m), const char * synopsis, const char * description)
 {
 #if defined(__cplusplus) || defined(c_plusplus)
 	return 0;
 #else
-	return ast_manager_register2(action, authority, func, ast_module_info->self, synopsis, description);
+	return ast_manager_register2(action, authority, func, pbx_module_info->self, synopsis, description);
 #endif
 }
 
@@ -3044,6 +3044,7 @@ const PbxInterface iPbx = {
 	set_named_callgroups: sccp_astgenwrap_set_named_callgroups,
 	set_named_pickupgroups: sccp_astgenwrap_set_named_pickupgroups,
 
+	register_manager: sccp_wrapper_register_manager,
 	register_application: sccp_wrapper_register_application,
 	unregister_application: sccp_wrapper_unregister_application,
 	register_function: sccp_wrapper_register_function,
@@ -3186,6 +3187,7 @@ const PbxInterface iPbx = {
 	.set_named_callgroups = sccp_astgenwrap_set_named_callgroups,
 	.set_named_pickupgroups = sccp_astgenwrap_set_named_pickupgroups,
 
+	.register_manager = sccp_wrapper_register_manager,
 	.register_application = sccp_wrapper_register_application,
 	.unregister_application = sccp_wrapper_unregister_application,
 	.register_function = sccp_wrapper_register_function,

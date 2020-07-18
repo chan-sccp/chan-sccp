@@ -52,6 +52,24 @@ SCCP_FILE_VERSION(__FILE__, "");
 	</description>
     </manager>
  ***/
+/*
+ * Pre Declarations
+ */
+void sccp_manager_eventListener(const sccp_event_t * event);
+static int sccp_manager_startCall(struct mansession * s, const struct message * m);
+static const char * startCall_command = "SCCPStartCall";
+
+/* old */
+static int sccp_manager_show_devices(struct mansession * s, const struct message * m);
+static int sccp_manager_show_lines(struct mansession * s, const struct message * m);
+static int sccp_manager_restart_device(struct mansession * s, const struct message * m);
+static int sccp_manager_device_add_line(struct mansession * s, const struct message * m);
+static int sccp_manager_device_update(struct mansession * s, const struct message * m);
+static int sccp_manager_device_set_dnd(struct mansession * s, const struct message * m);
+static int sccp_manager_line_fwd_update(struct mansession * s, const struct message * m);
+static int sccp_manager_answerCall2(struct mansession * s, const struct message * m);
+static int sccp_manager_hangupCall(struct mansession * s, const struct message * m);
+static int sccp_manager_holdCall(struct mansession * s, const struct message * m);
 
 /*
  * Descriptions
@@ -67,23 +85,6 @@ static char management_fetch_config_metadata_desc[] = "Description: fetch config
 static char management_answercall_desc[] = "Description: answer a ringing channel. (DEPRECATED in favor of SCCPAnswerCall1)\n" "\n" "Variables:\n" "  Devicename: Name of the Device\n" "  channelId: Id of the channel to pickup\n";
 static char management_hangupcall_desc[] = "Description: hangup a channel/call\n" "\n" "Variables:\n" "  channelId: Id of the Channel to hangup\n";
 static char management_hold_desc[] = "Description: hold/resume a call\n" "\n" "Variables:\n" "  channelId: Id of the channel to hold/unhold\n" "  hold: hold=true / resume=false\n" "  Devicename: Name of the Device\n" "  SwapChannels: Swap channels when resuming and an active channel is present (true/false)\n";
-
-void sccp_manager_eventListener(const sccp_event_t * event);
-
-/*
- * Pre Declarations
- */
-static int sccp_manager_show_devices(struct mansession *s, const struct message *m);
-static int sccp_manager_show_lines(struct mansession *s, const struct message *m);
-static int sccp_manager_restart_device(struct mansession *s, const struct message *m);
-static int sccp_manager_device_add_line(struct mansession *s, const struct message *m);
-static int sccp_manager_device_update(struct mansession *s, const struct message *m);
-static int sccp_manager_device_set_dnd(struct mansession *s, const struct message *m);
-static int sccp_manager_line_fwd_update(struct mansession *s, const struct message *m);
-static int sccp_manager_startCall(struct mansession *s, const struct message *m);
-static int sccp_manager_answerCall2(struct mansession *s, const struct message *m);
-static int sccp_manager_hangupCall(struct mansession *s, const struct message *m);
-static int sccp_manager_holdCall(struct mansession *s, const struct message *m);
 
 #if HAVE_PBX_MANAGER_HOOK_H
 static int sccp_asterisk_managerHookHelper(int category, const char *event, char *content);
@@ -116,7 +117,7 @@ int sccp_register_management(void)
 	result |= pbx_manager_register("SCCPDeviceUpdate", _MAN_FLAGS, sccp_manager_device_update, "add a line to device", management_device_update_desc);
 	result |= pbx_manager_register("SCCPDeviceSetDND", _MAN_FLAGS, sccp_manager_device_set_dnd, "set dnd on device", management_device_set_dnd_desc);
 	result |= pbx_manager_register("SCCPLineForwardUpdate", _MAN_FLAGS, sccp_manager_line_fwd_update, "set call-forward on a line", management_line_fwd_update_desc);
-	result |= pbx_manager_register_xml("SCCPStartCall", _MAN_FLAGS, sccp_manager_startCall);
+	result |= iPbx.register_manager(startCall_command, _MAN_FLAGS, sccp_manager_startCall, NULL, NULL);
 	result |= pbx_manager_register("SCCPAnswerCall", _MAN_FLAGS, sccp_manager_answerCall2, "answer a ringin channel", management_answercall_desc);
 	result |= pbx_manager_register("SCCPHangupCall", _MAN_FLAGS, sccp_manager_hangupCall, "hangup a channel", management_hangupcall_desc);
 	result |= pbx_manager_register("SCCPHoldCall", _MAN_FLAGS, sccp_manager_holdCall, "hold/unhold a call", management_hold_desc);
@@ -146,7 +147,7 @@ int sccp_unregister_management(void)
 	result |= pbx_manager_unregister("SCCPDeviceUpdate");
 	result |= pbx_manager_unregister("SCCPDeviceSetDND");
 	result |= pbx_manager_unregister("SCCPLineForwardUpdate");
-	result |= pbx_manager_unregister("SCCPStartCall");
+	result |= pbx_manager_unregister(startCall_command);
 	result |= pbx_manager_unregister("SCCPAnswerCall");
 	result |= pbx_manager_unregister("SCCPHangupCall");
 	result |= pbx_manager_unregister("SCCPHoldCall");
