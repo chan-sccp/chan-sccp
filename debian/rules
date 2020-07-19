@@ -23,7 +23,7 @@ configure: configure-stamp
 configure-stamp:
 	dh_testdir
 	# Add here commands to configure the package.
-	./configure --enable-video --enable-conference --enable-distributed-devstate --enable-advanced-features --with-hash-size=3001
+	./configure --enable-video --enable-conference --enable-distributed-devstate --enable-advanced-features --enable-experimental-xml --with-hash-size=3001
 	touch configure-stamp
 
 
@@ -58,7 +58,7 @@ override_dh_auto_install:
 	dh_auto_install
 
 # Build architecture-independent files here.
-binary-indep: install
+binary-indep: install-data-local
 # We have nothing to do by default.
 
 # Build architecture-dependent files here.
