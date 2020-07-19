@@ -24576,9 +24576,9 @@ $as_echo "$as_me: astsbindir could not be found in ${PBX_ETC}/asterisk.conf." >&
 		 			PBX_VARLIB="$(${PKGCONFIG} --variable=varlibdir asterisk)"
 					PBX_SBINDIR="${PBX_PREFIX}/sbin/"
 		 		fi
-                                if test -z "$PBX_SDATADIR"; then
-                                        PBX_DATADIR="${PBX_VARLIB}"
-                                fi
+                if test -z "$PBX_SDATADIR"; then
+                        PBX_DATADIR="${PBX_VARLIB}"
+                fi
 				LDFLAGS="$LDFLAGS -L${PBX_LIB} $(${PKGCONFIG} --libs asterisk)"
 				PBX_LDFLAGS="$LDFLAGS"
 				HAVE_ASTERISK=yes
@@ -24709,9 +24709,9 @@ $as_echo "$as_me: astsbindir could not be found in ${PBX_ETC}/asterisk.conf." >&
 				if test -z "${PBX_SBINDIR}"; then
 					PBX_SBINDIR="/usr/sbin"
 				fi
-                                if test -z "$PBX_SDATADIR"; then
-                                        PBX_DATADIR="${PBX_VARLIB}"
-                                fi
+                if test -z "$PBX_SDATADIR"; then
+                        PBX_DATADIR="${PBX_VARLIB}"
+                fi
 
 				LDFLAGS="$PBX_LDFLAGS"
 				HAVE_ASTERISK=yes
@@ -24857,7 +24857,7 @@ $as_echo "processing..." >&6; }
 			pbx_ver=`echo ${pbx_ver} | sed 's/"//g'`
 
 			# process version number
-			for x in "1.2" "1.4" "1.6" "1.8" "1.10" "10" "11" "12" "13" "14" "15" "16" "17"; do
+			for x in "1.2" "1.4" "1.6" "1.8" "1.10" "10" "11" "12" "13" "14" "15" "16" "17" "18"; do
 				if test $version_found == 0; then
 					if echo $pbx_ver|grep -q "$x"; then
 						if test ${#x} -gt 3; then		# 1.10
@@ -24953,11 +24953,15 @@ $as_echo "#define ASTERISK_CONF_1_16 1" >>confdefs.h
 ;;
 							117)
 $as_echo "#define ASTERISK_CONF_1_17 1" >>confdefs.h
+;;
+							118)
+$as_echo "#define ASTERISK_CONF_1_18 1" >>confdefs.h
+;;
+							*)
+
+$as_echo "#define ASTERISK_CONF 0" >>confdefs.h
 
 								ASTERISK_INCOMPATIBLE=yes;;
-							*)
-$as_echo "#define ASTERISK_CONF 0" >>confdefs.h
-;;
 						esac
 
 						if  test ${ASTERISK_VER_GROUP} -lt ${MIN_ASTERISK_VERSION} ; then
@@ -25055,35 +25059,62 @@ else
 "
 if test "x$ac_cv_header_asterisk_ast_version_h" = xyes; then :
 
-			ac_fn_c_check_header_compile "$LINENO" "asterisk/iostream.h" "ac_cv_header_asterisk_iostream_h" "$HEADER_INCLUDE
+			ac_fn_c_check_header_compile "$LINENO" "asterisk/res_stir_shaken.h" "ac_cv_header_asterisk_res_stir_shaken_h" "$HEADER_INCLUDE
+"
+if test "x$ac_cv_header_asterisk_res_stir_shaken_h" = xyes; then :
+
+				ASTERISK_VER_GROUP=118
+				ASTERISK_VERSION_NUMBER=11800
+				ASTERISK_REPOS_LOCATION=TRUNK
+
+
+$as_echo "#define ASTERISK_CONF_1_18 1" >>confdefs.h
+
+
+$as_echo "#define ASTERISK_VERSION_NUMBER 11800" >>confdefs.h
+
+
+$as_echo "#define ASTERISK_VERSION_GROUP 118" >>confdefs.h
+
+
+$as_echo "#define ASTERISK_REPOS_LOCATION \"TRUNK\"" >>confdefs.h
+
+
+				version_found=1
+				{ $as_echo "$as_me:${as_lineno-$LINENO}: result: Found 'Asterisk Version ${ASTERISK_VERSION_NUMBER}'." >&5
+$as_echo "Found 'Asterisk Version ${ASTERISK_VERSION_NUMBER}'." >&6; }
+
+else
+
+				ac_fn_c_check_header_compile "$LINENO" "asterisk/iostream.h" "ac_cv_header_asterisk_iostream_h" "$HEADER_INCLUDE
 "
 if test "x$ac_cv_header_asterisk_iostream_h" = xyes; then :
-
-				cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-					$HEADER_INCLUDE
-					#include <asterisk/module.h>
-
-_ACEOF
-if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
-  $EGREP "enhances" >/dev/null 2>&1; then :
 
 					cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
 						$HEADER_INCLUDE
 						#include <asterisk/module.h>
-						#include <asterisk/iostream.h>
-						#include <asterisk/bridge.h>
+
+_ACEOF
+if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
+  $EGREP "enhances" >/dev/null 2>&1; then :
+
+						cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+							$HEADER_INCLUDE
+							#include <asterisk/module.h>
+							#include <asterisk/iostream.h>
+							#include <asterisk/bridge.h>
 
 _ACEOF
 if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
   $EGREP "ast_bridges\(void\)" >/dev/null 2>&1; then :
 
-						ASTERISK_VER_GROUP=117
-						ASTERISK_VERSION_NUMBER=11700
-						ASTERISK_REPOS_LOCATION=TRUNK
+							ASTERISK_VER_GROUP=117
+							ASTERISK_VERSION_NUMBER=11700
+							ASTERISK_REPOS_LOCATION=TRUNK
 
 
 $as_echo "#define ASTERISK_CONF_1_17 1" >>confdefs.h
@@ -25095,18 +25126,18 @@ $as_echo "#define ASTERISK_VERSION_NUMBER 11700" >>confdefs.h
 $as_echo "#define ASTERISK_VERSION_GROUP 117" >>confdefs.h
 
 
-$as_echo "#define ASTERISK_REPOS_LOCATION \"TRUNK\"" >>confdefs.h
+$as_echo "#define ASTERISK_REPOS_LOCATION \"branch-17\"" >>confdefs.h
 
 
-						version_found=1
-						{ $as_echo "$as_me:${as_lineno-$LINENO}: result: Found 'Asterisk Version ${ASTERISK_VERSION_NUMBER}'." >&5
+							version_found=1
+							{ $as_echo "$as_me:${as_lineno-$LINENO}: result: Found 'Asterisk Version ${ASTERISK_VERSION_NUMBER}'." >&5
 $as_echo "Found 'Asterisk Version ${ASTERISK_VERSION_NUMBER}'." >&6; }
 
 else
 
-						ASTERISK_VER_GROUP=116
-						ASTERISK_VERSION_NUMBER=11600
-						ASTERISK_REPOS_LOCATION=TRUNK
+							ASTERISK_VER_GROUP=116
+							ASTERISK_VERSION_NUMBER=11600
+							ASTERISK_REPOS_LOCATION=TRUNK
 
 
 $as_echo "#define ASTERISK_CONF_1_16 1" >>confdefs.h
@@ -25121,8 +25152,8 @@ $as_echo "#define ASTERISK_VERSION_GROUP 116" >>confdefs.h
 $as_echo "#define ASTERISK_REPOS_LOCATION \"branch-16\"" >>confdefs.h
 
 
-						version_found=1
-						{ $as_echo "$as_me:${as_lineno-$LINENO}: result: Found 'Asterisk Version ${ASTERISK_VERSION_NUMBER}'." >&5
+							version_found=1
+							{ $as_echo "$as_me:${as_lineno-$LINENO}: result: Found 'Asterisk Version ${ASTERISK_VERSION_NUMBER}'." >&5
 $as_echo "Found 'Asterisk Version ${ASTERISK_VERSION_NUMBER}'." >&6; }
 
 fi
@@ -25131,9 +25162,9 @@ rm -f conftest*
 
 else
 
-					ASTERISK_VER_GROUP=115
-					ASTERISK_VERSION_NUMBER=11500
-					ASTERISK_REPOS_LOCATION=TRUNK
+						ASTERISK_VER_GROUP=115
+						ASTERISK_VERSION_NUMBER=11500
+						ASTERISK_REPOS_LOCATION=TRUNK
 
 
 $as_echo "#define ASTERISK_CONF_1_15 1" >>confdefs.h
@@ -25148,8 +25179,8 @@ $as_echo "#define ASTERISK_VERSION_GROUP 115" >>confdefs.h
 $as_echo "#define ASTERISK_REPOS_LOCATION \"branch-15\"" >>confdefs.h
 
 
-					version_found=1
-					{ $as_echo "$as_me:${as_lineno-$LINENO}: result: Found 'Asterisk Version ${ASTERISK_VERSION_NUMBER}'." >&5
+						version_found=1
+						{ $as_echo "$as_me:${as_lineno-$LINENO}: result: Found 'Asterisk Version ${ASTERISK_VERSION_NUMBER}'." >&5
 $as_echo "Found 'Asterisk Version ${ASTERISK_VERSION_NUMBER}'." >&6; }
 
 fi
@@ -25158,12 +25189,12 @@ rm -f conftest*
 
 else
 
-				ac_fn_c_check_header_mongrel "$LINENO" "asterisk/media_cache.h" "ac_cv_header_asterisk_media_cache_h" "$ac_includes_default"
+					ac_fn_c_check_header_mongrel "$LINENO" "asterisk/media_cache.h" "ac_cv_header_asterisk_media_cache_h" "$ac_includes_default"
 if test "x$ac_cv_header_asterisk_media_cache_h" = xyes; then :
 
-					ASTERISK_VER_GROUP=114
-					ASTERISK_VERSION_NUMBER=11400
-					ASTERISK_REPOS_LOCATION=TRUNK
+						ASTERISK_VER_GROUP=114
+						ASTERISK_VERSION_NUMBER=11400
+						ASTERISK_REPOS_LOCATION=TRUNK
 
 
 $as_echo "#define ASTERISK_CONF_1_14 1" >>confdefs.h
@@ -25178,18 +25209,18 @@ $as_echo "#define ASTERISK_VERSION_GROUP 114" >>confdefs.h
 $as_echo "#define ASTERISK_REPOS_LOCATION \"branch-14\"" >>confdefs.h
 
 
-					version_found=1
-					{ $as_echo "$as_me:${as_lineno-$LINENO}: result: Found 'Asterisk Version ${ASTERISK_VERSION_NUMBER}'." >&5
+						version_found=1
+						{ $as_echo "$as_me:${as_lineno-$LINENO}: result: Found 'Asterisk Version ${ASTERISK_VERSION_NUMBER}'." >&5
 $as_echo "Found 'Asterisk Version ${ASTERISK_VERSION_NUMBER}'." >&6; }
 
 else
 
-					ac_fn_c_check_header_mongrel "$LINENO" "asterisk/format_cache.h" "ac_cv_header_asterisk_format_cache_h" "$ac_includes_default"
+						ac_fn_c_check_header_mongrel "$LINENO" "asterisk/format_cache.h" "ac_cv_header_asterisk_format_cache_h" "$ac_includes_default"
 if test "x$ac_cv_header_asterisk_format_cache_h" = xyes; then :
 
-						ASTERISK_VER_GROUP=113
-						ASTERISK_VERSION_NUMBER=11300
-						ASTERISK_REPOS_LOCATION=TRUNK
+							ASTERISK_VER_GROUP=113
+							ASTERISK_VERSION_NUMBER=11300
+							ASTERISK_REPOS_LOCATION=TRUNK
 
 
 $as_echo "#define ASTERISK_CONF_1_13 1" >>confdefs.h
@@ -25204,18 +25235,18 @@ $as_echo "#define ASTERISK_VERSION_GROUP 113" >>confdefs.h
 $as_echo "#define ASTERISK_REPOS_LOCATION \"branch-14\"" >>confdefs.h
 
 
-						version_found=1
-						{ $as_echo "$as_me:${as_lineno-$LINENO}: result: Found 'Asterisk Version ${ASTERISK_VERSION_NUMBER}'." >&5
+							version_found=1
+							{ $as_echo "$as_me:${as_lineno-$LINENO}: result: Found 'Asterisk Version ${ASTERISK_VERSION_NUMBER}'." >&5
 $as_echo "Found 'Asterisk Version ${ASTERISK_VERSION_NUMBER}'." >&6; }
 
 else
 
-						ac_fn_c_check_header_mongrel "$LINENO" "asterisk/uuid.h" "ac_cv_header_asterisk_uuid_h" "$ac_includes_default"
+							ac_fn_c_check_header_mongrel "$LINENO" "asterisk/uuid.h" "ac_cv_header_asterisk_uuid_h" "$ac_includes_default"
 if test "x$ac_cv_header_asterisk_uuid_h" = xyes; then :
 
-							ASTERISK_VER_GROUP=112
-							ASTERISK_VERSION_NUMBER=11200
-							ASTERISK_REPOS_LOCATION=TRUNK
+								ASTERISK_VER_GROUP=112
+								ASTERISK_VERSION_NUMBER=11200
+								ASTERISK_REPOS_LOCATION=TRUNK
 
 
 $as_echo "#define ASTERISK_CONF_1_12 1" >>confdefs.h
@@ -25230,15 +25261,15 @@ $as_echo "#define ASTERISK_VERSION_GROUP 112" >>confdefs.h
 $as_echo "#define ASTERISK_REPOS_LOCATION \"branch-12\"" >>confdefs.h
 
 
-							version_found=1
-							{ $as_echo "$as_me:${as_lineno-$LINENO}: result: done" >&5
+								version_found=1
+								{ $as_echo "$as_me:${as_lineno-$LINENO}: result: done" >&5
 $as_echo "done" >&6; }
 
 else
 
-							ASTERISK_VER_GROUP=111
-							ASTERISK_VERSION_NUMBER=11100
-							ASTERISK_REPOS_LOCATION=BRANCH
+								ASTERISK_VER_GROUP=111
+								ASTERISK_VERSION_NUMBER=11100
+								ASTERISK_REPOS_LOCATION=BRANCH
 
 
 $as_echo "#define ASTERISK_CONF_1_11 1" >>confdefs.h
@@ -25253,11 +25284,15 @@ $as_echo "#define ASTERISK_VERSION_GROUP 111" >>confdefs.h
 $as_echo "#define ASTERISK_REPOS_LOCATION \"branch-11\"" >>confdefs.h
 
 
-							version_found=1
-							{ $as_echo "$as_me:${as_lineno-$LINENO}: result: done" >&5
+								version_found=1
+								{ $as_echo "$as_me:${as_lineno-$LINENO}: result: done" >&5
 $as_echo "done" >&6; }
-							{ $as_echo "$as_me:${as_lineno-$LINENO}: result: Found 'Asterisk Version 11'" >&5
+								{ $as_echo "$as_me:${as_lineno-$LINENO}: result: Found 'Asterisk Version 11'" >&5
 $as_echo "Found 'Asterisk Version 11'" >&6; }
+
+fi
+
+
 
 fi
 
