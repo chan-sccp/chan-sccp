@@ -120,6 +120,7 @@ __BEGIN_C_EXTERN__
 //#include <asterisk/ast_version.h>
 //#include <asterisk/file.h>
 __END_C_EXTERN__
+#define pbx_module_info ast_module_info
 
 static struct ast_sched_context *sched = 0;
 static struct io_context *io = 0;

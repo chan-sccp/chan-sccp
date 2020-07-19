@@ -61,6 +61,7 @@ __BEGIN_C_EXTERN__
 #include <asterisk/format_cap.h>		// for AST_FORMAT_CAP_NAMES_LEN
 #include <asterisk/timing.h>
 __END_C_EXTERN__
+#define pbx_module_info ast_module_info
 
 struct ast_sched_context *sched = 0;
 struct io_context *io = 0;

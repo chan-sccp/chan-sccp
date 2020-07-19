@@ -64,6 +64,7 @@ __BEGIN_C_EXTERN__
 #undef new
 #include <asterisk/timing.h>
 __END_C_EXTERN__
+#define pbx_module_info ast_module_info
 
 struct ast_sched_context *sched = 0;
 struct io_context *io = 0;
