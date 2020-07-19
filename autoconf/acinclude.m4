@@ -54,9 +54,9 @@ AC_DEFUN([CS_CHECK_PBX], [
 		 			PBX_VARLIB="$(${PKGCONFIG} --variable=varlibdir asterisk)"
 					PBX_SBINDIR="${PBX_PREFIX}/sbin/"
 		 		fi
-                                if test -z "$PBX_SDATADIR"; then
-                                        PBX_DATADIR="${PBX_VARLIB}"
-                                fi
+                if test -z "$PBX_SDATADIR"; then
+                        PBX_DATADIR="${PBX_VARLIB}"
+                fi
 				LDFLAGS="$LDFLAGS -L${PBX_LIB} $(${PKGCONFIG} --libs asterisk)"
 				PBX_LDFLAGS="$LDFLAGS"
 				HAVE_ASTERISK=yes
@@ -175,9 +175,9 @@ AC_DEFUN([CS_CHECK_PBX], [
 				if test -z "${PBX_SBINDIR}"; then
 					PBX_SBINDIR="/usr/sbin"
 				fi 
-                                if test -z "$PBX_SDATADIR"; then
-                                        PBX_DATADIR="${PBX_VARLIB}"
-                                fi
+                if test -z "$PBX_SDATADIR"; then
+                        PBX_DATADIR="${PBX_VARLIB}"
+                fi
 
 				LDFLAGS="$PBX_LDFLAGS"
 				HAVE_ASTERISK=yes

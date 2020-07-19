@@ -2995,6 +2995,11 @@ static const struct ast_msg_tech sccp_msg_tech = {
 #endif
 #endif
 
+int pbx_manager_register(const char * action, int authority, int (*func)(struct mansession * s, const struct message * m), const char * synopsis, const char * description)
+{
+	return pbx_manager_register(action, authority, func, synopsis, description);
+}
+
 static int sccp_wrapper_register_manager(const char * action, int authority, int (*func)(struct mansession * s, const struct message * m), const char * synopsis, const char * description)
 {
 	return pbx_manager_register(action, authority, func, synopsis, description);
