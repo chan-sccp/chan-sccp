@@ -19,11 +19,17 @@ major=2
 #major=`ls src/.libs/lib*.so.* | \
 # awk '{if (match($$0,/\.so\.[0-9]+$$/)) print substr($$0,RSTART+4)}'`
 
+ifeq (,$(wildcard /usr/include/asterisk/http.h))
+	CONFIGURE_EXTRA_PARAMS=--enable-experimental-xml
+else
+	CONFIGURE_EXTRA_PARAMS=
+endif
+
 configure: configure-stamp
 configure-stamp:
 	dh_testdir
 	# Add here commands to configure the package.
-	./configure --enable-video --enable-conference --enable-distributed-devstate --enable-advanced-features --enable-experimental-xml --with-hash-size=3001
+	./configure --enable-video --enable-conference --enable-distributed-devstate --enable-advanced-features $(CONFIGURE_PARAMS) --with-hash-size=3001
 	touch configure-stamp
 
 
@@ -58,7 +64,7 @@ override_dh_auto_install:
 	dh_auto_install
 
 # Build architecture-independent files here.
-binary-indep: install-data-local
+binary-indep: install
 # We have nothing to do by default.
 
 # Build architecture-dependent files here.

@@ -9,8 +9,8 @@ Homepage: https://github.com/chan-sccp/chan-sccp/
 Package: chan-sccp
 Section: libs
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, asterisk (>=11), gettext
-Recommends: libbinutils, libc6, libxml2, libxslt1
+Depends: ${shlibs:Depends}, ${misc:Depends}, asterisk (>=11), gettext, libxml2, libxslt1
+Recommends: libbinutils, libc6
 Replaces: chan-sccp-b
 Description: chan-sccp is a branch from the original chan-sccp
  implementation of Skinny Client Control Protocol (SCCP) for the Asterisk
@@ -24,4 +24,4 @@ Architecture: any
 Depends: chan-sccp (=${binary:Version})
 Replaces: chan-sccp-b
 Description: chan-sccp debug symbols
-
+ Symbol files for chan-sccp to enable debugging using gdb
