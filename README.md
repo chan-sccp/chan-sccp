@@ -103,6 +103,7 @@ We provide prebuild binaries for:
   is compatible only with the exact asterisk version it was build against. Please check the build log, to make sure you have the correct one.
   See [PPA Package Details](https://launchpad.net/~chan-sccp-b/+archive/ubuntu/ppa/+packages).
 - [OpenSuSE Build Service](https://build.opensuse.org/project/show/home:chan-sccp-b):
+  [OpenSuSE Repository Lookup](https://software.opensuse.org/search?utf8=%E2%9C%93&baseproject=ALL&q=sccp)
   - Asterisk-11
     - [Debian-8.0](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-11/Debian_8.0/)
   - Asterisk-13
@@ -130,7 +131,6 @@ We provide prebuild binaries for:
     - [Ubuntu 19.10](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-16/xUbuntu_19.10) (x86_64)
     - [Ubuntu 20.04](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-16/xUbuntu_20.04) (x86_64)
   - Asterisk-17
-    - _Note: Temporarily build against asterisk-17.6.0 from [chan-sccp-b:branches:network:telephony](https://download.opensuse.org/repositories/home:/chan-sccp-b:/branches:/network:/telephony/)_ until upstream is updated/upgraded.
     - [openSUSE-Leap_15.1](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-17/openSUSE_Leap_15.1/) (x86_64)
     - [openSUSE-Leap_15.2](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-17/openSUSE_Leap_15.2/) (x86_64)
     - [openSUSE-Factory](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-17/openSUSE_Factory/) (x86_64,i586)
