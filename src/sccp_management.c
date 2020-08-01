@@ -25,39 +25,160 @@
 SCCP_FILE_VERSION(__FILE__, "");
 
 /*** DOCUMENTATION
-    <manager name="SCCPStartCall" language="en_US">
-	<synopsis>
-	    Description: start a new call on a device/line.
-	</synopsis>
-	<syntax>
-	    <xi:include xpointer="xpointer(/docs/manager[@name='Login']/syntax/parameter[@name='ActionID'])" />
-	    <parameter name="DeviceName" required="true">
-		<para>Name of the skinny device to use to make the new call.</para>
-	    </parameter>
-	    <parameter name="LineName">
-		<para>Name of the line to use on the device to make this call.</para>
-		<para>If the LineName is not provided the default line of the device will be used.</para>
-	    </parameter>
-	    <parameter name="Number" required="true">
-		<para>Extension to call.</para>
-	    </parameter>
-	    <parameter name="ChannelId">
-		<para>ChannelId, which will be copied to the uniqueid of the channel that will be created to make this call.</para>
-		<para>This is available to ease the developement of automated scripts.</para>
-		<para>Note: Only available on asterisk-12 and higher.</para>
-	    </parameter>
-	</syntax>
-	<description>
-	    <para>Make a new call to an extension on the device and line combination supplied.</para>
-	</description>
-    </manager>
- ***/
+	<manager name="SCCPAnswerCall" language="en_US">
+		<synopsis>Answer an inbound call on a device.</synopsis>
+		<syntax>
+			<xi:include href="../core-en_US.xml" parse="xml"
+				xpointer="xpointer(/docs/manager[@name='Login']/syntax/parameter[@name='ActionID'])"/>
+			<parameter name="DeviceName" required="true">
+				<para>DeviceId of the device with the incoming/ringing call.</para>
+			</parameter>
+			<parameter name="ChannelId" required="true">
+				<para>CallId of the ringing channel. Only the interger part (last part) of the <replaceable>ChannelId</replaceable> should be provided.</para>
+			</parameter>
+		</syntax>
+		<description>
+			<para>Answer an inbound call on a skinny device with <replaceable>DeviceId</replaceable>.</para>
+			<note>
+				<para>The inbound call must be in the Ring-in state at the time of issuing this command.</para>
+			</note>
+			<warning>
+				<para>Deprecated in favor of SCCPAnswerCall1</para>
+			</warning>
+		</description>
+		<see-also>
+			<ref type="manager">SCCPAnswerCall1</ref>
+		</see-also>
+	</manager>
+	<manager name="SCCPDeviceAddLine" language="en_US">
+		<synopsis>Add a existing line to an active device.</synopsis>
+		<syntax>
+			<xi:include href="../core-en_US.xml" parse="xml"
+				xpointer="xpointer(/docs/manager[@name='Login']/syntax/parameter[@name='ActionID'])"/>
+			<parameter name="DeviceName" required="true">
+				<para>DeviceId to add a new line to.</para>
+			</parameter>
+			<parameter name="LineName" required="true">
+				<para>LineName of an existing line that has to be added to this device.</para>
+			</parameter>
+		</syntax>
+		<description>
+			<para>Add a existing line to an active device.</para>
+			<para>The device will have to be restarted for the new line to appear.</para>
+			<note>
+				<para>The effect of this action is temporary and not persisted.</para>
+			</note>
+			<warning>
+				<para>Deprecated</para>
+			</warning>
+		</description>
+		<see-also>
+			<ref type="manager">SCCPDeviceRestart</ref>
+		</see-also>
+	</manager>
+	<manager name="SCCPDeviceRestart" language="en_US">
+		<synopsis>Send a restart message to a registered device.</synopsis>
+		<syntax>
+			<xi:include href="../core-en_US.xml" parse="xml"
+				xpointer="xpointer(/docs/manager[@name='Login']/syntax/parameter[@name='ActionID'])"/>
+			<parameter name="DeviceName" required="true">
+				<para><replaceable>DeviceId</replaceable> of the device that should be restarted.</para>
+			</parameter>
+			<parameter name="Type" required="true" default="restart">
+				<para>Type of restart to be performed.</para>
+				<enumlist>
+					<enum name="full">
+						<para>Full reboot/reset.</para>
+					</enum>
+					<enum name="reset">
+						<para>Full reboot/reset.</para>
+					</enum>
+					<enum name="applyConfig">
+						<para>Reload sep.cnf.xml file, connection is maintained if changes are only minor.</para>
+					</enum>
+					<enum name="restart">
+						<para>Quick restart.</para>
+					</enum>
+				</enumlist>
+			</parameter>
+		</syntax>
+		<description>
+			<para>Send a restart message to a registered device. The type of restart can be specified.</para>
+			<note>
+				<para>Equivalent to <astcli>sccp restart</astcli>.</para>
+			</note>
+		</description>
+	</manager>
+	<manager name="SCCPDeviceSetDND" language="en_US">
+		<synopsis>Set do not disturb status for a particular device.</synopsis>
+		<syntax>
+			<xi:include href="../core-en_US.xml" parse="xml"
+				xpointer="xpointer(/docs/manager[@name='Login']/syntax/parameter[@name='ActionID'])"/>
+			<parameter name="Devicename" required="true">
+				<para>DeviceId of the Device, for which to set Do Not Disturb.</para>
+			</parameter>
+			<parameter name="DNDState" required="true">
+				<enumlist>
+					<enum name="reject">
+						<para>Reject the call and signal Busy to the caller.</para>
+					</enum>
+					<enum name="silent">
+						<para>Incoming Call is displayed on the destination, but does not ring.</para>
+					</enum>
+					<enum name="off">
+						<para>Do not disturb is turned of.</para>
+					</enum>
+				</enumlist>
+			</parameter>
+		</syntax>
+		<description>
+			<para>Change the do not disturb status (<replaceable>DNDState</replaceable>) for a device denoted by <replaceable>DeviceId</replaceable>.</para>
+			<warning>
+				<para>Deprecated</para>
+			</warning>
+		</description>
+		<see-also>
+			<ref type="manager">SCCPDndDevice</ref>
+		</see-also>
+	</manager>
+	<manager name="SCCPStartCall" language="en_US">
+		<synopsis>Description: start a new call on a device/line.</synopsis>
+		<syntax>
+			<xi:include href="../core-en_US.xml" parse="xml"
+				xpointer="xpointer(/docs/manager[@name='Login']/syntax/parameter[@name='ActionID'])"/>
+			<parameter name="DeviceId" required="true">
+				<para>Name of the <replaceable>DeviceId</replaceable> to use to make the new call.</para>
+			</parameter>
+			<parameter name="LineName">
+				<para>Name of the line to use on the device to make this call.</para>
+				<para>If the <replaceable>LineName</replaceable> is not provided the default line of the device will be used.</para>
+			</parameter>
+			<parameter name="Number" required="true">
+				<para>Extension to call.</para>
+			</parameter>
+			<parameter name="ChannelId">
+				<para>The <replaceable>ChannelId</replaceable> that will be copied to the uniqueid of the channel that will be created to make this call.</para>
+				<para>This is available to ease the developement of automated scripts.</para>
+				<para>Note: Only available on asterisk-12 and higher.</para>
+			</parameter>
+		</syntax>
+		<description>
+			<para>Make a new call to an extension on the device and line combination supplied.</para>
+		</description>
+	</manager>
+***/
+
 /*
  * Pre Declarations
  */
 void sccp_manager_eventListener(const sccp_event_t * event);
 static int sccp_manager_startCall(struct mansession * s, const struct message * m);
 static const char * startCall_command = "SCCPStartCall";
+static const char * answerCall_command = "SCCPAnswerCall";
+static const char * deviceAddLine_command = "SCCPDeviceAddLine";
+static const char * configMetaData_command = "SCCPConfigMetaData";
+static const char * deviceRestart_command = "SCCPDeviceRestart";
+static const char * deviceSetDND_command = "SCCPDeviceSetDND";
 
 /* old */
 static int sccp_manager_show_devices(struct mansession * s, const struct message * m);
@@ -76,13 +197,8 @@ static int sccp_manager_holdCall(struct mansession * s, const struct message * m
  */
 static char management_show_devices_desc[] = "Description: Lists SCCP devices in text format with details on current status. (DEPRECATED in favor of SCCPShowDevices)\n" "\n" "DevicelistComplete.\n" "Variables: \n" "  ActionID: <id>	Action ID for this transaction. Will be returned.\n";
 static char management_show_lines_desc[] = "Description: Lists SCCP lines in text format with details on current status. (DEPRECATED in favor of SCCPShowLines)\n" "\n" "LinelistComplete.\n" "Variables: \n" "  ActionID: <id>	Action ID for this transaction. Will be returned.\n";
-static char management_restart_devices_desc[] = "Description: restart a given device\n" "\n" "Variables:\n" "   Devicename: Name of device to restart\n" "   Type: [reset|restart|applyconfig]";
-static char management_show_device_add_line_desc[] = "Description: Lists SCCP devices in text format with details on current status.\n" "\n" "DevicelistComplete.\n" "Variables: \n" "  Devicename: Name of device to restart.\n" "  Linename: Name of line";
 static char management_device_update_desc[] = "Description: restart a given device\n" "\n" "Variables:\n" "   Devicename: Name of device\n";
-static char management_device_set_dnd_desc[] = "Description: set dnd on device\n" "\n" "Variables:\n" "   Devicename: Name of device\n" "  DNDState: off / reject / silent";
 static char management_line_fwd_update_desc[] = "Description: update forward status for line\n" "\n" "Variables:\n" "  Devicename: Name of device\n" "  Linename: Name of line\n" "  Forwardtype: type of cfwd (all | busy | noAnswer)\n" "  Disable: yes Disable call forward (optional)\n" "  Number: number to forward calls (optional)";
-static char management_fetch_config_metadata_desc[] = "Description: fetch configuration metadata\n" "\n" "Variables:\n" "  segment: Config Segment Name (if empty returns all segments).\n";
-static char management_answercall_desc[] = "Description: answer a ringing channel. (DEPRECATED in favor of SCCPAnswerCall1)\n" "\n" "Variables:\n" "  Devicename: Name of the Device\n" "  channelId: Id of the channel to pickup\n";
 static char management_hangupcall_desc[] = "Description: hangup a channel/call\n" "\n" "Variables:\n" "  channelId: Id of the Channel to hangup\n";
 static char management_hold_desc[] = "Description: hold/resume a call\n" "\n" "Variables:\n" "  channelId: Id of the channel to hold/unhold\n" "  hold: hold=true / resume=false\n" "  Devicename: Name of the Device\n" "  SwapChannels: Swap channels when resuming and an active channel is present (true/false)\n";
 
@@ -112,19 +228,19 @@ int sccp_register_management(void)
 
 	result = pbx_manager_register("SCCPListDevices", _MAN_FLAGS, sccp_manager_show_devices, "List SCCP devices", management_show_devices_desc);
 	result |= pbx_manager_register("SCCPListLines", _MAN_FLAGS, sccp_manager_show_lines, "List SCCP lines", management_show_lines_desc);
-	result |= pbx_manager_register("SCCPDeviceRestart", _MAN_FLAGS, sccp_manager_restart_device, "Restart a given device", management_restart_devices_desc);
-	result |= pbx_manager_register("SCCPDeviceAddLine", _MAN_FLAGS, sccp_manager_device_add_line, "add a line to device", management_show_device_add_line_desc);
 	result |= pbx_manager_register("SCCPDeviceUpdate", _MAN_FLAGS, sccp_manager_device_update, "add a line to device", management_device_update_desc);
-	result |= pbx_manager_register("SCCPDeviceSetDND", _MAN_FLAGS, sccp_manager_device_set_dnd, "set dnd on device", management_device_set_dnd_desc);
 	result |= pbx_manager_register("SCCPLineForwardUpdate", _MAN_FLAGS, sccp_manager_line_fwd_update, "set call-forward on a line", management_line_fwd_update_desc);
-	result |= iPbx.register_manager(startCall_command, _MAN_FLAGS, sccp_manager_startCall, NULL, NULL);
-	result |= pbx_manager_register("SCCPAnswerCall", _MAN_FLAGS, sccp_manager_answerCall2, "answer a ringin channel", management_answercall_desc);
 	result |= pbx_manager_register("SCCPHangupCall", _MAN_FLAGS, sccp_manager_hangupCall, "hangup a channel", management_hangupcall_desc);
 	result |= pbx_manager_register("SCCPHoldCall", _MAN_FLAGS, sccp_manager_holdCall, "hold/unhold a call", management_hold_desc);
-	result |= pbx_manager_register("SCCPConfigMetaData", _MAN_FLAGS, sccp_manager_config_metadata, "retrieve config metadata in json format", management_fetch_config_metadata_desc);
-#undef _MAN_FLAGS
+	result |= iPbx.register_manager(deviceAddLine_command, _MAN_FLAGS, sccp_manager_device_add_line, NULL, NULL);
+	result |= iPbx.register_manager(startCall_command, _MAN_FLAGS, sccp_manager_startCall, NULL, NULL);
+	result |= iPbx.register_manager(answerCall_command, _MAN_FLAGS, sccp_manager_answerCall2, NULL, NULL);
+	result |= iPbx.register_manager(configMetaData_command, _MAN_FLAGS, sccp_manager_config_metadata, NULL, NULL);
+	result |= iPbx.register_manager(deviceRestart_command, _MAN_FLAGS, sccp_manager_restart_device, NULL, NULL);
+	result |= iPbx.register_manager(deviceSetDND_command, _MAN_FLAGS, sccp_manager_device_set_dnd, NULL, NULL);
+#	undef _MAN_FLAGS
 
-#if HAVE_PBX_MANAGER_HOOK_H
+#	if HAVE_PBX_MANAGER_HOOK_H
 	ast_manager_register_hook(&sccp_manager_hook);
 #else
 #warning "manager_custom_hook not found, monitor indication does not work properly"
@@ -142,17 +258,18 @@ int sccp_unregister_management(void)
 
 	result = pbx_manager_unregister("SCCPListDevices");
 	result |= pbx_manager_unregister("SCCPListLines");
-	result |= pbx_manager_unregister("SCCPDeviceRestart");
-	result |= pbx_manager_unregister("SCCPDeviceAddLine");
 	result |= pbx_manager_unregister("SCCPDeviceUpdate");
-	result |= pbx_manager_unregister("SCCPDeviceSetDND");
 	result |= pbx_manager_unregister("SCCPLineForwardUpdate");
-	result |= pbx_manager_unregister(startCall_command);
-	result |= pbx_manager_unregister("SCCPAnswerCall");
 	result |= pbx_manager_unregister("SCCPHangupCall");
 	result |= pbx_manager_unregister("SCCPHoldCall");
-	result |= pbx_manager_unregister("SCCPConfigMetaData");
-#if HAVE_PBX_MANAGER_HOOK_H
+
+	result |= pbx_manager_unregister(deviceAddLine_command);
+	result |= pbx_manager_unregister(startCall_command);
+	result |= pbx_manager_unregister(answerCall_command);
+	result |= pbx_manager_unregister(configMetaData_command);
+	result |= pbx_manager_unregister(deviceRestart_command);
+	result |= pbx_manager_unregister(deviceSetDND_command);
+#	if HAVE_PBX_MANAGER_HOOK_H
 	ast_manager_unregister_hook(&sccp_manager_hook);
 #endif
 

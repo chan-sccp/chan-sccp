@@ -102,12 +102,12 @@ install-data-local: chan_sccp-en_US.xml
 	@test -d $(DESTDIR)$(PBX_DATADIR)/documentation/thirdparty || $(mkinstalldirs) $(DESTDIR)$(PBX_DATADIR)/documentation/thirdparty;
 	@$(INSTALL) -m 644 chan_sccp-en_US.xml "$(DESTDIR)$(PBX_DATADIR)/documentation/thirdparty";
 
-XML_chan_sccp_en_US=$(top_srcdir)/src/sccp_appfunctions.c $(top_srcdir)/src/sccp_management.c $(top_srcdir)/src/sccp_cli.c
+XML_chan_sccp_en_US=$(top_srcdir)/src/sccp_appfunctions.c $(top_srcdir)/src/sccp_management.c $(top_srcdir)/src/sccp_cli.c $(top_srcdir)/src/sccp_conference.c $(top_srcdir)/src/sccp_config.c
 chan_sccp-en_US.xml: $(top_builddir)/src/stamp-h1 $(XML_chan_sccp_en_US)
 	@printf "Building Documentation..."
 	@echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" > $@
 	@echo "<!DOCTYPE docs SYSTEM \"appdocsxml.dtd\">" >> $@
-	@echo "<?xml-stylesheet type=\"text/xsl\" href=\"appdocsxml.xslt\"?>" >> $@
+	@echo "<?xml-stylesheet type=\"text/xsl\" href=\"../appdocsxml.xslt\"?>" >> $@
 	@echo "<docs xmlns:xi=\"http://www.w3.org/2001/XInclude\">" >> $@
 	@for x in $(XML_chan_sccp_en_US);do 												\
 		$(AWK) -f $(top_srcdir)/tools/get_documentation $$x >> $@;									\

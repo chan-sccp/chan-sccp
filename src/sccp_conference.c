@@ -20,6 +20,45 @@
 #include "sccp_threadpool.h"
 #include <asterisk/say.h>
 
+/*** DOCUMENTATION
+	<manager name="SCCPConference" language="en_US">
+		<synopsis>Control sccp conference and it's participants.</synopsis>
+		<syntax>
+			<xi:include href="../core-en_US.xml" parse="xml"
+				xpointer="xpointer(/docs/manager[@name='Login']/syntax/parameter[@name='ActionID'])"/>
+			<parameter name="ConferenceId" required="true">
+				<para>Id of the conference</para>
+			</parameter>
+			<parameter name="ParticipantId">
+				<para>Id of the participant</para>
+			</parameter>
+			<parameter name="Command" required="true">
+				<para>Command to be executed on this <replaceable>ConferenceId</replaceable> and <replaceable>ParticipantId</replaceable> combination</para>
+				<enumlist>
+					<enum name="EndConf">
+						<para>End the conference specified via <replaceable>ConferenceId</replaceable>.</para>
+					</enum>
+					<enum name="Kick">
+						<para>Kick a <replaceable>ParticipantId</replaceable> out of <replaceable>ConferenceId</replaceable>.</para>
+					</enum>
+					<enum name="Mute">
+						<para>Mute <replaceable>ParticipantId</replaceable> on <replaceable>ConferenceId</replaceable>.</para>
+					</enum>
+					<enum name="Moderate">
+						<para>Promote <replaceable>ParticipantId</replaceable> on <replaceable>ConferenceId</replaceable> to moderator status.</para>
+					</enum>
+					<enum name="Invite">
+						<para>Invite a new participant to this <replaceable>ConferenceId</replaceable> (Not implemented).</para>
+					</enum>
+				</enumlist>
+			</parameter>
+		</syntax>
+		<description>
+			<para>Control sccp conference and it's participants.</para>
+		</description>
+	</manager>
+***/
+
 #ifdef CS_SCCP_CONFERENCE
 
 #if ASTERISK_VERSION_GROUP < 112

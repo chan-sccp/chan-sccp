@@ -44,6 +44,7 @@
  *  - We need to return RESULT_SUCCESS (for cli calls) at the end. If we set CLI_AMI_RETURN_ERROR, we will exit the function immediately and return RESULT_FAILURE. We need to make sure that all references are released before sending CLI_AMI_RETURN_ERROR.
  *  .
  */
+
 #include "config.h"
 #include "common.h"
 #include "sccp_channel.h"
@@ -67,6 +68,131 @@ SCCP_FILE_VERSION(__FILE__, "");
 #include <sys/stat.h>
 #include <asterisk/cli.h>
 #include <asterisk/paths.h>
+
+/*** DOCUMENTATION
+	<manager name="SCCPAnswerCall1" language="en_US">
+		<synopsis>Answer an inbound call on a device.</synopsis>
+		<syntax>
+			<xi:include href="../core-en_US.xml" parse="xml"
+				xpointer="xpointer(/docs/manager[@name='Login']/syntax/parameter[@name='ActionID'])"/>
+			<parameter name="ChannelId" required="true">
+				<para>ChannelId of channel that is currently rining.</para>
+			</parameter>
+			<parameter name="DeviceId">
+				<para>DeviceId of the device with the incoming/ringing call. This parameter is optional if the line on which this channel is
+					coming in, is non-shared and therefor assigned to only one device.</para>
+			</parameter>
+		</syntax>
+		<description>
+			<para>Answer an inbound call on a skinny device with <replaceable>DeviceId</replaceable>.</para>
+			<note>
+				<para>The inbound call must be in the Ring-in state at the time of issuing this command.</para>
+			</note>
+		</description>
+		<see-also>
+			<ref type="manager">SCCPAnswerCall</ref>
+		</see-also>
+	</manager>
+	<manager name="SCCPCallforward" language="en_US">
+		<synopsis>Set/Unset callforward on an sccp line.</synopsis>
+		<syntax>
+			<xi:include href="../core-en_US.xml" parse="xml"
+				xpointer="xpointer(/docs/manager[@name='Login']/syntax/parameter[@name='ActionID'])"/>
+			<parameter name="LineName" required="true">
+				<para><replaceable>LineId</replaceable> for which callforward should be set/removed.</para>
+			</parameter>
+			<parameter name="DeviceId">
+				<para><replaceable>DeviceId</replaceable> for which callforward should be set/removed.</para>
+			</parameter>
+			<parameter name="Type" required="true">
+				<para>callforward <replaceable>Type</replaceable> to set.</para>
+				<enumlist>
+					<enum name="none"/>
+					<enum name="all"/>
+					<enum name="busy"/>
+					<enum name="noanswer"/>
+				</enumlist>
+			</parameter>
+			<parameter name="Destination">
+				<para><replaceable>Destination</replaceable> is only required when type != none</para>
+			</parameter>
+		</syntax>
+		<description>
+			<para>Set/Unset CallForward status on a SCCP Line.</para>
+		</description>
+	</manager>
+	<manager name="SCCPDndDevice" language="en_US">
+		<synopsis>Set do not disturb status for a particular device.</synopsis>
+		<syntax>
+			<xi:include href="../core-en_US.xml" parse="xml"
+				xpointer="xpointer(/docs/manager[@name='Login']/syntax/parameter[@name='ActionID'])"/>
+			<parameter name="DeviceId" required="true">
+				<para>DeviceId of the Device, for which to set Do Not Disturb.</para>
+			</parameter>
+			<parameter name="State" required="false">
+				<enumlist>
+					<enum name="reject">
+						<para>Reject the call and signal Busy to the caller.</para>
+					</enum>
+					<enum name="silent">
+						<para>Incoming Call is displayed on the destination, but does not ring.</para>
+					</enum>
+					<enum name="off">
+						<para>Do not disturb is turned of.</para>
+					</enum>
+				</enumlist>
+				<note>
+					<para>When state is not provided, the default action will be to cycle through the dnd states, just like pressing the softkey on
+						the phone.</para>
+				</note>
+			</parameter>
+		</syntax>
+		<description>
+			<para>Change the do not disturb status (<replaceable>DNDState</replaceable>) for a device denoted by <replaceable>DeviceId</replaceable>.</para>
+		</description>
+		<see-also>
+			<ref type="manager">SCCPDeviceSetDND</ref>
+		</see-also>
+	</manager>
+	<manager name="SCCPSystemMessage" language="en_US">
+		<synopsis>Description: Set a system wide message for all devices.</synopsis>
+		<syntax>
+			<xi:include href="../core-en_US.xml" parse="xml"
+				xpointer="xpointer(/docs/manager[@name='Login']/syntax/parameter[@name='ActionID'])"/>
+			<parameter name="MessageText" required="true">
+				<para>The message to send to all devices.</para>
+			</parameter>
+			<parameter name="Beep" required="false" default="No">
+				<para>Let the device make a notification sound.</para>
+				<enumlist>
+					<enum name="Yes"/>
+					<enum name="No"/>
+				</enumlist>
+				<para>Default is <literal>No</literal></para>
+			</parameter>
+			<parameter name="Timeout" required="false">
+				<para>Time to live for the sent message.</para>
+			</parameter>
+		</syntax>
+		<description>
+			<para>Make Set a system wide message for all devices.</para>
+		</description>
+	</manager>
+	<manager name="SCCPTokenAck" language="en_US">
+		<synopsis>Send Token Acknowledge to speficic device</synopsis>
+		<syntax>
+			<xi:include href="../core-en_US.xml" parse="xml"
+				xpointer="xpointer(/docs/manager[@name='Login']/syntax/parameter[@name='ActionID'])"/>
+			<parameter name="DeviceId" required="true">
+				<para><replaceable>DeviceId</replaceable> of the skinny device which should be pulled to this server.</para>
+			</parameter>
+		</syntax>
+		<description>
+			<para>Send an Acknowledgement Token to Device with <replaceable>DeviceId</replaceable>. Which will make a phone switch servers on demand (used in clustering),</para>
+			<para>This will only work if the device in question previously send a token request to the server in question.</para>
+		</description>
+	</manager>
+***/
 
 typedef enum sccp_cli_completer {
 	SCCP_CLI_NULL_COMPLETER,
@@ -3690,9 +3816,9 @@ static int sccp_answercall(int fd, sccp_cli_totals_t *totals, struct mansession 
 
 static char cli_answercall_usage[] = "Usage: sccp answer channelId [deviceId]\n"
 				     "       Answer a ringing incoming channel on device.\n";
-static char ami_answercall_usage[] = "Usage: SCCPAnswerCall1\n"
-				     "Answer a ringing incoming channel on device.\n\n"
-				     "PARAMS: ChannelId,DeviceId\n";
+// static char ami_answercall_usage[] = "Usage: SCCPAnswerCall1\n"
+//				     "Answer a ringing incoming channel on device.\n\n"
+//				     "PARAMS: ChannelId,DeviceId\n";
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define CLI_COMMAND "sccp", "answer"
@@ -3935,6 +4061,8 @@ static struct pbx_cli_entry cli_entries[] = { AST_CLI_DEFINE(cli_show_globals, "
 					      AST_CLI_DEFINE(cli_show_hint_lineStates, "Show all hint lineStates"),
 					      AST_CLI_DEFINE(cli_show_hint_subscriptions, "Show all hint subscriptions") };
 
+static const char * answerCall1_command = "SCCPAnswerCall1";
+
 /*!
  * register CLI functions from asterisk
  */
@@ -3967,7 +4095,6 @@ int sccp_register_cli(void)
 	res |= pbx_manager_register("SCCPSystemMessage", _MAN_REP_FLAGS, manager_system_message, "system message", ami_system_message_usage);
 	res |= pbx_manager_register("SCCPDndDevice", _MAN_REP_FLAGS, manager_dnd_device, "set/unset dnd on a device", ami_dnd_device_usage);
 	res |= pbx_manager_register("SCCPCallforward", _MAN_REP_FLAGS, manager_callforward, "set/unset callforward on a line", ami_callforward_usage);
-	res |= pbx_manager_register("SCCPAnswerCall1", _MAN_REP_FLAGS, manager_answercall, "Answer Ringing Incoming Channel on Device", ami_answercall_usage);
 	res |= pbx_manager_register("SCCPMicrophone", _MAN_REP_FLAGS, manager_microphone, "Control Microphone on/off on active call", ami_microphone_usage);
 	res |= pbx_manager_register("SCCPTokenAck", _MAN_REP_FLAGS, manager_tokenack, "send tokenack", ami_tokenack_usage);
 #ifdef CS_SCCP_CONFERENCE
@@ -3979,6 +4106,7 @@ int sccp_register_cli(void)
 	res |= pbx_manager_register("SCCPShowHintSubscriptions", _MAN_REP_FLAGS, manager_show_hint_subscriptions, "show hint subscriptions", ami_show_hint_subscriptions_usage);
 	res |= pbx_manager_register("SCCPShowRefcount", _MAN_REP_FLAGS, manager_show_refcount, "show refcount", ami_show_refcount_usage);
 
+	res |= iPbx.register_manager(answerCall1_command, _MAN_REP_FLAGS, manager_answercall, NULL, NULL);
 	return res;
 }
 
@@ -4006,7 +4134,6 @@ int sccp_unregister_cli(void)
 	res |= pbx_manager_unregister("SCCPSystemMessage");
 	res |= pbx_manager_unregister("SCCPDndDevice");
 	res |= pbx_manager_unregister("SCCPCallforward");
-	res |= pbx_manager_unregister("SCCPAnswerCall1");
 	res |= pbx_manager_unregister("SCCPMicrophone");
 	res |= pbx_manager_unregister("SCCPTokenAck");
 #ifdef CS_SCCP_CONFERENCE
@@ -4018,6 +4145,7 @@ int sccp_unregister_cli(void)
 	res |= pbx_manager_unregister("SCCPShowHintSubscriptions");
 	res |= pbx_manager_unregister("SCCPShowRefcount");
 
+	res |= pbx_manager_unregister(answerCall1_command);
 	return res;
 }
 

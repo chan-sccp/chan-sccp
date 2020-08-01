@@ -82,6 +82,116 @@
  *
  */
 
+/*** DOCUMENTATION
+	<manager name="SCCPConfigMetaData" language="en_US">
+		<synopsis>Retrieve config metadata in json format</synopsis>
+		<syntax>
+			<xi:include href="../core-en_US.xml" parse="xml"
+				xpointer="xpointer(/docs/manager[@name='Login']/syntax/parameter[@name='ActionID'])"/>
+			<parameter name="segment" required="false">
+				<para>The name of the segment you are interest, leaving it empty will list the segments available.</para>
+				<enumlist>
+					<enum name="general"/>
+					<enum name="device"/>
+					<enum name="line"/>
+					<enum name="softkey"/>
+				</enumlist>
+			</parameter>
+			<parameter name="ResultFormat">
+				<para/>
+				<enumlist>
+					<enum name="list">
+						<para>Will return Output will SCCPConfigMetaData managerevent</para>
+					</enum>
+					<enum name="command">
+						<para>Will return json formatted string presented in the 'DataType' field.</para>
+					</enum>
+				</enumlist>
+			</parameter>
+		</syntax>
+		<description>
+			<para>Fetch configuration metadata</para>
+		</description>
+		<see-also>
+			<ref type="managerEvent">SCCPConfigMetaData</ref>
+			<ref type="managerEvent">SCCPConfigMetaDataComplete</ref>
+		</see-also>
+		<responses>
+			<list-elements>
+				<managerEvent language="en_US" name="SCCPConfigMetaData">
+					<managerEventInstance class="EVENT_FLAG_COMMAND">
+						<synopsis>Detailed field information for the requested segment.</synopsis>
+						<synopsis>One</synopsis>
+						<syntax>
+							<parameter name="Name">
+								<para>Name of the field.</para>
+							</parameter>
+							<parameter name="Type">
+								<para>Name of the field.</para>
+							</parameter>
+							<parameter name="Size">
+								<para>Size of the field</para>
+							</parameter>
+							<parameter name="Flags">
+								<para/>
+								<enumlist>
+									<enum name="BOOLEAN"/>
+									<enum name="INT"/>
+									<enum name="UNSIGNED INT"/>
+									<enum name="STRINGPTR">
+										<para>Null terminated string.</para>
+									</enum>
+									<enum name="STRING">
+										<para>Fixed length string.</para>
+									</enum>
+									<enum name="PARSER">
+										<para>Custom parser/generator.</para>
+									</enum>
+									<enum name="CHAR">
+										<para>Single Character.</para>
+									</enum>
+									<enum name="ENUM">
+										<para>When 'ENUM' is used the list entry will also contain the <replaceable>Possible Values</replaceable> field</para>
+									</enum>
+								</enumlist>
+							</parameter>
+							<parameter name="Possible Values" required="false">
+								<para>Contains a string of possible values, enclosed in '[' &amp; ']' and separated by ','.</para>
+								<para>Only included for entries that have type:ENUM.</para>
+							</parameter>
+							<parameter name="DefaultValue">
+								<para>Default value of the field.</para>
+							</parameter>
+							<parameter name="Description">
+								<para>A detailed user description of the field.</para>
+							</parameter>
+							<xi:include href="../core-en_US.xml" parse="xml"
+								xpointer="xpointer(/docs/manager[@name='Login']/syntax/parameter[@name='ActionID'])"/>
+						</syntax>
+						<description>
+							<para>Detailed field information for the requested segment.</para>
+						</description>
+						<see-also>
+							<ref type="managerEvent">SCCPConfigMetaDataComplete</ref>
+						</see-also>
+					</managerEventInstance>
+				</managerEvent>
+			</list-elements>
+			<managerEvent language="en_US" name="SCCPConfigMetaDataComplete">
+				<managerEventInstance class="EVENT_FLAG_AGENT">
+					<synopsis>Final response event in a series of events to the Agents AMI action.</synopsis>
+					<syntax>
+						<xi:include href="../core-en_US.xml" parse="xml"
+							xpointer="xpointer(/docs/manager[@name='Login']/syntax/parameter[@name='ActionID'])"/>
+					</syntax>
+					<see-also>
+						<ref type="manager">SCCPConfigMetaData</ref>
+					</see-also>
+				</managerEventInstance>
+			</managerEvent>
+		</responses>
+	</manager>
+***/
 #include "config.h"
 #include "common.h"
 #include "sccp_config.h"
