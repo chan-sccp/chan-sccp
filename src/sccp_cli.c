@@ -2598,7 +2598,6 @@ static int sccp_system_message(int fd, sccp_cli_totals_t *totals, struct mansess
 }
 
 static char cli_system_message_usage[] = "Usage: sccp system message <message text> [beep] [timeout]\n" "       The default optional timeout is 0 (forever)\n" "       Example: sccp system message \"The boss is gone. Let's have some fun!\"  10\n";
-static char ami_system_message_usage[] = "Usage: SCCPSystemMessage\n" "Set a system wide message for all devices.\n\n" "PARAMS: MessageText, Beep, Timeout\n";
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define CLI_COMMAND "sccp", "system", "message"
@@ -2673,7 +2672,6 @@ static int sccp_dnd_device(int fd, sccp_cli_totals_t *totals, struct mansession 
 }
 
 static char cli_dnd_device_usage[] = "Usage: sccp dnd <deviceId> [off|reject|silent]\n" "       Send a dnd to an SCCP Device. Optionally specifying new DND state  [off|reject|silent]\n";
-static char ami_dnd_device_usage[] = "Usage: SCCPDndDevice\n" "Set/Unset DND status on a SCCP Device.\n\n" "PARAMS: DeviceId, State= [off|reject|silent]\n";
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define CLI_COMMAND "sccp", "dnd", "device"
@@ -2764,10 +2762,6 @@ static int sccp_callforward(int fd, sccp_cli_totals_t *totals, struct mansession
 
 static char cli_callforward_usage[] = "Usage: sccp callforward <lineName> [deviceId] <none|all|busy|noanswer> [number]\n"
 				      "       Set/unset callforward on a line. required: line, type and number. Optionally specifying a device.\n";
-static char ami_callforward_usage[] = "Usage: SCCPCallForward\n"
-				      "Set/Unset CallForward status on a SCCP Line.\n\n"
-				      "PARAMS: LineName, DeviceId, Type=[none|all|busy|noanswer], Destination=number\n";
-
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define CLI_COMMAND "sccp", "callforward"
 #define AMI_COMMAND "SCCPCallForward"
@@ -3925,7 +3919,6 @@ static int sccp_tokenack(int fd, sccp_cli_totals_t *totals, struct mansession *s
 }
 
 static char cli_tokenack_usage[] = "Usage: sccp tokenack <deviceId>\n" "Send Token Acknowlegde. Makes a phone switch servers on demand (used in clustering)\n";
-static char ami_tokenack_usage[] = "Usage: SCCPTokenAck\n" "Send Token Acknowledge to device. Makes a phone switch servers on demand (used in clustering)\n\n" "PARAMS: DeviceId\n";
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define CLI_COMMAND "sccp", "tokenack"
@@ -4062,6 +4055,10 @@ static struct pbx_cli_entry cli_entries[] = { AST_CLI_DEFINE(cli_show_globals, "
 					      AST_CLI_DEFINE(cli_show_hint_subscriptions, "Show all hint subscriptions") };
 
 static const char * answerCall1_command = "SCCPAnswerCall1";
+static const char * callForward_command = "SCCPCallforward";
+static const char * dndDevice_command = "SCCPDndDevice";
+static const char * systemMessage_command = "SCCPSystemMessage";
+static const char * tokenAck_command = "SCCPTokenAck";
 
 /*!
  * register CLI functions from asterisk
@@ -4092,11 +4089,7 @@ int sccp_register_cli(void)
 	res |= pbx_manager_register("SCCPShowSoftkeySets", _MAN_REP_FLAGS, manager_show_softkeysets, "show softkey sets", ami_show_softkeysets_usage);
 	res |= pbx_manager_register("SCCPMessageDevices", _MAN_REP_FLAGS, manager_message_devices, "message devices", ami_message_devices_usage);
 	res |= pbx_manager_register("SCCPMessageDevice", _MAN_REP_FLAGS, manager_message_device, "message device", ami_message_device_usage);
-	res |= pbx_manager_register("SCCPSystemMessage", _MAN_REP_FLAGS, manager_system_message, "system message", ami_system_message_usage);
-	res |= pbx_manager_register("SCCPDndDevice", _MAN_REP_FLAGS, manager_dnd_device, "set/unset dnd on a device", ami_dnd_device_usage);
-	res |= pbx_manager_register("SCCPCallforward", _MAN_REP_FLAGS, manager_callforward, "set/unset callforward on a line", ami_callforward_usage);
 	res |= pbx_manager_register("SCCPMicrophone", _MAN_REP_FLAGS, manager_microphone, "Control Microphone on/off on active call", ami_microphone_usage);
-	res |= pbx_manager_register("SCCPTokenAck", _MAN_REP_FLAGS, manager_tokenack, "send tokenack", ami_tokenack_usage);
 #ifdef CS_SCCP_CONFERENCE
 	res |= pbx_manager_register("SCCPShowConferences", _MAN_REP_FLAGS, manager_show_conferences, "show conferences", ami_conferences_usage);
 	res |= pbx_manager_register("SCCPShowConference", _MAN_REP_FLAGS, manager_show_conference, "show conference", ami_conference_usage);
@@ -4107,6 +4100,10 @@ int sccp_register_cli(void)
 	res |= pbx_manager_register("SCCPShowRefcount", _MAN_REP_FLAGS, manager_show_refcount, "show refcount", ami_show_refcount_usage);
 
 	res |= iPbx.register_manager(answerCall1_command, _MAN_REP_FLAGS, manager_answercall, NULL, NULL);
+	res |= iPbx.register_manager(callForward_command, _MAN_REP_FLAGS, manager_callforward, NULL, NULL);
+	res |= iPbx.register_manager(dndDevice_command, _MAN_REP_FLAGS, manager_dnd_device, NULL, NULL);
+	res |= iPbx.register_manager(systemMessage_command, _MAN_REP_FLAGS, manager_system_message, NULL, NULL);
+	res |= iPbx.register_manager(tokenAck_command, _MAN_REP_FLAGS, manager_tokenack, NULL, NULL);
 	return res;
 }
 
@@ -4131,11 +4128,7 @@ int sccp_unregister_cli(void)
 	res |= pbx_manager_unregister("SCCPShowSoftkeySets");
 	res |= pbx_manager_unregister("SCCPMessageDevices");
 	res |= pbx_manager_unregister("SCCPMessageDevice");
-	res |= pbx_manager_unregister("SCCPSystemMessage");
-	res |= pbx_manager_unregister("SCCPDndDevice");
-	res |= pbx_manager_unregister("SCCPCallforward");
 	res |= pbx_manager_unregister("SCCPMicrophone");
-	res |= pbx_manager_unregister("SCCPTokenAck");
 #ifdef CS_SCCP_CONFERENCE
 	res |= pbx_manager_unregister("SCCPShowConferences");
 	res |= pbx_manager_unregister("SCCPShowConference");
@@ -4146,6 +4139,10 @@ int sccp_unregister_cli(void)
 	res |= pbx_manager_unregister("SCCPShowRefcount");
 
 	res |= pbx_manager_unregister(answerCall1_command);
+	res |= pbx_manager_unregister(callForward_command);
+	res |= pbx_manager_unregister(dndDevice_command);
+	res |= pbx_manager_unregister(systemMessage_command);
+	res |= pbx_manager_unregister(tokenAck_command);
 	return res;
 }
 
