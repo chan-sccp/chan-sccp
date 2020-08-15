@@ -41,8 +41,6 @@ SCCP_FILE_VERSION(__FILE__, "");
  *              Phones Requesting function to be performed
  */
 
-
-
 #if defined(HAVE_UNALIGNED_BUSERROR)
 #include <asterisk/unaligned.h>
 #endif

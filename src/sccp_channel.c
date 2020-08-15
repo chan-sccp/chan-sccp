@@ -779,7 +779,7 @@ void sccp_channel_openReceiveChannel(constChannelPtr channel)
 	pbx_assert(channel->line != NULL); /* should not be possible, but received a backtrace / report */
 	sccp_rtp_t * audio = (sccp_rtp_t *)&(channel->rtp.audio);
 
-	if(channel->isHangingUp || !channel->owner || pbx_check_hangup_locked(channel->owner) || pbx_channel_hangupcause(channel->owner) == AST_CAUSE_ANSWERED_ELSEWHERE) {
+	if(channel->isHangingUp || !channel->owner || pbx_check_hangup_locked(channel->owner)) {
 		pbx_log(LOG_ERROR, "%s: (%s) Channel already hanging up\n", channel->designator, __func__);
 		return;
 	}
@@ -839,8 +839,7 @@ int sccp_channel_receiveChannelOpen(sccp_device_t *d, sccp_channel_t *c)
 	}
 
 	c->setTone(c, SKINNY_TONE_SILENCE, SKINNY_TONEDIRECTION_USER);
-	if(c->isHangingUp || !c->owner || pbx_check_hangup_locked(c->owner) || pbx_channel_hangupcause(c->owner) == AST_CAUSE_ANSWERED_ELSEWHERE || SCCP_CHANNELSTATE_Idling(c->state)
-	   || SCCP_CHANNELSTATE_IsTerminating(c->state)) {
+	if(c->isHangingUp || !c->owner || pbx_check_hangup_locked(c->owner) || SCCP_CHANNELSTATE_Idling(c->state) || SCCP_CHANNELSTATE_IsTerminating(c->state)) {
 		if (c->state == SCCP_CHANNELSTATE_INVALIDNUMBER || c->state == SCCP_CHANNELSTATE_CONGESTION) {
 			return SCCP_RTP_STATUS_ACTIVE;
 		}
@@ -932,7 +931,7 @@ void sccp_channel_startMediaTransmission(constChannelPtr channel)
 	pbx_assert(channel->line != NULL); /* should not be possible, but received a backtrace / report */
 	sccp_rtp_t *audio = (sccp_rtp_t *) &(channel->rtp.audio);
 
-	if(channel->isHangingUp || !channel->owner || pbx_check_hangup_locked(channel->owner) || pbx_channel_hangupcause(channel->owner) == AST_CAUSE_ANSWERED_ELSEWHERE) {
+	if(channel->isHangingUp || !channel->owner || pbx_check_hangup_locked(channel->owner)) {
 		pbx_log(LOG_ERROR, "%s: (%s) Channel already hanging up\n", channel->designator, __func__);
 		return;
 	}
@@ -995,8 +994,7 @@ int sccp_channel_mediaTransmissionStarted(devicePtr d, channelPtr c)
 		return SCCP_RTP_STATUS_INACTIVE;
 	}
 
-	if(c->isHangingUp || !c->owner || pbx_check_hangup_locked(c->owner) || pbx_channel_hangupcause(c->owner) == AST_CAUSE_ANSWERED_ELSEWHERE || SCCP_CHANNELSTATE_Idling(c->state)
-	   || SCCP_CHANNELSTATE_IsTerminating(c->state)) {
+	if(c->isHangingUp || !c->owner || pbx_check_hangup_locked(c->owner) || SCCP_CHANNELSTATE_Idling(c->state) || SCCP_CHANNELSTATE_IsTerminating(c->state)) {
 		if (c->state == SCCP_CHANNELSTATE_INVALIDNUMBER || c->state == SCCP_CHANNELSTATE_CONGESTION) {
 			sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Stop Tone %s\n", DEV_ID_LOG(d), sccp_channelstate2str(c->state));
 			c->setTone(c, SKINNY_TONE_SILENCE, SKINNY_TONEDIRECTION_USER);
@@ -1079,7 +1077,7 @@ void sccp_channel_openMultiMediaReceiveChannel(constChannelPtr channel)
 	pbx_assert(channel->line != NULL); /* should not be possible, but received a backtrace / report */
 	sccp_rtp_t *video = (sccp_rtp_t *) &(channel->rtp.video);
 
-	if(channel->isHangingUp || !channel->owner || pbx_check_hangup_locked(channel->owner) || pbx_channel_hangupcause(channel->owner) == AST_CAUSE_ANSWERED_ELSEWHERE) {
+	if(channel->isHangingUp || !channel->owner || pbx_check_hangup_locked(channel->owner)) {
 		pbx_log(LOG_ERROR, "%s: (%s) Channel already hanging up\n", channel->designator, __func__);
 		return;
 	}
@@ -1135,8 +1133,7 @@ int sccp_channel_receiveMultiMediaChannelOpen(constDevicePtr d, channelPtr c)
 		return SCCP_RTP_STATUS_INACTIVE;
 	}
 
-	if(c->isHangingUp || !c->owner || pbx_check_hangup_locked(c->owner) || pbx_channel_hangupcause(c->owner) == AST_CAUSE_ANSWERED_ELSEWHERE || SCCP_CHANNELSTATE_Idling(c->state)
-	   || SCCP_CHANNELSTATE_IsTerminating(c->state)) {
+	if(c->isHangingUp || !c->owner || pbx_check_hangup_locked(c->owner) || SCCP_CHANNELSTATE_Idling(c->state) || SCCP_CHANNELSTATE_IsTerminating(c->state)) {
 		if (c->state == SCCP_CHANNELSTATE_INVALIDNUMBER || c->state == SCCP_CHANNELSTATE_CONGESTION) {
 			sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Stop Tone %s\n", DEV_ID_LOG(d), sccp_channelstate2str(c->state));
 			c->setTone(c, SKINNY_TONE_SILENCE, SKINNY_TONEDIRECTION_USER);
@@ -1229,7 +1226,7 @@ void sccp_channel_startMultiMediaTransmission(constChannelPtr channel)
 	pbx_assert(channel->line != NULL); /* should not be possible, but received a backtrace / report */
 	sccp_rtp_t *video = (sccp_rtp_t *) &(channel->rtp.video);
 
-	if(channel->isHangingUp || !channel->owner || pbx_check_hangup_locked(channel->owner) || pbx_channel_hangupcause(channel->owner) == AST_CAUSE_ANSWERED_ELSEWHERE) {
+	if(channel->isHangingUp || !channel->owner || pbx_check_hangup_locked(channel->owner)) {
 		pbx_log(LOG_ERROR, "%s: (%s) Channel already hanging up\n", channel->designator, __func__);
 		return;
 	}
@@ -1292,8 +1289,7 @@ int sccp_channel_multiMediaTransmissionStarted(constDevicePtr d, channelPtr c)
 		return SCCP_RTP_STATUS_INACTIVE;
 	}
 
-	if(c->isHangingUp || !c->owner || pbx_check_hangup_locked(c->owner) || pbx_channel_hangupcause(c->owner) == AST_CAUSE_ANSWERED_ELSEWHERE || SCCP_CHANNELSTATE_Idling(c->state)
-	   || SCCP_CHANNELSTATE_IsTerminating(c->state)) {
+	if(c->isHangingUp || !c->owner || pbx_check_hangup_locked(c->owner) || SCCP_CHANNELSTATE_Idling(c->state) || SCCP_CHANNELSTATE_IsTerminating(c->state)) {
 		if (c->state == SCCP_CHANNELSTATE_INVALIDNUMBER || c->state == SCCP_CHANNELSTATE_CONGESTION) {
 			sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Stop Tone %s\n", DEV_ID_LOG(d), sccp_channelstate2str(c->state));
 			c->setTone(c, SKINNY_TONE_SILENCE, SKINNY_TONEDIRECTION_USER);
@@ -1871,11 +1867,13 @@ void sccp_channel_answer(constDevicePtr device, channelPtr channel)
 		if(pbx_channel_state(pbx_channel) == AST_STATE_RINGING && !pbx_check_hangup_locked(pbx_channel) && !channel->privateData->isAnswering) {
 			channel->setDevice(channel, device);
 			channel->privateData->isAnswering = TRUE;
+			uint16_t lineInstance = sccp_device_find_index_for_line(device, channel->line->name);
 			if (channel->state != SCCP_CHANNELSTATE_OFFHOOK) {	/* 7911 need to have callstate offhook, before connected, to transmit audio */
-				sccp_indicate(device, channel, SCCP_CHANNELSTATE_OFFHOOK);
+				sccp_device_sendcallstate(device, lineInstance, channel->callid, SKINNY_CALLSTATE_OFFHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+				sccp_dev_set_cplane(device, lineInstance, 1);
+				channel->setTone(channel, SKINNY_TONE_SILENCE, SKINNY_TONEDIRECTION_USER);
 			}
 			pbx_setstate(pbx_channel, AST_STATE_OFFHOOK);
-			uint16_t lineInstance = sccp_device_find_index_for_line(device, channel->line->name);
 			sccp_device_sendcallstate(device, lineInstance, channel->callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_LOW,
 						  SKINNY_CALLINFO_VISIBILITY_DEFAULT);	// send connected, so it is not listed as missed call on device that fail the answer first
 			sccp_rtp_setCallback(&channel->rtp.audio, SCCP_RTP_RECEPTION, channel_answer_completion);
