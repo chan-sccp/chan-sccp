@@ -154,21 +154,19 @@ static void sccp_hint_distributed_devstate_cb(const pbx_event_t * event, void *d
 	}
 	//eid = dev_state->eid;
 	//state = dev_state->state;
-	//cidName = dev_state->
-	//cidNumber = dev_state->
 	cidName = "";
 	cidNumber = "";
-	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "Got new hint event %s, cidname: %s, cidnum: %s\n", hint->hint_dialplan, cidName ? cidName : "NULL", cidNumber ? cidNumber : "NULL");
-#else
+	// sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "Got new hint event %s, cidname: %s, cidnum: %s\n", hint->hint_dialplan, cidName ? cidName : "NULL", cidNumber ? cidNumber : "NULL");
+#	else
 	const struct ast_eid *eid = (const struct ast_eid *)ast_event_get_ie_raw(event, AST_EVENT_IE_EID);
 	//state = pbx_event_get_ie_uint(ast_event, AST_EVENT_IE_STATE);
-#if ASTERISK_VERSION_GROUP >= 108
+#		if ASTERISK_VERSION_GROUP >= 108
 	cidName = pbx_event_get_ie_str(event, AST_EVENT_IE_CEL_CIDNAME);
 	cidNumber = pbx_event_get_ie_str(event, AST_EVENT_IE_CEL_CIDNUM);
-#else
+#		else
 	cidName = "";
 	cidNumber = "";
-#endif
+#		endif
 	char eid_str[32] = "";
 	ast_eid_to_str(eid_str, sizeof(eid_str), (struct ast_eid *) eid);
 	if (!ast_eid_cmp(&ast_eid_default, eid)) {
@@ -176,9 +174,9 @@ static void sccp_hint_distributed_devstate_cb(const pbx_event_t * event, void *d
 		return;
 	}
 	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "Got new hint event %s, cidname: %s, cidnum: %s, originated from EID:'%s'\n", hint->hint_dialplan, cidName ? cidName : "NULL", cidNumber ? cidNumber : "NULL", eid_str);
-#endif
-	
-	if (hint->callInfo) {
+#	endif
+
+	if(hint->callInfo && (!sccp_strlen_zero(cidNumber) || !sccp_strlen_zero(cidName))) {
 		if (hint->calltype == SKINNY_CALLTYPE_INBOUND) {
 			iCallInfo.Setter(hint->callInfo, SCCP_CALLINFO_CALLINGPARTY_NAME, cidName, SCCP_CALLINFO_CALLINGPARTY_NUMBER, cidNumber, SCCP_CALLINFO_KEY_SENTINEL);
 		} else {
@@ -1415,7 +1413,6 @@ static void sccp_hint_notifyLineStateUpdate(struct sccp_hint_lineState *lineStat
 {
 	sccp_hint_list_t *hint = NULL;
 	char lineName[StationMaxNameSize + 5];
-
 	{
 		AUTO_RELEASE(sccp_line_t, line , lineState->line ? sccp_line_retain(lineState->line) : NULL);
 		if (line) {
