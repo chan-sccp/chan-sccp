@@ -237,10 +237,17 @@ void __sccp_indicate(constDevicePtr maybe_device, channelPtr c, const sccp_chann
 			break;
 		case SCCP_CHANNELSTATE_PROGRESS:
 			sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "%s (%s) wantsEarlyRTP:%s, progressSent:%s\n", c->designator, __func__, c->wantsEarlyRTP() ? "yes" : "no", c->progressSent() ? "yes" : "no");
-			if(c->wantsEarlyRTP() && !c->progressSent()) {
+			if(!c->wantsEarlyRTP()) {
+				//  work around : FreePBX sometimes goes from DIALING->AST_CONTROL_PROGRESS skipping RINGING (for EarlyRTP=off)
+				if(c->previousChannelState == SCCP_CHANNELSTATE_DIALING) {
+					sccp_indicate(d, c, SCCP_CHANNELSTATE_RINGOUT);
+				} else if(c->previousChannelState == SCCP_CHANNELSTATE_RINGOUT) {
+					sccp_indicate(d, c, SCCP_CHANNELSTATE_RINGOUT_ALERTING);
+				}
+			} else if(!c->progressSent()) {
 				c->makeProgress(c);
-				sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_CALL_PROGRESS, GLOB(digittimeout));
 			}
+			sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_CALL_PROGRESS, GLOB(digittimeout));
 			break;
 		case SCCP_CHANNELSTATE_PROCEED:
 			{
