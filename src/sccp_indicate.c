@@ -314,14 +314,19 @@ void __sccp_indicate(constDevicePtr maybe_device, channelPtr c, const sccp_chann
 		case SCCP_CHANNELSTATE_CALLWAITING:
 			{
 				/* When dialing a shared line which you also have registered, we don't want the outgoing call to show up on our own device as a callwaiting call */
-				AUTO_RELEASE(sccp_channel_t, activeChannel , sccp_device_getActiveChannel(d));
-				if (activeChannel && (sccp_strequals(iPbx.getChannelLinkedId(activeChannel), iPbx.getChannelLinkedId(c)))) {
-					sccp_log(DEBUGCAT_INDICATE) (VERBOSE_PREFIX_3 "%s: (SCCP_CHANNELSTATE_CALLWAITING) Already Own Part of the Call: Skipping\n", DEV_ID_LOG(d));
-					sccp_log_and(DEBUGCAT_INDICATE + DEBUGCAT_HIGH) (VERBOSE_PREFIX_3 "%s: LinkedId: %s / %s: LinkedId Remote: %s\n", DEV_ID_LOG(d), iPbx.getChannelLinkedId(c), DEV_ID_LOG(d), iPbx.getChannelLinkedId(activeChannel));
-					break;
+				AUTO_RELEASE(sccp_channel_t, activeChannel, sccp_device_getActiveChannel(d));
+				if(activeChannel) {
+					if((sccp_strequals(iPbx.getChannelLinkedId(activeChannel), iPbx.getChannelLinkedId(c)))) {
+						sccp_log(DEBUGCAT_INDICATE)(VERBOSE_PREFIX_3 "%s: (SCCP_CHANNELSTATE_CALLWAITING) Already Own Part of the Call: Skipping\n", DEV_ID_LOG(d));
+						sccp_log_and(DEBUGCAT_INDICATE + DEBUGCAT_HIGH)(VERBOSE_PREFIX_3 "%s: LinkedId: %s / %s: LinkedId Remote: %s\n", DEV_ID_LOG(d), iPbx.getChannelLinkedId(c), DEV_ID_LOG(d),
+												iPbx.getChannelLinkedId(activeChannel));
+						break;
+					}
+					c->setTone(activeChannel, GLOB(callwaiting_tone), SKINNY_TONEDIRECTION_USER);
 				}
 				sccp_log((DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: SCCP_CHANNELSTATE_CALLWAITING (%s)\n", DEV_ID_LOG(d), sccp_channelstate2str(c->previousChannelState));
-				sccp_channel_callwaiting_tone_interval(d, c);
+				// sccp_channel_callwaiting_tone_interval(d, c);
+				// c->setTone(c, GLOB(callwaiting_tone), SKINNY_TONEDIRECTION_USER);
 				sccp_device_sendcallstate(d, lineInstance, c->callid, SKINNY_CALLSTATE_RINGIN, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 				iCallInfo.Send(ci, c->callid, c->calltype, lineInstance, d, TRUE);
 				sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_CALL_WAITING, GLOB(digittimeout));

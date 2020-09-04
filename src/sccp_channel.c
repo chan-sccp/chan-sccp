@@ -420,6 +420,30 @@ EXIT:
 	channel->setTone = setToneWithoutLineDevice;
 }
 
+int sccp_getCallCount(constLineDevicePtr ld)
+{
+	int calls = 0;
+	constLinePtr l = ld->line;
+	constDevicePtr d = ld->device;
+	sccp_channel_t * channel = NULL;
+	SCCP_LIST_LOCK(&l->channels);
+	if(l->isShared) {
+		// shared channels are only included if it's assigned device equals the device we are looking for.
+		SCCP_LIST_TRAVERSE(&l->channels, channel, list) {
+			if(!d || !channel->privateData->device || d == channel->privateData->device) {
+				calls++;
+			}
+		}
+	} else {
+		// all single channels for this line are included in the count
+		SCCP_LIST_TRAVERSE(&l->channels, channel, list) {
+			calls++;
+		}
+	}
+	SCCP_LIST_UNLOCK(&l->channels);
+	return calls;
+}
+
 static void sccp_channel_recalculateAudioCodecFormat(channelPtr channel)
 {
 	char s1[512];

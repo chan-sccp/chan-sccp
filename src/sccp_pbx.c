@@ -202,25 +202,6 @@ int sccp_pbx_call(channelPtr c, const char * dest, int timeout)
 
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Asterisk request to call %s\n", l->name, iPbx.getChannelName(c));
 
-	int incomingcalls = 0;
-	sccp_channel_t *count_channel = NULL;
-	SCCP_LIST_LOCK(&l->channels);
-	SCCP_LIST_TRAVERSE(&l->channels, count_channel, list) {
-		if (count_channel != c && count_channel->calltype == SKINNY_CALLTYPE_INBOUND) {
-			incomingcalls++;
-		}
-	}
-	SCCP_LIST_UNLOCK(&l->channels);
-	sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "SCCP/%s: Incoming calls:%d, Incoming calls limit: %d\n", l->name, incomingcalls, l->incominglimit);
-	/* if incoming call limit is reached send BUSY */
-	if(l->incominglimit && incomingcalls >= l->incominglimit) {
-		sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "SCCP/%s: Incoming calls: %d, Incoming calls limit (%d) -> sending BUSY\n", l->name, incomingcalls, l->incominglimit);
-		iPbx.queue_control(c->owner, AST_CONTROL_BUSY);
-		//iPbx.set_callstate(c, AST_STATE_BUSY);
-		pbx_channel_set_hangupcause(c->owner, AST_CAUSE_USER_BUSY);
-		return 0;
-	}
-
 	/* Reinstated this call instead of the following lines */
 	char cid_name[StationMaxNameSize] = {0};
 	char cid_num[StationMaxDirnumSize] = {0};
@@ -270,7 +251,7 @@ int sccp_pbx_call(channelPtr c, const char * dest, int timeout)
 		c->ringermode = GLOB(ringtype);
 	}
 	boolean_t isRinging = FALSE;
-	boolean_t hasDNDParticipant = FALSE;
+	boolean_t isBusy = FALSE;
 	boolean_t bypassCallForward = !sccp_strlen_zero(pbx_builtin_getvar_helper(c->owner, "BYPASS_CFWD"));
 	sccp_linedevice_t * ForwardingLineDevice = NULL;
 
@@ -344,6 +325,16 @@ int sccp_pbx_call(channelPtr c, const char * dest, int timeout)
 		}
 		/* reset channel state (because we are offering the same call to multiple (shared) lines)*/
 		c->previousChannelState = previousstate;
+
+		int calls = sccp_getCallCount(ld);
+		sccp_log((DEBUGCAT_PBX))(VERBOSE_PREFIX_3 "%s: #calls:%d, Incoming calls limit:%d\n", l->name, calls, l->incominglimit);
+		if(l->incominglimit && calls > l->incominglimit) {
+			sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: #calls:%d > Incoming calls limit:%d -> returning BUSY\n", l->name, calls, l->incominglimit);
+			isBusy = TRUE;
+			c->subscribers--;
+			continue;
+		}
+
 		if (active_channel) {
 			sccp_indicate(ld->device, c, SCCP_CHANNELSTATE_CALLWAITING);
 			/* display the new call on prompt */
@@ -373,7 +364,7 @@ int sccp_pbx_call(channelPtr c, const char * dest, int timeout)
 			/** check if ringermode is not urgent and device enabled dnd in reject mode */
 			if(SKINNY_RINGTYPE_URGENT != c->ringermode && ld->device->dndFeature.enabled && ld->device->dndFeature.status == SCCP_DNDMODE_REJECT) {
 				sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: DND active on line %s, returning Busy\n", ld->device->id, ld->line->name);
-				hasDNDParticipant = TRUE;
+				isBusy = TRUE;
 				c->subscribers--;
 				continue;
 			}
@@ -398,7 +389,7 @@ int sccp_pbx_call(channelPtr c, const char * dest, int timeout)
 	}
 	SCCP_LIST_UNLOCK(&l->devices);
 
-	//sccp_log(DEBUGCAT_PBX)(VERBOSE_PREFIX_3 "%s: isRinging:%d, hadDNDParticipant:%d, ForwardingLineDevice:%p\n", c->designator, isRinging, hasDNDParticipant, ForwardingLineDevice);
+	// sccp_log(DEBUGCAT_PBX)(VERBOSE_PREFIX_3 "%s: isRinging:%d, hadDNDParticipant:%d, ForwardingLineDevice:%p\n", c->designator, isRinging, isBusy, ForwardingLineDevice);
 	if(cfwd_all) {
 		pbx_builtin_setvar_helper(c->owner, "_CFWD_ALL", pbx_str_buffer(cfwds_all));
 	}
@@ -422,7 +413,7 @@ int sccp_pbx_call(channelPtr c, const char * dest, int timeout)
 		pbx_channel_call_forward_set(c->owner, ForwardingLineDevice->cfwd[SCCP_CFWD_ALL].enabled ? ForwardingLineDevice->cfwd[SCCP_CFWD_ALL].number : ForwardingLineDevice->cfwd[SCCP_CFWD_BUSY].number);
 		sccp_device_sendcallstate(ForwardingLineDevice->device, ForwardingLineDevice->lineInstance, c->callid, SKINNY_CALLSTATE_INTERCOMONEWAY, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 		sccp_channel_send_callinfo(ForwardingLineDevice->device, c);
-	} else if (hasDNDParticipant) {
+	} else if(isBusy) {
 		iPbx.queue_control(c->owner, AST_CONTROL_BUSY);
 		// iPbx.set_callstate(c, AST_STATE_BUSY);
 		// pbx_channel_set_hangupcause(c->owner, AST_CAUSE_USER_BUSY);

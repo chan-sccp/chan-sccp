@@ -132,6 +132,7 @@ SCCP_API PBX_CHANNEL_TYPE * SCCP_CALL sccp_channel_lock_full(channelPtr c, boole
 SCCP_API channelPtr SCCP_CALL sccp_channel_getEmptyChannel(constLinePtr l, constDevicePtr d, channelPtr maybe_c, skinny_calltype_t calltype, PBX_CHANNEL_TYPE * parentChannel, const void *ids);	// retrieve or allocate new channel
 SCCP_API channelPtr SCCP_CALL sccp_channel_newcall(constLinePtr l, constDevicePtr device, const char *dial, skinny_calltype_t calltype, PBX_CHANNEL_TYPE * parentChannel, const void *ids);
 
+SCCP_API int SCCP_CALL sccp_getCallCount(constLineDevicePtr ld);
 SCCP_API void SCCP_CALL sccp_channel_updateChannelCapability(channelPtr channel);
 SCCP_API sccp_callinfo_t * const SCCP_CALL sccp_channel_getCallInfo(constChannelPtr channel);
 SCCP_API void SCCP_CALL sccp_channel_send_callinfo(constDevicePtr device, constChannelPtr channel);
