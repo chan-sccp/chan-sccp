@@ -3068,8 +3068,10 @@ static skinny_busylampfield_state_t sccp_astwrap_getExtensionState(const char *e
 		case AST_EXTENSION_INUSE:
 		case AST_EXTENSION_ONHOLD:
 		case AST_EXTENSION_ONHOLD + AST_EXTENSION_INUSE:
-		case AST_EXTENSION_BUSY:
 			result = SKINNY_BLF_STATUS_INUSE;
+			break;
+		case AST_EXTENSION_BUSY:
+			result = SKINNY_BLF_STATUS_DND;
 			break;
 		case AST_EXTENSION_RINGING + AST_EXTENSION_INUSE:
 		case AST_EXTENSION_RINGING:

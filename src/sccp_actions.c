@@ -2882,10 +2882,6 @@ void handle_dialedphonebook_message(constSessionPtr s, devicePtr d, constMessage
 	uint32_t timer = letohl(msg_in->data.SubscriptionStatReqMessage.lel_timer);			/* all 32 bits used */
 	char *subscriptionID = pbx_strdupa(msg_in->data.SubscriptionStatReqMessage.subscriptionID);
 
-	/* take transactionID apart */
-	// only used in debug logging below
-	//uint32_t tr_index = transactionID >> 4;								/* just 28 bits filled */
-	//uint32_t unknown1 = (transactionID | 0xFFFFFFF0) ^ 0xFFFFFFF0;					/* just 4 bits filled */
 
 	// Sending 0x152 Ack Message.
 	REQ(msg_out, SubscriptionStatMessage);
@@ -2919,8 +2915,15 @@ void handle_dialedphonebook_message(constSessionPtr s, devicePtr d, constMessage
 		msg_out->data.NotificationMessage.lel_featureID = htolel(featureID);				/* lineInstance */
 		msg_out->data.NotificationMessage.lel_status = htolel(status);
 		sccp_dev_send(d, msg_out);
-		//sccp_log((DEBUGCAT_HINT + DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: send NotificationMessage for extension '%s', context '%s', state %d\n", DEV_ID_LOG(d), subscriptionID, line->context ? line->context : "<not set>", status);
-		//sccp_log((DEBUGCAT_HINT + DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Device sent Dialed PhoneBook Rec.'%u' (%u) dn '%s' (timer:0x%08X) line instance '%d'.\n", DEV_ID_LOG(d), tr_index, unknown1, subscriptionID, timer, featureID);
+		sccp_log((DEBUGCAT_HINT + DEBUGCAT_ACTION))(VERBOSE_PREFIX_3 "%s: send NotificationMessage for extension '%s', context '%s', state %d\n", DEV_ID_LOG(d), subscriptionID,
+							    line->context ? line->context : "<not set>", status);
+
+		/* take transactionID apart */
+		// only used in debug logging below
+		// uint32_t tr_index = transactionID >> 4;								/* just 28 bits filled */
+		// uint32_t unknown1 = (transactionID | 0xFFFFFFF0) ^ 0xFFFFFFF0;					/* just 4 bits filled */
+		// sccp_log((DEBUGCAT_HINT + DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Device sent Dialed PhoneBook Rec.'%u' (%u) dn '%s' (timer:0x%08X) line instance '%d'.\n", DEV_ID_LOG(d), tr_index, unknown1,
+		// subscriptionID, timer, featureID);
 	}
 }
 
