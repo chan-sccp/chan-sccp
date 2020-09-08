@@ -59,6 +59,7 @@ __BEGIN_C_EXTERN__
 #include <asterisk/bridge_after.h>
 #include <asterisk/bridge_channel.h>
 #include <asterisk/format_cap.h>		// for AST_FORMAT_CAP_NAMES_LEN
+#include <asterisk/ccss.h>                                        // for Call Completion
 
 #define new avoid_cxx_new_keyword
 #include <asterisk/rtp_engine.h>
@@ -102,6 +103,7 @@ static boolean_t sccp_astwrap_setWriteFormat(constChannelPtr channel, skinny_cod
 static boolean_t sccp_astwrap_setReadFormat(constChannelPtr channel, skinny_codec_t codec);
 PBX_CHANNEL_TYPE *sccp_astwrap_findPickupChannelByExtenLocked(PBX_CHANNEL_TYPE * chan, const char *exten, const char *context);
 PBX_CHANNEL_TYPE *sccp_astwrap_findPickupChannelByGroupLocked(PBX_CHANNEL_TYPE * chan);
+// static int sccp_astwrap_cc_callback(struct ast_channel *inbound, const char *dest, ast_cc_callback_fn callback);
 
 static inline skinny_codec_t sccp_astwrap_getSkinnyFormatSingle(struct ast_format_cap *ast_format_capability)
 {
@@ -241,38 +243,39 @@ description:"Null channel (should not see this)",
  */
 static struct ast_channel_tech sccp_tech = {
 	/* *INDENT-OFF* */
-	type:			SCCP_TECHTYPE_STR,
-	description:		"Skinny Client Control Protocol (SCCP)",
-//      capabilities:		AST_FORMAT_ALAW | AST_FORMAT_ULAW | AST_FORMAT_SLINEAR16 | AST_FORMAT_GSM | AST_FORMAT_G723_1 | AST_FORMAT_G729A | AST_FORMAT_H264 | AST_FORMAT_H263_PLUS,
-	properties:		AST_CHAN_TP_WANTSJITTER | AST_CHAN_TP_CREATESJITTER,
-	requester:		sccp_astwrap_request,
-	devicestate:		sccp_astwrap_devicestate,
-	send_digit_begin:	sccp_wrapper_recvdigit_begin,
-	send_digit_end:		sccp_wrapper_recvdigit_end,
-	call:			sccp_astwrap_call,
-	hangup:			sccp_astwrap_hangup,
-	answer:			sccp_astwrap_answer,
-	read:			sccp_astwrap_rtp_read,
-	write:			sccp_astwrap_rtp_write,
-	send_text:		sccp_pbx_sendtext,
-	send_image:		NULL,
-	send_html:		sccp_pbx_sendHTML,
-	exception:		NULL,
-//	bridge:			sccp_astwrap_rtpBridge,
-        bridge:			ast_rtp_instance_bridge,
-	early_bridge:		ast_rtp_instance_early_bridge,
-	indicate:		sccp_astwrap_indicate,
-	fixup:			sccp_astwrap_fixup,
-	setoption:		NULL,
-	queryoption:		NULL,
-	transfer:		NULL,
-	write_video:		sccp_astwrap_rtp_write,
-	write_text:		NULL,
-	bridged_channel:	NULL,
-	func_channel_read:	sccp_astgenwrap_channel_read,
-	func_channel_write:	sccp_astgenwrap_channel_write,
-	get_base_channel:	NULL,
-	set_base_channel:	NULL,
+	type: SCCP_TECHTYPE_STR,
+	description: "Skinny Client Control Protocol (SCCP)",
+	//      capabilities:		AST_FORMAT_ALAW | AST_FORMAT_ULAW | AST_FORMAT_SLINEAR16 | AST_FORMAT_GSM | AST_FORMAT_G723_1 | AST_FORMAT_G729A | AST_FORMAT_H264 | AST_FORMAT_H263_PLUS,
+	properties: AST_CHAN_TP_WANTSJITTER | AST_CHAN_TP_CREATESJITTER,
+	requester: sccp_astwrap_request,
+	devicestate: sccp_astwrap_devicestate,
+	send_digit_begin: sccp_wrapper_recvdigit_begin,
+	send_digit_end: sccp_wrapper_recvdigit_end,
+	call: sccp_astwrap_call,
+	hangup: sccp_astwrap_hangup,
+	answer: sccp_astwrap_answer,
+	read: sccp_astwrap_rtp_read,
+	write: sccp_astwrap_rtp_write,
+	send_text: sccp_pbx_sendtext,
+	send_image: NULL,
+	send_html: sccp_pbx_sendHTML,
+	exception: NULL,
+	//	bridge:			sccp_astwrap_rtpBridge,
+	bridge: ast_rtp_instance_bridge,
+	early_bridge: ast_rtp_instance_early_bridge,
+	indicate: sccp_astwrap_indicate,
+	fixup: sccp_astwrap_fixup,
+	setoption: NULL,
+	queryoption: NULL,
+	transfer: NULL,
+	write_video: sccp_astwrap_rtp_write,
+	write_text: NULL,
+	bridged_channel: NULL,
+	func_channel_read: sccp_astgenwrap_channel_read,
+	func_channel_write: sccp_astgenwrap_channel_write,
+	get_base_channel: NULL,
+	set_base_channel: NULL,
+	// cc_callback:		sccp_astwrap_cc_callback,
 	/* *INDENT-ON* */
 };
 
@@ -290,39 +293,39 @@ static const struct ast_channel_tech null_tech = {
  */
 struct ast_channel_tech sccp_tech = {
 	/* *INDENT-OFF* */
-	.type 			= SCCP_TECHTYPE_STR,
-	.description 		= "Skinny Client Control Protocol (SCCP)",
+	.type = SCCP_TECHTYPE_STR,
+	.description = "Skinny Client Control Protocol (SCCP)",
 	// we could use the skinny_codec = ast_codec mapping here to generate the list of capabilities
-//      .capabilities           = AST_FORMAT_SLINEAR16 | AST_FORMAT_SLINEAR | AST_FORMAT_ALAW | AST_FORMAT_ULAW | AST_FORMAT_GSM | AST_FORMAT_G723_1 | AST_FORMAT_G729A,
-	.properties 		= AST_CHAN_TP_WANTSJITTER | AST_CHAN_TP_CREATESJITTER,
-	.requester 		= sccp_astwrap_request,
-	.devicestate 		= sccp_astwrap_devicestate,
-	.call 			= sccp_astwrap_call,
-	.hangup 		= sccp_astwrap_hangup,
-	.answer 		= sccp_astwrap_answer,
-	.read 			= sccp_astwrap_rtp_read,
-	.write 			= sccp_astwrap_rtp_write,
-	.write_video 		= sccp_astwrap_rtp_write,
-	.indicate 		= sccp_astwrap_indicate,
-	.fixup 			= sccp_astwrap_fixup,
-	//.transfer 		= sccp_pbx_transfer,
+	//      .capabilities           = AST_FORMAT_SLINEAR16 | AST_FORMAT_SLINEAR | AST_FORMAT_ALAW | AST_FORMAT_ULAW | AST_FORMAT_GSM | AST_FORMAT_G723_1 | AST_FORMAT_G729A,
+	.properties = AST_CHAN_TP_WANTSJITTER | AST_CHAN_TP_CREATESJITTER,
+	.requester = sccp_astwrap_request,
+	.devicestate = sccp_astwrap_devicestate,
+	.call = sccp_astwrap_call,
+	.hangup = sccp_astwrap_hangup,
+	.answer = sccp_astwrap_answer,
+	.read = sccp_astwrap_rtp_read,
+	.write = sccp_astwrap_rtp_write,
+	.write_video = sccp_astwrap_rtp_write,
+	.indicate = sccp_astwrap_indicate,
+	.fixup = sccp_astwrap_fixup,
+//.transfer 		= sccp_pbx_transfer,
 #ifdef CS_AST_RTP_INSTANCE_BRIDGE
-	.bridge 		= ast_rtp_instance_bridge,
+	.bridge = ast_rtp_instance_bridge,
 //	.bridge 		= sccp_astwrap_rtpBridge,
 #endif
 	// asterisk-13 rtp_engine.h implementation of ast_rtp_instance_early_bridge is actually not fully c++ compatible to their own definition, so a cast is required
-	.early_bridge		= (enum ast_bridge_result (*)(struct ast_channel *, struct ast_channel *))&ast_rtp_instance_early_bridge,
+	.early_bridge = (enum ast_bridge_result(*)(struct ast_channel *, struct ast_channel *)) & ast_rtp_instance_early_bridge,
 	//.bridged_channel      =
 
-	.send_text 		= sccp_pbx_sendtext,
-	.send_html 		= sccp_pbx_sendHTML,
+	.send_text = sccp_pbx_sendtext,
+	.send_html = sccp_pbx_sendHTML,
 	//.send_image           =
 
-	.func_channel_read 	= sccp_astgenwrap_channel_read,
-	.func_channel_write	= sccp_astgenwrap_channel_write,
+	.func_channel_read = sccp_astgenwrap_channel_read,
+	.func_channel_write = sccp_astgenwrap_channel_write,
 
-	.send_digit_begin 	= sccp_wrapper_recvdigit_begin,
-	.send_digit_end 	= sccp_wrapper_recvdigit_end,
+	.send_digit_begin = sccp_wrapper_recvdigit_begin,
+	.send_digit_end = sccp_wrapper_recvdigit_end,
 
 	//.write_text           =
 	//.write_video          =
@@ -333,6 +336,7 @@ struct ast_channel_tech sccp_tech = {
 	//.get_pvt_uniqueid     = sccp_pbx_get_callid,                         // new >1.6.0
 	//.get_base_channel     =
 	//.set_base_channel     =
+	//.cc_callback		= sccp_astwrap_cc_callback,
 	/* *INDENT-ON* */
 };
 
@@ -1280,6 +1284,16 @@ static boolean_t sccp_astwrap_allocPBXChannel(sccp_channel_t * channel, const vo
 		ast_channel_named_pickupgroups_set(pbxDstChannel, ast_get_namedgroups(line->namedpickupgroup));
 	}
 #endif
+	if(!(channel->cc_params = ast_cc_config_params_init())) {
+		ast_channel_stage_snapshot_done(pbxDstChannel);
+		ast_hangup(pbxDstChannel);
+		return FALSE;
+	}
+	ast_set_cc_agent_policy(channel->cc_params, AST_CC_AGENT_GENERIC);
+	ast_cc_set_param(channel->cc_params, "cc_agent_policy", "generic");
+	ast_cc_set_param(channel->cc_params, "cc_monitor_policy", "generic");
+	ast_channel_cc_params_init(pbxDstChannel, channel->cc_params);
+
 	if (!sccp_strlen_zero(line->parkinglot)) {
 		ast_channel_parkinglot_set(pbxDstChannel, line->parkinglot);
 	}
@@ -3904,15 +3918,15 @@ static struct ast_module_info __mod_info = {
 	.buildopt_sum = AST_BUILDOPT_SUM,
 	//.load_pri = AST_MODPRI_CHANNEL_DRIVER,
 	.load_pri = AST_MODPRI_APP_DEPEND,
-	.requires = "bridge_simple,bridge_native_rtp,bridge_softmix,bridge_holding,res_stasis,res_stasis_device_state",					/* requires = chan_local / Local / ccss / app_voicemail.so*/ 
-	.optional_modules= "app_voicemail",
+	.requires = "bridge_simple,bridge_native_rtp,bridge_softmix,bridge_holding,res_stasis,res_stasis_device_state,ccss", /* requires = chan_local / Local / ccss / app_voicemail.so*/
+	.optional_modules = "app_voicemail",
 	/*
 	.enhances= NULL,
 	.reserved1= NULL,
 	.reserved2= NULL,
 	.reserved3= NULL,
 	.reserved4= NULL,*/
-	.support_level= AST_MODULE_SUPPORT_EXTENDED
+	.support_level = AST_MODULE_SUPPORT_EXTENDED
 };
 static void  __attribute__((constructor)) __reg_module(void)
 {

@@ -2913,7 +2913,11 @@ void handle_dialedphonebook_message(constSessionPtr s, devicePtr d, constMessage
 
 		msg_out->data.NotificationMessage.lel_transactionID = htolel(transactionID);
 		msg_out->data.NotificationMessage.lel_featureID = htolel(featureID);				/* lineInstance */
-		msg_out->data.NotificationMessage.lel_status = htolel(status);
+		if(status == SKINNY_BLF_STATUS_ALERTING) {                                                      /* Apparently Alerting does not show correctly -> converting to INUSE */
+			msg_out->data.NotificationMessage.lel_status = htolel(SKINNY_BLF_STATUS_INUSE);
+		} else {
+			msg_out->data.NotificationMessage.lel_status = htolel(status);
+		}
 		sccp_dev_send(d, msg_out);
 		sccp_log((DEBUGCAT_HINT + DEBUGCAT_ACTION))(VERBOSE_PREFIX_3 "%s: send NotificationMessage for extension '%s', context '%s', state %s\n", DEV_ID_LOG(d), subscriptionID,
 							    line->context ? line->context : "<not set>", skinny_busylampfield_state2str(status));

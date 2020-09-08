@@ -37,6 +37,7 @@ SCCP_FILE_VERSION(__FILE__, "");
 #include "sccp_threadpool.h"
 #include <asterisk/callerid.h>			// sccp_channel, sccp_callinfo
 #include <asterisk/pbx.h>			// AST_EXTENSION_NOT_INUSE
+#include <asterisk/ccss.h>                                        // destroying cc_params
 
 static uint32_t callCount = 1;
 int __sccp_channel_destroy(const void * data);
@@ -2371,6 +2372,7 @@ int __sccp_channel_destroy(const void * data)
 	sccp_free(*(struct sccp_private_channel_data **)&channel->privateData);
 	sccp_line_release((sccp_line_t **)&channel->line);
 	/* */
+	ast_cc_config_params_destroy(channel->cc_params);
 
 #ifndef SCCP_ATOMIC
 	pbx_mutex_destroy(&channel->scheduler.lock);
