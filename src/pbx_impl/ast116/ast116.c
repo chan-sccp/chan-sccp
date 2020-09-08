@@ -59,7 +59,6 @@ __BEGIN_C_EXTERN__
 #include <asterisk/bridge_after.h>
 #include <asterisk/bridge_channel.h>
 #include <asterisk/format_cap.h>		// for AST_FORMAT_CAP_NAMES_LEN
-#include <asterisk/ccss.h>                                        // for Call Completion
 
 #define new avoid_cxx_new_keyword
 #include <asterisk/rtp_engine.h>
@@ -103,7 +102,6 @@ static boolean_t sccp_astwrap_setWriteFormat(constChannelPtr channel, skinny_cod
 static boolean_t sccp_astwrap_setReadFormat(constChannelPtr channel, skinny_codec_t codec);
 PBX_CHANNEL_TYPE *sccp_astwrap_findPickupChannelByExtenLocked(PBX_CHANNEL_TYPE * chan, const char *exten, const char *context);
 PBX_CHANNEL_TYPE *sccp_astwrap_findPickupChannelByGroupLocked(PBX_CHANNEL_TYPE * chan);
-// static int sccp_astwrap_cc_callback(struct ast_channel *inbound, const char *dest, ast_cc_callback_fn callback);
 
 static inline skinny_codec_t sccp_astwrap_getSkinnyFormatSingle(struct ast_format_cap *ast_format_capability)
 {
@@ -275,7 +273,6 @@ static struct ast_channel_tech sccp_tech = {
 	func_channel_write: sccp_astgenwrap_channel_write,
 	get_base_channel: NULL,
 	set_base_channel: NULL,
-	// cc_callback:		sccp_astwrap_cc_callback,
 	/* *INDENT-ON* */
 };
 
@@ -336,7 +333,6 @@ struct ast_channel_tech sccp_tech = {
 	//.get_pvt_uniqueid     = sccp_pbx_get_callid,                         // new >1.6.0
 	//.get_base_channel     =
 	//.set_base_channel     =
-	//.cc_callback		= sccp_astwrap_cc_callback,
 	/* *INDENT-ON* */
 };
 
@@ -1284,16 +1280,6 @@ static boolean_t sccp_astwrap_allocPBXChannel(sccp_channel_t * channel, const vo
 		ast_channel_named_pickupgroups_set(pbxDstChannel, ast_get_namedgroups(line->namedpickupgroup));
 	}
 #endif
-	if(!(channel->cc_params = ast_cc_config_params_init())) {
-		ast_channel_stage_snapshot_done(pbxDstChannel);
-		ast_hangup(pbxDstChannel);
-		return FALSE;
-	}
-	ast_set_cc_agent_policy(channel->cc_params, AST_CC_AGENT_GENERIC);
-	ast_cc_set_param(channel->cc_params, "cc_agent_policy", "generic");
-	ast_cc_set_param(channel->cc_params, "cc_monitor_policy", "generic");
-	ast_channel_cc_params_init(pbxDstChannel, channel->cc_params);
-
 	if (!sccp_strlen_zero(line->parkinglot)) {
 		ast_channel_parkinglot_set(pbxDstChannel, line->parkinglot);
 	}
@@ -3918,7 +3904,7 @@ static struct ast_module_info __mod_info = {
 	.buildopt_sum = AST_BUILDOPT_SUM,
 	//.load_pri = AST_MODPRI_CHANNEL_DRIVER,
 	.load_pri = AST_MODPRI_APP_DEPEND,
-	.requires = "bridge_simple,bridge_native_rtp,bridge_softmix,bridge_holding,res_stasis,res_stasis_device_state,ccss", /* requires = chan_local / Local / ccss / app_voicemail.so*/
+	.requires = "bridge_simple,bridge_native_rtp,bridge_softmix,bridge_holding,res_stasis,res_stasis_device_state", /* requires = chan_local / Local / ccss / app_voicemail.so*/
 	.optional_modules = "app_voicemail",
 	/*
 	.enhances= NULL,
