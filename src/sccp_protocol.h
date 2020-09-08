@@ -855,7 +855,7 @@ typedef union {
 		uint32_t lel_transactionID;									/*!< TransactionID */ /*!< Number Index (this must be shifted 4 bits right) */
 		uint32_t lel_featureID;										/*!< LineInstance / BLF: 0x01*/
 		uint32_t lel_status;										/*!< Status */
-		uint32_t lel_text[97];										/*~< Text */
+		char text[97];											/*!< Text */
 	} NotificationMessage;											/*!< NotificationMessage / CallListStatusUpdate */
 
 	struct {
