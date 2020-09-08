@@ -585,10 +585,7 @@ sccp_channel_t *get_sccp_channel_from_pbx_channel(const PBX_CHANNEL_TYPE * pbx_c
 	}
 }
 
-//static boolean_t sccp_astgenwrap_nullHangup(sccp_channel_t *channel)
-//{
-//      return FALSE;
-//}
+/*
 static void log_hangup_info(const char * hanguptype, constChannelPtr c, PBX_CHANNEL_TYPE * const pbx_channel)
 {
 	sccp_log(DEBUGCAT_PBX)("%s: (%s):\n"
@@ -613,7 +610,7 @@ static void log_hangup_info(const char * hanguptype, constChannelPtr c, PBX_CHAN
 	}
 #endif
 }
-
+*/
 static boolean_t sccp_astgenwrap_handleHangup(constChannelPtr channel, const char * hanguptype)
 {
 	boolean_t res = FALSE;
@@ -627,7 +624,7 @@ static boolean_t sccp_astgenwrap_handleHangup(constChannelPtr channel, const cha
 			sccp_channel_stop_and_deny_scheduled_tasks(c);
 		}
 		do {
-			log_hangup_info(hanguptype, c, pbx_channel);
+			// log_hangup_info(hanguptype, c, pbx_channel);
 			if(!pbx_channel || pbx_test_flag(pbx_channel_flags(pbx_channel), AST_FLAG_ZOMBIE) || pbx_check_hangup_locked(pbx_channel)) {
 				AUTO_RELEASE(sccp_device_t, d, sccp_channel_getDevice(c));
 				if(d) {
