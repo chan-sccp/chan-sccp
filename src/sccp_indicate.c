@@ -431,7 +431,8 @@ void __sccp_indicate(constDevicePtr maybe_device, channelPtr c, const sccp_chann
 		}
 
 		/* notify features (sccp_feat_channelstateChanged = empty function, skipping) */
-		//sccp_feat_channelstateChanged(d, c);
+		// sccp_feat_channelstateChanged(d, c);
+		// sccp_log((DEBUGCAT_INDICATE + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_4 "%s (sccp_indicate) Sending LineStatus Changed Event to State: %s(%d)\n", c->designator, sccp_channelstate2str(c->state), c->state);
 		sccp_event_t *event = sccp_event_allocate(SCCP_EVENT_LINESTATUS_CHANGED);
 		if (event) {
 			event->lineStatusChanged.line = sccp_line_retain(l);
