@@ -113,9 +113,10 @@ struct sccp_hint_list {
 };														/*!< SCCP Hint List Structure */
 
 /* ========================================================================================================================= Declarations */
-static void sccp_hint_updateLineState(struct sccp_hint_lineState *lineState);
-static void sccp_hint_updateLineStateForMultipleChannels(struct sccp_hint_lineState *lineState);
-static void sccp_hint_updateLineStateForSingleChannel(struct sccp_hint_lineState *lineState);
+static void sccp_hint_lineStatusChanged(sccp_line_t * line, sccp_channelstate_t state);
+static void sccp_hint_updateLineState(struct sccp_hint_lineState * lineState, sccp_channelstate_t state);
+static void sccp_hint_updateLineStateForMultipleChannels(struct sccp_hint_lineState * lineState, sccp_channelstate_t state);
+static void sccp_hint_updateLineStateForSingleChannel(struct sccp_hint_lineState * lineState, sccp_channelstate_t state);
 static void sccp_hint_checkForDND(struct sccp_hint_lineState *lineState);
 static sccp_hint_list_t *sccp_hint_create(char *hint_exten, char *hint_context);
 static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint);			/* old */
@@ -125,7 +126,6 @@ static void sccp_hint_deviceUnRegistered(const char *deviceName);
 static void sccp_hint_addSubscription4Device(const sccp_device_t * device, const char *hintStr, const uint8_t instance, const uint8_t positionOnDevice);
 static void sccp_hint_attachLine(sccp_line_t * line, sccp_device_t * device);
 static void sccp_hint_detachLine(sccp_line_t * line, sccp_device_t * device);
-static void sccp_hint_lineStatusChanged(sccp_line_t * line);
 static void sccp_hint_handleFeatureChangeEvent(const sccp_event_t * event);
 static void sccp_hint_eventListener(const sccp_event_t * event);
 #ifdef CS_DYNAMIC_SPEEDDIAL
@@ -418,7 +418,7 @@ static void sccp_hint_eventListener(const sccp_event_t * event)
 		case SCCP_EVENT_LINESTATUS_CHANGED:
 			pbx_rwlock_rdlock(&GLOB(lock));
 			if(!GLOB(reload_in_progress)) { /* skip processing hints when reloading */
-				sccp_hint_lineStatusChanged(event->lineStatusChanged.line);
+				sccp_hint_lineStatusChanged(event->lineStatusChanged.line, event->lineStatusChanged.state);
 			}
 			pbx_rwlock_unlock(&GLOB(lock));
 			break;
@@ -704,14 +704,14 @@ static void sccp_hint_attachLine(sccp_line_t * line, sccp_device_t * device)
 	}
 	SCCP_LIST_UNLOCK(&lineStates);
 
-	sccp_hint_lineStatusChanged(line);
+	sccp_hint_lineStatusChanged(line, SCCP_CHANNELSTATE_ONHOOK);
 }
 
 static void sccp_hint_detachLine(sccp_line_t * line, sccp_device_t * device) 
 {
 	AUTO_RELEASE(sccp_line_t, l, sccp_line_retain(line));
 	if (l) {
-		sccp_hint_lineStatusChanged(line);
+		sccp_hint_lineStatusChanged(line, SCCP_CHANNELSTATE_SENTINEL);
 		struct sccp_hint_lineState *lineState = NULL;
 
 		if (line->statistic.numberOfActiveDevices == 0) {		/* release last instance of lineState->line */
@@ -740,7 +740,7 @@ static void sccp_hint_detachLine(sccp_line_t * line, sccp_device_t * device)
  * \param device SCCP Device who initialied the change
  * 
  */
-static void sccp_hint_lineStatusChanged(sccp_line_t * line)
+static void sccp_hint_lineStatusChanged(sccp_line_t * line, sccp_channelstate_t state)
 {
 	struct sccp_hint_lineState *lineState = NULL;
 
@@ -753,7 +753,7 @@ static void sccp_hint_lineStatusChanged(sccp_line_t * line)
 	SCCP_LIST_UNLOCK(&lineStates);
 	
 	if (lineState && lineState->line) {
-		sccp_hint_updateLineState(lineState);
+		sccp_hint_updateLineState(lineState, state);
 	}
 }
 
@@ -761,12 +761,13 @@ static void sccp_hint_lineStatusChanged(sccp_line_t * line)
  * \brief Handle Hint Status Update
  * \param lineState SCCP LineState
  */
-static void sccp_hint_updateLineState(struct sccp_hint_lineState *lineState)
+static void sccp_hint_updateLineState(struct sccp_hint_lineState * lineState, sccp_channelstate_t state)
 {
 	AUTO_RELEASE(sccp_line_t, line , sccp_line_retain(lineState->line));
 
 	if (line) {
-		sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s (hint_updateLineState) Update Line Channel State: %s(%d)\n", line->name, sccp_channelstate2str(lineState->state), lineState->state);
+		sccp_log((DEBUGCAT_HINT))(VERBOSE_PREFIX_4 "%s (hint_updateLineState) Update Line Channel State: %s(%d) -> %s(%d)\n", line->name, sccp_channelstate2str(lineState->state), lineState->state,
+					  sccp_channelstate2str(state), state);
 
 		/* no line, or line without devices */
 		if (0 == SCCP_LIST_GETSIZE(&line->devices)) {
@@ -778,10 +779,10 @@ static void sccp_hint_updateLineState(struct sccp_hint_lineState *lineState)
 
 		} else if (SCCP_LIST_GETSIZE(&line->channels) > 1) {
 			/* line is currently shared between multiple device and has multiple concurrent calls active */
-			sccp_hint_updateLineStateForMultipleChannels(lineState);
+			sccp_hint_updateLineStateForMultipleChannels(lineState, state);
 		} else {
 			/* just one device per line */
-			sccp_hint_updateLineStateForSingleChannel(lineState);
+			sccp_hint_updateLineStateForSingleChannel(lineState, state);
 		}
 
 		/* push changes to pbx */
@@ -793,7 +794,7 @@ static void sccp_hint_updateLineState(struct sccp_hint_lineState *lineState)
  * \brief set hint status for a line with more then one channel
  * \param lineState SCCP LineState
  */
-static void sccp_hint_updateLineStateForMultipleChannels(struct sccp_hint_lineState *lineState)
+static void sccp_hint_updateLineStateForMultipleChannels(struct sccp_hint_lineState * lineState, sccp_channelstate_t state)
 {
 	if (!lineState || !lineState->line) {
 		return;
@@ -802,25 +803,20 @@ static void sccp_hint_updateLineStateForMultipleChannels(struct sccp_hint_lineSt
 
 	memset(lineState->callInfo.partyName, 0, sizeof(lineState->callInfo.partyName));
 	memset(lineState->callInfo.partyNumber, 0, sizeof(lineState->callInfo.partyNumber));
-
-	/* set default calltype = SKINNY_CALLTYPE_OUTBOUND */
-	lineState->callInfo.calltype = SKINNY_CALLTYPE_OUTBOUND;
+	lineState->callInfo.calltype = SKINNY_CALLTYPE_SENTINEL;
+	lineState->state = SCCP_CHANNELSTATE_ONHOOK;
 
 	if (SCCP_LIST_GETSIZE(&line->channels) > 0) {
 		sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s (hint_updateLineStateForMultipleChannels) number of active channels %d\n", line->name, SCCP_LIST_GETSIZE(&line->channels));
 		if (SCCP_LIST_GETSIZE(&line->channels) == 1) {
 			SCCP_LIST_LOCK(&line->channels);
 			AUTO_RELEASE(sccp_channel_t, channel , SCCP_LIST_FIRST(&line->channels) ? sccp_channel_retain(SCCP_LIST_FIRST(&line->channels)) : NULL);
-
 			SCCP_LIST_UNLOCK(&line->channels);
-			lineState->callInfo.calltype = SKINNY_CALLTYPE_SENTINEL;
 
 			if (channel) {
 				lineState->callInfo.calltype = channel->calltype;
-
 				if (channel->state != SCCP_CHANNELSTATE_ONHOOK && channel->state != SCCP_CHANNELSTATE_DOWN) {
 					lineState->state = channel->state;
-
 					sccp_callinfo_t *ci = sccp_channel_getCallInfo(channel);
 					char cid_name[StationMaxNameSize] = {0};
 					char cid_num[StationMaxDirnumSize] = {0};
@@ -847,18 +843,12 @@ static void sccp_hint_updateLineStateForMultipleChannels(struct sccp_hint_lineSt
 						sccp_copy_string(lineState->callInfo.partyName, cid_name, sizeof(lineState->callInfo.partyName));
 						sccp_copy_string(lineState->callInfo.partyNumber, cid_num, sizeof(lineState->callInfo.partyNumber));
 					}
-				} else {
-					lineState->state = SCCP_CHANNELSTATE_ONHOOK;
 				}
-			} else {
-				lineState->state = SCCP_CHANNELSTATE_ONHOOK;
 			}
-		} else if (SCCP_LIST_GETSIZE(&line->channels) > 1) {
-
-			/** we have multiple channels, so do not set cid information */
-			//sccp_copy_string(lineState->callInfo.partyName, SKINNY_DISP_IN_USE_REMOTE, sizeof(lineState->callInfo.partyName));
-			//sccp_copy_string(lineState->callInfo.partyNumber, SKINNY_DISP_IN_USE_REMOTE, sizeof(lineState->callInfo.partyNumber));
-			lineState->state = SCCP_CHANNELSTATE_CONNECTED;
+		} else {
+			sccp_copy_string(lineState->callInfo.partyName, SKINNY_DISP_IN_USE_REMOTE, sizeof(lineState->callInfo.partyName));
+			sccp_copy_string(lineState->callInfo.partyNumber, SKINNY_DISP_IN_USE_REMOTE, sizeof(lineState->callInfo.partyNumber));
+			lineState->state = state;
 		}
 	} else {
 		sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s (hint_updateLineStateForMultipleChannels) no active channels\n", line->name);
@@ -873,13 +863,13 @@ static void sccp_hint_updateLineStateForMultipleChannels(struct sccp_hint_lineSt
  * \param lineState SCCP LineState
  * 
  */
-static void sccp_hint_updateLineStateForSingleChannel(struct sccp_hint_lineState *lineState)
+static void sccp_hint_updateLineStateForSingleChannel(struct sccp_hint_lineState * lineState, sccp_channelstate_t _state)
 {
 	if (!lineState || !lineState->line) {
 		return;
 	}
 	sccp_line_t *line = lineState->line;
-	sccp_channelstate_t state = 0;
+	sccp_channelstate_t state = SCCP_CHANNELSTATE_SENTINEL;
 
 	//boolean_t dev_privacy = FALSE;
 
@@ -1036,7 +1026,7 @@ static void sccp_hint_handleFeatureChangeEvent(const sccp_event_t * event)
 
 							if (line) {
 								sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s (hint_handleFeatureChangeEvent) Notify the dnd status (%s) to asterisk for line %s\n", d->id, d->dndFeature.status ? "on" : "off", line->name);
-								sccp_hint_lineStatusChanged(line);
+								sccp_hint_lineStatusChanged(line, SCCP_CHANNELSTATE_DND);
 							}
 						}
 					}
@@ -1060,54 +1050,33 @@ static enum ast_device_state sccp_hint_hint2DeviceState(sccp_channelstate_t stat
 			break;
 		case SCCP_CHANNELSTATE_RINGOUT:
 		case SCCP_CHANNELSTATE_RINGOUT_ALERTING:
-#ifdef CS_EXPERIMENTAL
+		case SCCP_CHANNELSTATE_CALLWAITING:
 			newDeviceState = AST_DEVICE_RINGINUSE;
 			break;
-#endif
 		case SCCP_CHANNELSTATE_RINGING:
 			newDeviceState = AST_DEVICE_RINGING;
 			break;
 		case SCCP_CHANNELSTATE_HOLD:
 			newDeviceState = AST_DEVICE_ONHOLD;
 			break;
-		case SCCP_CHANNELSTATE_BUSY:
-#ifdef CS_EXPERIMENTAL
-			newDeviceState = AST_DEVICE_BUSY;
-			break;
-#endif
 		case SCCP_CHANNELSTATE_DND:
-#ifndef CS_EXPERIMENTAL
-		case SCCP_CHANNELSTATE_PROCEED:
-		case SCCP_CHANNELSTATE_PROGRESS:
-		case SCCP_CHANNELSTATE_GETDIGITS:
-		case SCCP_CHANNELSTATE_DIALING:
-		case SCCP_CHANNELSTATE_DIGITSFOLL:
-#else
-			/* and this is wrong too, it should only be busy if DND <<busy>>, not in all cases */
-#endif
+		case SCCP_CHANNELSTATE_BUSY:
 			newDeviceState = AST_DEVICE_BUSY;
 			break;
 		case SCCP_CHANNELSTATE_ZOMBIE:
 		case SCCP_CHANNELSTATE_CONGESTION:
-#ifndef CS_EXPERIMENTAL
-		case SCCP_CHANNELSTATE_SPEEDDIAL:
-		case SCCP_CHANNELSTATE_INVALIDCONFERENCE:
-#endif
 			newDeviceState = AST_DEVICE_UNAVAILABLE;
 			break;
-#ifdef CS_EXPERIMENTAL
 		case SCCP_CHANNELSTATE_PROCEED:
 		case SCCP_CHANNELSTATE_PROGRESS:
 		case SCCP_CHANNELSTATE_GETDIGITS:
 		case SCCP_CHANNELSTATE_DIALING:
 		case SCCP_CHANNELSTATE_DIGITSFOLL:
-#endif
 		case SCCP_CHANNELSTATE_INVALIDNUMBER:
 		case SCCP_CHANNELSTATE_CONNECTEDCONFERENCE:
 		case SCCP_CHANNELSTATE_OFFHOOK:
 		case SCCP_CHANNELSTATE_CONNECTED:
 		case SCCP_CHANNELSTATE_BLINDTRANSFER:
-		case SCCP_CHANNELSTATE_CALLWAITING:
 		case SCCP_CHANNELSTATE_CALLTRANSFER:
 		case SCCP_CHANNELSTATE_CALLCONFERENCE:
 		case SCCP_CHANNELSTATE_CALLPARK:
@@ -1115,11 +1084,9 @@ static enum ast_device_state sccp_hint_hint2DeviceState(sccp_channelstate_t stat
 			newDeviceState = AST_DEVICE_INUSE;
 			break;
 		case SCCP_CHANNELSTATE_SENTINEL:
-#ifdef CS_EXPERIMENTAL
 		case SCCP_CHANNELSTATE_SPEEDDIAL:
 		case SCCP_CHANNELSTATE_INVALIDCONFERENCE:
 		        /* returning UNKNOWN */
-#endif
 			break;
 	}
 	return newDeviceState;

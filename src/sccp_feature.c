@@ -207,6 +207,14 @@ static int sccp_feat_perform_pickup(constDevicePtr d, channelPtr c, PBX_CHANNEL_
 				 SCCP_CALLINFO_HUNT_PILOT_NUMBER, target_number,                                        // gets displayed as 'FOR'
 				 SCCP_CALLINFO_LAST_REDIRECT_REASON, 5, SCCP_CALLINFO_KEY_SENTINEL);
 
+		// force update of hinted speeddials to Proceed
+		sccp_event_t * event = sccp_event_allocate(SCCP_EVENT_LINESTATUS_CHANGED);
+		if(event) {
+			event->lineStatusChanged.line = sccp_line_retain(c->line);
+			event->lineStatusChanged.optional_device = sccp_device_retain(d);
+			event->lineStatusChanged.state = SCCP_CHANNELSTATE_PROCEED;
+			sccp_event_fire(event);
+		}
 		sccp_log((DEBUGCAT_FEATURE))(VERBOSE_PREFIX_3 "%s: (perform_pickup) channel:%s, modeanser: %s\n", DEV_ID_LOG(d), c->designator, answer ? "yes" : "no");
 		if(answer) {
 			/* emulate previous indications, before signalling connected */
@@ -220,6 +228,7 @@ static int sccp_feat_perform_pickup(constDevicePtr d, channelPtr c, PBX_CHANNEL_
 			sccp_indicate(d, c, SCCP_CHANNELSTATE_RINGING);
 			sccp_dev_set_cplane(d, lineInstance, 1);
 		}
+
 		/* hangup masqueraded zombie channel*/
 		if(pbx_test_flag(pbx_channel_flags(original), AST_FLAG_ZOMBIE)) {
 			pbx_hangup(original);
