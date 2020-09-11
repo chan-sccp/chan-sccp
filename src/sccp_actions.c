@@ -2243,6 +2243,9 @@ static void handle_feature_action(constDevicePtr d, const int instance, const bo
 				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: priority feature status: icon:%d, color:%d, rithm:%d, total: %d\n", d->id, icon, color, rithm, priFeature->status);
 			}
 			break;
+			case SCCP_FEATURE_CALLBACK: {
+				pbx_log(LOG_WARNING, "%s: handling callback feature:%d\n", d->id, config->button.feature.id);
+			} break;
 
 		default:
 			pbx_log(LOG_WARNING, "%s: unknown feature:%d\n", d->id, config->button.feature.id);
@@ -2806,10 +2809,10 @@ void handle_soft_key_set_req(constSessionPtr s, devicePtr d, constMessagePtr msg
 			if ((b[c] == SKINNY_LBL_MEETME) && (!meetme)) {
 				continue;
 			}
-#ifndef CS_ADV_FEATURES
-			if (b[c] == SKINNY_LBL_CALLBACK) {
+			if(b[c] == SKINNY_LBL_CALLBACK && FALSE) {
 				continue;
 			}
+#ifndef CS_ADV_FEATURES
 			if (b[c] == SKINNY_LBL_CBARGE) {
 				continue;
 			}
@@ -3227,7 +3230,7 @@ void handle_soft_key_event(constSessionPtr s, devicePtr d, constMessagePtr msg_i
 	AUTO_RELEASE(sccp_line_t, l, NULL);
 	AUTO_RELEASE(sccp_channel_t, c, NULL);
 	/* we have no line and call information -> use default line */
-	if (!lineInstance && !callid && (event == SKINNY_LBL_NEWCALL || event == SKINNY_LBL_REDIAL)) {
+	if(!lineInstance && !callid && (event == SKINNY_LBL_NEWCALL || event == SKINNY_LBL_REDIAL || event == SKINNY_LBL_CALLBACK)) {
 		if (d->defaultLineInstance > 0) {
 			lineInstance = d->defaultLineInstance;
 		} else {

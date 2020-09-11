@@ -125,6 +125,13 @@ linePtr sccp_line_create(const char * name)
 	SCCP_LIST_HEAD_INIT(&l->channels);
 	SCCP_LIST_HEAD_INIT(&l->devices);
 	SCCP_LIST_HEAD_INIT(&l->mailboxes);
+
+	l->cc_params = pbx_cc_config_params_init();
+	pbx_cc_default_config_params(l->cc_params);
+	l->cc_core_id = -1;
+	l->cc_state = SCCP_CC_UNKNOWN;
+
+	pbx_log(LOG_NOTICE, "cc_params: %p\n", l->cc_params);
 	return l;
 }
 
@@ -336,6 +343,10 @@ int __sccp_line_destroy(const void *ptr)
 	}
 	SCCP_LIST_UNLOCK(&l->devices);
 	SCCP_LIST_HEAD_DESTROY(&l->devices);
+
+	if(l->cc_params) {
+		pbx_cc_config_params_destroy(l->cc_params);
+	}
 
 	return 0;
 }

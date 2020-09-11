@@ -60,6 +60,7 @@ __BEGIN_C_EXTERN__
 #include <asterisk/bridge_channel.h>
 #include <asterisk/format_cap.h>		// for AST_FORMAT_CAP_NAMES_LEN
 #include <asterisk/say.h>                                        // PARKING
+#include <asterisk/ccss.h>                                        // for Call Completion
 
 #define new avoid_cxx_new_keyword
 #include <asterisk/rtp_engine.h>
@@ -103,6 +104,9 @@ static boolean_t sccp_astwrap_setWriteFormat(constChannelPtr channel, skinny_cod
 static boolean_t sccp_astwrap_setReadFormat(constChannelPtr channel, skinny_codec_t codec);
 PBX_CHANNEL_TYPE *sccp_astwrap_findPickupChannelByExtenLocked(PBX_CHANNEL_TYPE * chan, const char *exten, const char *context);
 PBX_CHANNEL_TYPE *sccp_astwrap_findPickupChannelByGroupLocked(PBX_CHANNEL_TYPE * chan);
+#if 0
+static int sccp_astwrap_queryOption(struct ast_channel *chan, int option, void *data, int *datalen);
+#endif
 
 static inline skinny_codec_t sccp_astwrap_getSkinnyFormatSingle(struct ast_format_cap *ast_format_capability)
 {
@@ -265,7 +269,8 @@ static struct ast_channel_tech sccp_tech = {
 	indicate: sccp_astwrap_indicate,
 	fixup: sccp_astwrap_fixup,
 	setoption: NULL,
-	queryoption: NULL,
+	// queryoption: sccp_astwrap_queryOption,
+	// cc_callback: sccp_astgenwrap_pbx_cc_callback,
 	transfer: NULL,
 	write_video: sccp_astwrap_rtp_write,
 	write_text: NULL,
@@ -325,12 +330,13 @@ struct ast_channel_tech sccp_tech = {
 	.send_digit_begin = sccp_wrapper_recvdigit_begin,
 	.send_digit_end = sccp_wrapper_recvdigit_end,
 
+	//.cc_callback = sccp_astgenwrap_pbx_cc_callback,
+	//.queryoption = sccp_astwrap_queryOption,
+
 	//.write_text           =
 	//.write_video          =
-	//.cc_callback          =                                              // ccss, new >1.6.0
 	//.exception            =                                              // new >1.6.0
 	//.setoption            = sccp_astwrap_setOption,
-	//.queryoption          =                                              // new >1.6.0
 	//.get_pvt_uniqueid     = sccp_pbx_get_callid,                         // new >1.6.0
 	//.get_base_channel     =
 	//.set_base_channel     =
@@ -841,7 +847,7 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 			{
 				/*! \todo This would also be a good moment to update the c->requestHangup to requestQueueHangup */
 				int hangupcause = ast_channel_hangupcause(ast);
-				sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE))(VERBOSE_PREFIX_3 "%s: hangup cause set: %d\n", c->designator, hangupcause);
+				sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE))(VERBOSE_PREFIX_3 "%s: hangup cause set: %s\n", c->designator, ast_cause2str(hangupcause));
 				// res = -1;
 				if (ast_check_hangup_locked(ast)) {
 					pbx_log(LOG_NOTICE, "SCCP: (astwrap_indicate) pvt_cause_code hangup\n");
@@ -853,6 +859,10 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 
 		case AST_CONTROL_MASQUERADE_NOTIFY:
 			res = -1;										// Return -1 so that asterisk core will correctly set up hangupcauses.
+			break;
+
+		case AST_CONTROL_CC:
+			sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE))(VERBOSE_PREFIX_3 "%s: Call Completion is possible\n", c->designator);
 			break;
 
 		case -1:											// Asterisk prod the channel /* STOP_TONE */
@@ -1283,6 +1293,19 @@ static boolean_t sccp_astwrap_allocPBXChannel(sccp_channel_t * channel, const vo
 	/** the the tonezone using language information */
 	if (!sccp_strlen_zero(line->language) && ast_get_indication_zone(line->language)) {
 		ast_channel_zone_set(pbxDstChannel, ast_get_indication_zone(line->language));			/* this will core asterisk on hangup */
+	}
+
+	if(pbxSrcChannel) {
+		AUTO_RELEASE(sccp_channel_t, srcchannel, get_sccp_channel_from_pbx_channel(pbxSrcChannel));
+		if(srcchannel) {
+			ast_cc_copy_config_params(channel->cc_params, srcchannel->cc_params);
+		}
+	}
+	if(channel->cc_params) {
+		ast_channel_cc_params_init(pbxDstChannel, channel->cc_params);
+	}
+	if(ast_get_cc_agent_policy(channel->cc_params) != AST_CC_AGENT_NATIVE) {
+		pbx_log(LOG_ERROR, "cc_params agent policy not set to Native\n");
 	}
 
 	ast_channel_stage_snapshot_done(pbxDstChannel);
@@ -2990,6 +3013,40 @@ static PBX_CHANNEL_TYPE *sccp_astwrap_findChannelWithCallback(int (*const found_
 	return remotePeer;
 }
 
+#if 0
+static int sccp_astwrap_queryOption(struct ast_channel *ast, int option, void *data, int *datalen)
+{
+        int res = -1;
+	AUTO_RELEASE(sccp_channel_t, c , get_sccp_channel_from_pbx_channel(ast));
+        //char *char_data = (char *) data;
+
+        if (!c) {
+                pbx_log(LOG_ERROR, "Cannot find the associated private channel. Private structure is gone!\n");
+                return -1;
+        }
+
+        sccp_mutex_lock(&c->lock);
+        switch (option) {
+		case AST_OPTION_DEVICE_NAME:
+/*			if (!sccp_strlen_zero(c->dialedNumber)) {
+				sccp_copy_string(char_data, c->dialedNumber, *datalen);
+				res = 0;
+				pbx_log(LOG_NOTICE, "%s: returning AST_OPTION_DEVICE_NAME:%s\n", c->designator, char_data);
+			}*/
+			/* We purposely break with a return of -1 in the
+			 * implied else case here
+			 */
+			break;
+	        default:
+	                break;
+        }
+        sccp_mutex_unlock(&c->lock);
+
+        return res;
+                
+}
+#endif
+
 /*! \brief Set an option on a asterisk channel */
 #if 0
 static int sccp_astwrap_setOption(PBX_CHANNEL_TYPE * ast, int option, void *data, int datalen)
@@ -3891,6 +3948,7 @@ static int unload_module(void)
 		sched = NULL;
 	}
 
+	sccp_astgenwrap_unregister_cc_agent_callback();
 	pbx_log(LOG_NOTICE, "Running Cleanup\n");
 	sccp_free(sccp_globals);
 	pbx_log(LOG_NOTICE, "Module chan_sccp unloaded\n");
@@ -3972,6 +4030,10 @@ static enum ast_module_load_result load_module(void)
 		}
 		if (!sccp_postPBX_load()) {
 			pbx_log(LOG_ERROR, "SCCP: postPBXLoad Failed\n");
+			break;
+		}
+		if(!sccp_astgenwrap_register_cc_agent_callback()) {
+			pbx_log(LOG_ERROR, "SCCP: Failed to register cc agent callbacks\n");
 			break;
 		}
 		res = AST_MODULE_LOAD_SUCCESS;

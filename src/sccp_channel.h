@@ -19,6 +19,8 @@
 #define sccp_channel_refreplace(_x, _y)	sccp_refcount_refreplace_type(sccp_channel_t, _x, _y)
 
 __BEGIN_C_EXTERN__
+
+typedef struct pbx_cc_config_params pbx_cc_config_params_t;
 /*!
  * \brief SCCP Channel Structure
  * \note This contains the current channel information
@@ -114,6 +116,7 @@ struct sccp_channel {
 	sccp_autoanswer_t autoanswer_type;									/*!< Auto Answer Type */
 	uint16_t autoanswer_cause;										/*!< Auto Answer Cause */
 	pbx_event_subscription_t * parking_sub;
+	pbx_cc_config_params_t * cc_params;
 
 #if ASTERISK_VERSION_GROUP >= 111
 	pbx_callid_t pbx_callid;

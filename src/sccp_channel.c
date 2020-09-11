@@ -303,6 +303,12 @@ channelPtr sccp_channel_allocate(constLinePtr l, constDevicePtr device)
 			sccp_line_updateCapabilitiesFromDevicesToLine(refLine);			// bit of a hack, UpdateCapabilties is done (long) after device registration
 		}
 		channel->setDevice(channel, device, FALSE);
+		channel->cc_params = ast_cc_config_params_init();
+		if(l->cc_params) {
+			pbx_cc_copy_config_params(channel->cc_params, l->cc_params);
+		} else {
+			pbx_cc_default_config_params(channel->cc_params);
+		}
 
 		/* return new channel */
 		sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: New channel number: %d on line %s\n", l->id, channel->callid, l->name);
@@ -2379,6 +2385,9 @@ int __sccp_channel_destroy(const void * data)
 	sccp_free(*(struct sccp_private_channel_data **)&channel->privateData);
 	sccp_line_release((sccp_line_t **)&channel->line);
 	/* */
+	if(channel->cc_params) {
+		ast_cc_config_params_destroy(channel->cc_params);
+	}
 
 #ifndef SCCP_ATOMIC
 	pbx_mutex_destroy(&channel->scheduler.lock);

@@ -20,6 +20,7 @@
 #include "sccp_atomic.h"
 #include "sccp_line.h"
 #include "sccp_linedevice.h"
+#include "sccp_labels.h"                                        // Call Completion Agent
 
 SCCP_FILE_VERSION(__FILE__, "");
 
@@ -1536,6 +1537,221 @@ void sccp_astgenwrap_set_named_pickupgroups(sccp_channel_t *channel, struct ast_
 	}
 }
 #endif
+
+/* Call Completion */
+int sccp_astgenwrap_pbx_cc_callback(struct ast_channel * inbound, const char * dest, ast_cc_callback_fn callback)
+{
+	sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_1 "%s: (call completion callback) destination:%s, callback function:%p\n", inbound ? pbx_channel_name(inbound) : "<no channel>", dest, callback);
+	return 0;
+}
+
+struct sccp_cc_agent_pvt {
+	int offer_timer_id;
+	ast_callid original_callid;
+	char original_exten[DEFAULT_PBX_STR_BUFFERSIZE];
+	char deviceid[StationMaxDeviceNameSize];
+	char linename[StationMaxNameSize];
+	uint8_t lineInstance;
+	char is_available;
+	skinny_keymode_t restore_keymode;
+	int core_id;
+};
+
+static int __pbx_cc_agent_init(struct ast_cc_agent * agent, PBX_CHANNEL_TYPE * ast)
+{
+	struct sccp_cc_agent_pvt * agent_pvt = ast_calloc(1, sizeof(*agent_pvt));
+	if(!agent_pvt) {
+		pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, "SCCP");
+		return -1;
+	}
+	ast_assert(!strcmp(ast_channel_tech(ast)->type, "SCCP"));
+	sccp_channel_t * channel = ast_channel_tech_pvt(ast);
+	pbx_log(LOG_NOTICE, "SCCP_CC: agent_init for %s\n", channel->designator);
+
+	agent_pvt->original_callid = ast_channel_callid(ast);
+	sccp_copy_string(agent_pvt->original_exten, channel->dialedNumber, sizeof(agent_pvt->original_exten));
+	agent_pvt->offer_timer_id = -1;
+	agent->private_data = agent_pvt;
+	if(channel) {
+		sccp_copy_string(agent_pvt->linename, channel->line->name, sizeof(agent_pvt->linename));
+		AUTO_RELEASE(sccp_device_t, d, sccp_channel_getDevice(channel));
+		if(d) {
+			sccp_copy_string(agent_pvt->deviceid, d->id, sizeof(agent_pvt->deviceid));
+			agent_pvt->restore_keymode = sccp_dev_get_keymode(d);
+			agent_pvt->lineInstance = sccp_device_find_index_for_line(d, channel->line->name);
+		}
+		channel->line->cc_state = SCCP_CC_OFFERED;
+	}
+	agent_pvt->core_id = agent->core_id;
+	return 0;
+}
+
+static int __pbx_cc_agent_offer_timer_expire(const void * data)
+{
+	pbx_log(LOG_NOTICE, "SCCP_CC: start offer timer -> set softkeyset:'callback'\n");
+	struct ast_cc_agent * agent = (struct ast_cc_agent *)data;
+	struct sccp_cc_agent_pvt * agent_pvt = agent->private_data;
+
+	agent_pvt->offer_timer_id = -1;
+	AUTO_RELEASE(sccp_line_t, l, sccp_line_find_byname(agent_pvt->linename, FALSE));
+	if(l) {
+		l->cc_core_id = -1;
+		l->cc_state = SCCP_CC_OFFER_TIMEDOUT;
+	}
+	AUTO_RELEASE(sccp_device_t, d, sccp_device_find_byid(agent_pvt->deviceid, FALSE));
+	if(d) {
+		sccp_dev_set_keyset(d, agent_pvt->lineInstance, 0, agent_pvt->restore_keymode);
+		sccp_device_clearMessageFromStack(d, SCCP_MESSAGE_PRIORITY_CALLBACK);
+	}
+	return ast_cc_failed(agent->core_id, "SCCP CC agent %s's offer timer expired", agent->device_name);
+}
+
+static int __pbx_cc_agent_start_offer_timer(struct ast_cc_agent * agent)
+{
+	struct sccp_cc_agent_pvt * agent_pvt = agent->private_data;
+	pbx_log(LOG_NOTICE, "SCCP_CC: start offer timer for %s@%s-> set softkeyset:'callback'\n", agent_pvt->linename, agent_pvt->deviceid);
+	int when = ast_get_cc_offer_timer(agent->cc_params) * 1000;
+	agent_pvt->offer_timer_id = iPbx.sched_add(when, __pbx_cc_agent_offer_timer_expire, agent);
+	AUTO_RELEASE(sccp_line_t, l, sccp_line_find_byname(agent_pvt->linename, FALSE));
+	if(l) {
+		l->cc_core_id = agent->core_id;
+		// l->cc_state = SCCP_CC_OFFERED;
+	}
+	AUTO_RELEASE(sccp_device_t, d, sccp_device_find_byid(agent_pvt->deviceid, FALSE));
+	if(d) {
+		pbx_str_t * buf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
+		ast_str_append(&buf, DEFAULT_PBX_STR_BUFFERSIZE, "%s %s", SKINNY_DISP_CALLBACK, agent_pvt->original_exten);
+		sccp_device_addMessageToStack(d, SCCP_MESSAGE_PRIORITY_CALLBACK, pbx_str_buffer(buf));
+		sccp_dev_set_keyset(d, agent_pvt->lineInstance, 0, KEYMODE_CALLCOMPLETION);
+	}
+	return 0;
+}
+static int __pbx_cc_agent_stop_offer_timer(struct ast_cc_agent * agent)
+{
+	pbx_log(LOG_NOTICE, "SCCP_CC: stop offer timer -> revert softkeyset:'default'\n");
+	struct sccp_cc_agent_pvt * agent_pvt = agent->private_data;
+	iPbx.sched_del(agent_pvt->offer_timer_id);
+	AUTO_RELEASE(sccp_line_t, l, sccp_line_find_byname(agent_pvt->linename, FALSE));
+	if(l) {
+		l->cc_core_id = -1;
+		l->cc_state = SCCP_CC_OFFER_TIMEDOUT;
+	}
+	AUTO_RELEASE(sccp_device_t, d, sccp_device_find_byid(agent_pvt->deviceid, FALSE));
+	if(d) {
+		sccp_dev_set_keyset(d, agent_pvt->lineInstance, 0, agent_pvt->restore_keymode);
+		sccp_device_clearMessageFromStack(d, SCCP_MESSAGE_PRIORITY_CALLBACK);
+	}
+	return 0;
+}
+static void __pbx_cc_agent_respond(struct ast_cc_agent * agent, enum ast_cc_agent_response_reason reason)
+{
+	pbx_log(LOG_NOTICE, "SCCP_CC: agent respond\n");
+	struct sccp_cc_agent_pvt * agent_pvt = agent->private_data;
+	if(reason == AST_CC_AGENT_RESPONSE_SUCCESS) {
+		AUTO_RELEASE(sccp_line_t, l, sccp_line_find_byname(agent_pvt->linename, FALSE));
+		if(l) {
+			l->cc_state = SCCP_CC_QUEUED;
+		}
+		AUTO_RELEASE(sccp_device_t, d, sccp_device_find_byid(agent_pvt->deviceid, FALSE));
+		if(d) {
+			// sccp_dev_displayprompt(d, agent_pvt->lineInstance, 0, "Callback scheduled", SCCP_DISPLAYSTATUS_TIMEOUT);
+			pbx_str_t * buf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
+			ast_str_append(&buf, DEFAULT_PBX_STR_BUFFERSIZE, "%s %s:%s", SKINNY_DISP_CALLBACK, SKINNY_DISP_CALLS_IN_QUEUE, agent_pvt->original_exten);
+			sccp_device_addMessageToStack(d, SCCP_MESSAGE_PRIORITY_CALLBACK, pbx_str_buffer(buf));
+			sccp_dev_starttone(d, SKINNY_TONE_CAMPONINDICATIONTONE, agent_pvt->lineInstance, 0, SKINNY_TONEDIRECTION_USER);
+			sccp_dev_set_keyset(d, agent_pvt->lineInstance, 0, KEYMODE_CALLBACK);
+		}
+	}
+	agent_pvt->is_available = TRUE;
+}
+static int __pbx_cc_agent_status_request(struct ast_cc_agent * agent)
+{
+	pbx_log(LOG_NOTICE, "SCCP_CC: status request\n");
+	// ast_cc_agent_status_response(agent->core_id, ast_device_state(agent->device_name));
+	struct sccp_cc_agent_pvt * agent_pvt = agent->private_data;
+	enum ast_device_state state = agent_pvt->is_available ? AST_DEVICE_NOT_INUSE : AST_DEVICE_INUSE;
+	return ast_cc_agent_status_response(agent->core_id, state);
+}
+static int __pbx_cc_agent_start_monitoring(struct ast_cc_agent * agent)
+{
+	pbx_log(LOG_NOTICE, "SCCP_CC: start monitoring -> update softkeys:'callback'-> show status, 'cancel':allow cc cancellation\n");
+	/* To start monitoring just means to wait for an incoming PUBLISH
+	 * to tell us that the caller has become available again. No special
+	 * action is needed
+	 */
+	return 0;
+}
+static int __pbx_cc_agent_recall(struct ast_cc_agent * agent)
+{
+	struct sccp_cc_agent_pvt * agent_pvt = agent->private_data;
+	if(!agent_pvt->is_available) {
+		return ast_cc_agent_caller_busy(agent->core_id, "Caller %s is busy, reporting to the core", agent->device_name);
+	}
+
+	pbx_log(LOG_NOTICE, "SCCP_CC: agent recall: destination is free to call back, play beep, display status bar message, update softkeyset:'recall'\n");
+	iPbx.sched_del(agent_pvt->offer_timer_id);
+
+	sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_2 "%s: CallCompletion previously calledparty %s is available now\n", agent_pvt->linename, agent->device_name);
+	AUTO_RELEASE(sccp_line_t, l, sccp_line_find_byname(agent_pvt->linename, FALSE));
+	AUTO_RELEASE(sccp_device_t, d, sccp_device_find_byid(agent_pvt->deviceid, FALSE));
+	if(l && d) {
+		uint8_t lineInstance = agent_pvt->lineInstance;
+
+		sccp_device_clearMessageFromStack(d, SCCP_MESSAGE_PRIORITY_CALLBACK);
+		AUTO_RELEASE(sccp_channel_t, c, sccp_channel_getEmptyChannel(l, d, NULL, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL));
+		if(!c) {
+			pbx_log(LOG_ERROR, "%s: Can't allocate SCCP channel for line %s\n", d->id, l->name);
+			return -1;
+		}
+		c->softswitch_action = SCCP_SOFTSWITCH_DIAL;
+		c->ss_data = 0;
+
+		sccp_copy_string(c->dialedNumber, agent_pvt->original_exten, sizeof(c->dialedNumber));
+		iPbx.set_callstate(c, AST_STATE_OFFHOOK);
+
+		sccp_indicate(d, c, SCCP_CHANNELSTATE_OFFHOOK);
+		sccp_channel_set_calledparty(c, NULL, c->dialedNumber);
+		d->protocol->sendDialedNumber(d, lineInstance, c->callid, c->dialedNumber);
+		pbx_str_t * buf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
+		ast_str_append(&buf, DEFAULT_PBX_STR_BUFFERSIZE, "%s:%s %s", SKINNY_DISP_CALLBACK, agent_pvt->original_exten, SKINNY_DISP_READY);
+		sccp_indicate(d, c, SCCP_CHANNELSTATE_DIALING);
+		sccp_dev_displayprompt(d, lineInstance, c->callid, pbx_str_buffer(buf), GLOB(digittimeout));
+		sccp_dev_set_keyset(d, agent_pvt->lineInstance, c->callid, KEYMODE_CALLBACK);
+		l->cc_state = SCCP_CC_PARTY_AVAILABLE;
+		// setLinkedId
+		return 0;
+	}
+	return -1;
+}
+static void __pbx_cc_agent_destructor(struct ast_cc_agent * agent)
+{
+	struct sccp_cc_agent_pvt * agent_pvt = agent->private_data;
+	pbx_log(LOG_NOTICE, "SCCP_CC: agent destructor for %s@%s\n", agent_pvt->linename, agent_pvt->deviceid);
+	sccp_free(agent_pvt);
+}
+
+static struct ast_cc_agent_callbacks sccp_astgenwrap_pbx_cc_agent_callbacks = {
+	.type = "SCCP",
+	.init = __pbx_cc_agent_init,
+	.start_offer_timer = __pbx_cc_agent_start_offer_timer,
+	.stop_offer_timer = __pbx_cc_agent_stop_offer_timer,
+	.respond = __pbx_cc_agent_respond,
+	.status_request = __pbx_cc_agent_status_request,
+	.start_monitoring = __pbx_cc_agent_start_monitoring,
+	.callee_available = __pbx_cc_agent_recall,
+	.destructor = __pbx_cc_agent_destructor,
+};
+
+int sccp_astgenwrap_register_cc_agent_callback(void)
+{
+	pbx_log(LOG_NOTICE, "SCCP_CC: registering cc_agent callbacks\n");
+	return !ast_cc_agent_register(&sccp_astgenwrap_pbx_cc_agent_callbacks);
+}
+void sccp_astgenwrap_unregister_cc_agent_callback(void)
+{
+	pbx_log(LOG_NOTICE, "SCCP_CC: registering cc_agent callbacks\n");
+	ast_cc_agent_unregister(&sccp_astgenwrap_pbx_cc_agent_callbacks);
+}
 
 enum ast_pbx_result pbx_pbx_start(PBX_CHANNEL_TYPE * pbx_channel)
 {

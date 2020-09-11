@@ -171,6 +171,9 @@ void sccp_astgenwrap_set_pickupgroup(sccp_channel_t *channel, ast_group_t value)
 void sccp_astgenwrap_set_named_callgroups(sccp_channel_t *channel, struct ast_namedgroups *value);
 void sccp_astgenwrap_set_named_pickupgroups(sccp_channel_t *channel, struct ast_namedgroups *value);
 #endif
+int sccp_astgenwrap_pbx_cc_callback(struct ast_channel * inbound, const char * dest, ast_cc_callback_fn callback);
+int sccp_astgenwrap_register_cc_agent_callback(void);
+void sccp_astgenwrap_unregister_cc_agent_callback(void);
 
 enum ast_pbx_result pbx_pbx_start(struct ast_channel *pbx_channel);
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

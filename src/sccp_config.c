@@ -320,6 +320,7 @@ sccp_value_changed_t sccp_config_parse_jbflags_jbresyncthreshold(void * const de
 sccp_value_changed_t sccp_config_checkButton(sccp_buttonconfig_list_t *buttonconfigList, int buttonindex, sccp_config_buttontype_t type, const char *name, const char *options, const char *args);
 sccp_value_changed_t sccp_config_parse_webdir(void * const dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
 sccp_value_changed_t sccp_config_parse_earlyrtp(void * const dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
+sccp_value_changed_t sccp_config_parse_cc_params(void * const dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
 
 #include "sccp_config_entries.hh"
 
@@ -1530,6 +1531,23 @@ sccp_value_changed_t sccp_config_parse_earlyrtp(void * const dest, const size_t 
 	if(new != old) {
 		*(boolean_t *)dest = new;
 		changed = SCCP_CONFIG_CHANGE_CHANGED;
+	}
+	return changed;
+}
+
+/*!
+ * \brief Config Converter/Parser for Call Completion Parameters
+ */
+sccp_value_changed_t sccp_config_parse_cc_params(void * const dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
+{
+	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
+	pbx_cc_config_params_t * dst = *(pbx_cc_config_params_t **)dest;
+	pbx_log(LOG_NOTICE, "cc_param:%p parsing:%s->%s\n", dst, v->name, v->value);
+	if(pbx_cc_is_config_param(v->name)) {
+		pbx_cc_set_param(dst, v->name, v->value);
+		changed = SCCP_CONFIG_CHANGE_CHANGED;
+	} else {
+		changed = SCCP_CONFIG_CHANGE_INVALIDVALUE;
 	}
 	return changed;
 }
@@ -3196,6 +3214,10 @@ void sccp_config_softKeySet(PBX_VARIABLE_TYPE * variable, const char *name)
 			keyMode = KEYMODE_ONHOOKSTEALABLE;
 		} else if (sccp_strcaseequals(variable->name, "holdconf")) {
 			keyMode = KEYMODE_HOLDCONF;
+		} else if(sccp_strcaseequals(variable->name, "callcompletion")) {
+			keyMode = KEYMODE_CALLCOMPLETION;
+		} else if(sccp_strcaseequals(variable->name, "callback")) {
+			keyMode = KEYMODE_CALLBACK;
 		}
 
 		if (keyMode != SKINNY_KEYMODE_SENTINEL) {

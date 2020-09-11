@@ -1628,7 +1628,9 @@ static int sccp_show_line(int fd, sccp_cli_totals_t *totals, struct mansession *
 	CLI_AMI_OUTPUT_PARAM("Active Channels",		CLI_AMI_LIST_WIDTH, "%i", l->statistic.numberOfActiveChannels);
 	CLI_AMI_OUTPUT_PARAM("Held Channels",		CLI_AMI_LIST_WIDTH, "%i", l->statistic.numberOfHeldChannels);
 	//CLI_AMI_OUTPUT_PARAM("DND Devices",		CLI_AMI_LIST_WIDTH, "%i", l->statistic.numberOfDNDDevices);
+	CLI_AMI_OUTPUT_PARAM("Call Completion: Core",	CLI_AMI_LIST_WIDTH, "%i", l->cc_core_id);
 	/* clang-format on */
+	/* *INDENT-ON* */
 	if (s) {
 		astman_append(s, "\r\n");
 	}

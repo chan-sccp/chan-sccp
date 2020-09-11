@@ -168,6 +168,20 @@ FINAL:
 	return NULL;
 }
 
+static void sccp_pbx_setup_cc(channelPtr c, pbx_cc_service_t service)
+{
+	int core_id = ast_cc_get_current_core_id(c->owner);
+	// sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: !! CoreId: %d\n", c->designator, core_id);
+	if(core_id != -1 && c->cc_params) {
+		sccp_log((DEBUGCAT_PBX))(VERBOSE_PREFIX_3 "%s: Setting up CallCompletion:%d\n", c->designator, service);
+		char interface_name[PBX_CHANNEL_NAME];
+		pbx_channel_get_device_name(c->owner, interface_name, sizeof(interface_name));
+		pbx_queue_cc_frame(c->owner, AST_CC_GENERIC_MONITOR_TYPE, interface_name, service, NULL);
+		c->line->cc_core_id = core_id;
+		c->line->cc_state = SCCP_CC_CORE_ID_SET;
+	}
+}
+
 /*!
  * \brief Incoming Calls by Asterisk SCCP_Request
  * \param c SCCP Channel
@@ -408,6 +422,7 @@ int sccp_pbx_call(channelPtr c, const char * dest, int timeout)
 	if (isRinging) {
 		sccp_channel_setChannelstate(c, SCCP_CHANNELSTATE_RINGING);
 		iPbx.set_callstate(c, AST_STATE_RINGING);
+		sccp_pbx_setup_cc(c, AST_CC_CCNR);
 		iPbx.queue_control(c->owner, AST_CONTROL_RINGING);
 	} else if (ForwardingLineDevice) {
 		/* when single line -> use asterisk functionality directly, without creating new channel + masquerade */
@@ -420,12 +435,14 @@ int sccp_pbx_call(channelPtr c, const char * dest, int timeout)
 		sccp_device_sendcallstate(ForwardingLineDevice->device, ForwardingLineDevice->lineInstance, c->callid, SKINNY_CALLSTATE_INTERCOMONEWAY, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 		sccp_channel_send_callinfo(ForwardingLineDevice->device, c);
 	} else if(isBusy) {
+		sccp_pbx_setup_cc(c, AST_CC_CCBS);
 		iPbx.queue_control(c->owner, AST_CONTROL_BUSY);
 		// iPbx.set_callstate(c, AST_STATE_BUSY);
 		// pbx_channel_set_hangupcause(c->owner, AST_CAUSE_USER_BUSY);
 		pbx_channel_set_hangupcause(c->owner, AST_CAUSE_BUSY);
 		res = 0;
 	} else {
+		sccp_pbx_setup_cc(c, AST_CC_CCNR);
 		iPbx.queue_control(c->owner, AST_CONTROL_CONGESTION);
 		res = -1;
 	}
@@ -540,18 +557,29 @@ channelPtr sccp_pbx_hangup(constChannelPtr channel)
 	c->isHangingUp = TRUE;
 	sccp_log_and((DEBUGCAT_PBX + DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "%s: Asked to hangup channel.\n", c->designator);
 
+	/*	pbx_log(LOG_NOTICE, "%s: (sccp_pbx_hangup) Checking dialstatus to send Call Completion Frame (%p)\n", c->designator, c->cc_params);
+		if (SKINNY_CALLTYPE_INBOUND != c->calltype && c->cc_params) {
+			pbx_log(LOG_NOTICE, "%s: (sccp_pbx_hangup) Checking dialstatus to send Call Completion Frame (%p)\n", c->designator, c->cc_params);
+			const char *status = pbx_builtin_getvar_helper(c->owner, "DIALSTATUS");
+			if (!status) status = "UNKNOWN";
+			enum ast_cc_service_type service = AST_CC_NONE;
+			if (!strcasecmp(status, "BUSY")) {
+				service = AST_CC_CCBS;
+			} else if (!strcasecmp(status, "CONGESTION") || !strcasecmp(status, "CHANUNAVAIL") || !strcasecmp(status, "NOANSWER")) {
+				service = AST_CC_CCNR;
+			}
+			pbx_log(LOG_NOTICE, "%s: (sccp_pbx_hangup) dialstatus:%s\n", c->designator, status);
+			if (service != AST_CC_NONE) {
+				char interface_name[AST_CHANNEL_NAME];
+				ast_channel_get_device_name(c->owner, interface_name, sizeof(interface_name));
+				pbx_log(LOG_NOTICE, "%s: (sccp_pbx_hangup) dialednumber/interfacename:%s\n", c->designator, interface_name);
+				pbx_queue_cc_frame(c->owner, AST_CC_GENERIC_MONITOR_TYPE, interface_name, service, NULL);
+			}
+		}*/
+
 	AUTO_RELEASE(sccp_device_t, d , sccp_channel_getDevice(c));
 	if(d && d->session) {
 		sccp_session_waitForPendingRequests(d->session);
-		/*		if (
-					GLOB(remotehangup_tone) &&
-					SKINNY_DEVICE_RS_OK == sccp_device_getRegistrationState(d) &&
-					SCCP_DEVICESTATE_OFFHOOK == sccp_device_getDeviceState(d) &&
-					SCCP_CHANNELSTATE_IsConnected(c->state) &&
-					c == d->active_channel
-				) {
-					c->setTone(c, GLOB(remotehangup_tone), SKINNY_TONEDIRECTION_USER);
-				}*/
 	}
 
 	AUTO_RELEASE(sccp_line_t, l , sccp_line_retain(c->line));

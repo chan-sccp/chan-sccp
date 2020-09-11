@@ -215,7 +215,8 @@ enum message_priority {
 	SCCP_MESSAGE_PRIORITY_PRIVACY,			=3,	"Message Priority Privacy",
 	SCCP_MESSAGE_PRIORITY_DND,			=4,	"Message Priority Do not disturb",
 	SCCP_MESSAGE_PRIORITY_CFWD,			=5,	"Message Priority Call Forward",
-	SCCP_MESSAGE_PRIORITY_TIMEOUT,			=6,	"Message Priority Timeout",
+	SCCP_MESSAGE_PRIORITY_CALLBACK,		=6,	"Message Priority CallBack",
+	SCCP_MESSAGE_PRIORITY_TIMEOUT,			=7,	"Message Priority Timeout",
 }
 
 enum push_result {
@@ -362,6 +363,18 @@ strenum xml_outputfmt {
 	SCCP_XML_OUTPUTFMT_JSON,			,	"json",
 	SCCP_XML_OUTPUTFMT_TXT,				,	"txt",
 };
+
+strenum callcompletion_state {
+	SCCP_CC_UNKNOWN,				= 0,	"cc unknown",
+	SCCP_CC_CORE_ID_SET,				,	"cc core id set",
+	SCCP_CC_OFFERED,				,	"cc offered",
+	SCCP_CC_OFFER_TIMEDOUT,				,	"cc offer timed oud",
+	SCCP_CC_REQUESTED,				,	"cc requested",
+	SCCP_CC_QUEUED,					,	"cc queued",
+	SCCP_CC_PARTY_AVAILABLE,			,	"cc party available",
+	SCCP_CC_COMPLETED,				,	"cc completed",
+	SCCP_CC_FAILED,					,	"cc failed",
+}
 
 } /* NAMESPACE sccp */
 
@@ -634,6 +647,8 @@ strenum keymode {
 	KEYMODE_INUSEHINT,				,	"INUSEHINT",
 	KEYMODE_ONHOOKSTEALABLE,			,	"ONHOOKSTEALABLE",
 	KEYMODE_HOLDCONF,				,	"HOLDCONF",
+	KEYMODE_CALLCOMPLETION,			,	"CALLCOMPLETION",
+	KEYMODE_CALLBACK,				,	"CALLBACK",
 	KEYMODE_EMPTY,					,	"",
 }
 

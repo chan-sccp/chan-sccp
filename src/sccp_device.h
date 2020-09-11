@@ -386,6 +386,7 @@ SCCP_API void SCCP_CALL sccp_device_preregistration(devicePtr device);
 SCCP_API uint8_t SCCP_CALL sccp_dev_build_buttontemplate(devicePtr d, btnlist * btn);
 SCCP_API void SCCP_CALL sccp_dev_sendmsg(constDevicePtr d, sccp_mid_t t);
 SCCP_API void SCCP_CALL sccp_dev_set_keyset(constDevicePtr d, uint8_t lineInstance, uint32_t callid, skinny_keymode_t softKeySetIndex);
+SCCP_API skinny_keymode_t SCCP_CALL sccp_dev_get_keymode(constDevicePtr d);
 SCCP_API void SCCP_CALL sccp_dev_set_ringer(constDevicePtr d, skinny_ringtype_t ringtype, skinny_ringduration_t duration, uint8_t lineInstance, uint32_t callid);
 SCCP_API void SCCP_CALL sccp_dev_cleardisplay(constDevicePtr d);
 SCCP_API void SCCP_CALL sccp_dev_set_registered(devicePtr d, skinny_registrationstate_t state);

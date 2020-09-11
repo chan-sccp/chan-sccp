@@ -892,11 +892,45 @@ static void sccp_sk_info(const sccp_softkeyMap_cb_t * const softkeyMap_cb, const
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "### Info Softkey not (yet) supported\n");
 }
 
-static void sccp_sk_callback(const sccp_softkeyMap_cb_t * const softkeyMap_cb, constDevicePtr d, constLinePtr l, const uint32_t lineInstance, channelPtr c)
+static void sccp_sk_callback(const sccp_softkeyMap_cb_t * const softkeyMap_cb, constDevicePtr d, constLinePtr line, const uint32_t lineInstance, channelPtr c)
 {
-	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Callback Pressed\n", DEV_ID_LOG(d));
-	sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, SCCP_DISPLAYSTATUS_TIMEOUT);
-	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "### Callback Softkey not (yet) supported\n");
+	sccp_log((DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "%s: SoftKey Callback Pressed: (state:%s)\n", DEV_ID_LOG(d), sccp_callcompletion_state2str(line->cc_state));
+	// sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "### Callback Softkey not (yet) supported\n");
+	AUTO_RELEASE(sccp_line_t, l, sccp_line_retain(line));
+	if(!l) {
+		pbx_log(LOG_WARNING, "SCCP: (CC) Call Completion currently not available: No line provided\n");
+		return;
+	}
+	if(l->cc_state == SCCP_CC_OFFERED) {
+		if(l->cc_core_id == -1) {
+			sccp_dev_displayprompt(d, lineInstance, 0, SKINNY_DISP_KEY_IS_NOT_ACTIVE, SCCP_DISPLAYSTATUS_TIMEOUT);
+			pbx_log(LOG_WARNING, "%s: (CC) Call Completion currently not available: core_id:%d\n", l->name, l->cc_core_id);
+			return;
+		}
+		if(!ast_cc_request_is_within_limits()) {
+			pbx_log(LOG_WARNING, "%s: (CC) Core %d: CallCompletion Request failed. Too many requests in the system\n", l->name, l->cc_core_id);
+			ast_cc_failed(l->cc_core_id, "Too many CC requests\n");
+			pbx_builtin_setvar_helper(c->owner, "CC_REQUEST_RESULT", "FAIL");
+			pbx_builtin_setvar_helper(c->owner, "CC_REQUEST_REASON", "TOO_MANY_REQUESTS");
+			return;
+		}
+		l->cc_state = SCCP_CC_REQUESTED;
+		int res = ast_cc_agent_accept_request(l->cc_core_id, "CallCompletionRequest called by caller %s for core_id %d", l->name, l->cc_core_id);
+		if(res) {
+			sccp_log((DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "### Call Completion Failed\n");
+			l->cc_state = SCCP_CC_FAILED;
+			// update softkeyset to 'callback' with timeout XXX
+			return;
+		}
+		sccp_dev_displayprompt(d, lineInstance, 0, SKINNY_DISP_CALLBACK, SCCP_DISPLAYSTATUS_TIMEOUT);
+		l->cc_state = SCCP_CC_QUEUED;
+		return;
+	}
+	if(l->cc_state == SCCP_CC_PARTY_AVAILABLE) {
+		sccp_log(DEBUGCAT_SOFTKEY)(VERBOSE_PREFIX_3 "%s: (CC) Core %d: CallCompletion SCCP_CC_PARTY_AVAILABLE -> Finish Call\n", c->designator, l->cc_core_id);
+		sccp_pbx_softswitch(c);
+		l->cc_state = SCCP_CC_COMPLETED;
+	}
 }
 
 static void sccp_sk_empty(const sccp_softkeyMap_cb_t * const softkeyMap_cb, constDevicePtr d, constLinePtr l, const uint32_t lineInstance, channelPtr none)
@@ -979,39 +1013,39 @@ static void sccp_sk_uriaction(const sccp_softkeyMap_cb_t * const softkeyMap_cb, 
  * \brief Softkey Function Callback by SKINNY LABEL
  */
 static const struct sccp_softkeyMap_cb softkeyCbMap[] = {
-	{SKINNY_LBL_REDIAL, FALSE, sccp_sk_redial, NULL},
-	{SKINNY_LBL_NEWCALL, FALSE, sccp_sk_newcall, NULL},
-	{SKINNY_LBL_HOLD, TRUE, sccp_sk_hold, NULL},
-	{SKINNY_LBL_TRANSFER, TRUE, sccp_sk_transfer, NULL},
-	{SKINNY_LBL_CFWDALL, FALSE, sccp_sk_cfwdall, NULL},
-	{SKINNY_LBL_CFWDBUSY, FALSE, sccp_sk_cfwdbusy, NULL},
-	{SKINNY_LBL_CFWDNOANSWER, FALSE, sccp_sk_cfwdnoanswer, NULL},
-	{SKINNY_LBL_BACKSPACE, TRUE, sccp_sk_backspace, NULL},
-	{SKINNY_LBL_ENDCALL, TRUE, sccp_sk_endcall, NULL},
-	{SKINNY_LBL_RESUME, TRUE, sccp_sk_resume, NULL},
-	{SKINNY_LBL_ANSWER, TRUE, sccp_sk_answer, NULL},
-	{SKINNY_LBL_INFO, FALSE, sccp_sk_info, NULL},
-	{SKINNY_LBL_CONFRN, TRUE, sccp_sk_conference, NULL},
-	{SKINNY_LBL_PARK, TRUE, sccp_sk_park, NULL},
-	{SKINNY_LBL_JOIN, TRUE, sccp_sk_join, NULL},
-	{SKINNY_LBL_MEETME, TRUE, sccp_sk_meetme, NULL},
-	{SKINNY_LBL_PICKUP, FALSE, sccp_sk_pickup, NULL},
-	{SKINNY_LBL_GPICKUP, FALSE, sccp_sk_gpickup, NULL},
-	{SKINNY_LBL_MONITOR, TRUE, sccp_sk_monitor, NULL},
-	{SKINNY_LBL_CALLBACK, TRUE, sccp_sk_callback, NULL},
-	{SKINNY_LBL_BARGE, TRUE, sccp_sk_barge, NULL},
-	{SKINNY_LBL_DND, FALSE, sccp_sk_dnd, NULL},
-	{SKINNY_LBL_CONFLIST, TRUE, sccp_sk_conflist, NULL},
-	{SKINNY_LBL_SELECT, TRUE, sccp_sk_select, NULL},
-	{SKINNY_LBL_PRIVATE, FALSE, sccp_sk_private, NULL},
-	{SKINNY_LBL_TRNSFVM, TRUE, sccp_sk_trnsfvm, NULL},
-	{SKINNY_LBL_DIRTRFR, TRUE, sccp_sk_dirtrfr, NULL},
-	{SKINNY_LBL_IDIVERT, TRUE, sccp_sk_trnsfvm, NULL},
-	{SKINNY_LBL_VIDEO_MODE, TRUE, sccp_sk_videomode, NULL},
-	{SKINNY_LBL_INTRCPT, TRUE, sccp_sk_resume, NULL},
-	{SKINNY_LBL_EMPTY, FALSE, sccp_sk_empty, NULL},
-	{SKINNY_LBL_DIAL, TRUE, sccp_sk_dial, NULL},
-	{SKINNY_LBL_CBARGE, TRUE, sccp_sk_cbarge, NULL},
+	{ SKINNY_LBL_REDIAL, FALSE, sccp_sk_redial, NULL },
+	{ SKINNY_LBL_NEWCALL, FALSE, sccp_sk_newcall, NULL },
+	{ SKINNY_LBL_HOLD, TRUE, sccp_sk_hold, NULL },
+	{ SKINNY_LBL_TRANSFER, TRUE, sccp_sk_transfer, NULL },
+	{ SKINNY_LBL_CFWDALL, FALSE, sccp_sk_cfwdall, NULL },
+	{ SKINNY_LBL_CFWDBUSY, FALSE, sccp_sk_cfwdbusy, NULL },
+	{ SKINNY_LBL_CFWDNOANSWER, FALSE, sccp_sk_cfwdnoanswer, NULL },
+	{ SKINNY_LBL_BACKSPACE, TRUE, sccp_sk_backspace, NULL },
+	{ SKINNY_LBL_ENDCALL, TRUE, sccp_sk_endcall, NULL },
+	{ SKINNY_LBL_RESUME, TRUE, sccp_sk_resume, NULL },
+	{ SKINNY_LBL_ANSWER, TRUE, sccp_sk_answer, NULL },
+	{ SKINNY_LBL_INFO, FALSE, sccp_sk_info, NULL },
+	{ SKINNY_LBL_CONFRN, TRUE, sccp_sk_conference, NULL },
+	{ SKINNY_LBL_PARK, TRUE, sccp_sk_park, NULL },
+	{ SKINNY_LBL_JOIN, TRUE, sccp_sk_join, NULL },
+	{ SKINNY_LBL_MEETME, TRUE, sccp_sk_meetme, NULL },
+	{ SKINNY_LBL_PICKUP, FALSE, sccp_sk_pickup, NULL },
+	{ SKINNY_LBL_GPICKUP, FALSE, sccp_sk_gpickup, NULL },
+	{ SKINNY_LBL_MONITOR, TRUE, sccp_sk_monitor, NULL },
+	{ SKINNY_LBL_CALLBACK, FALSE, sccp_sk_callback, NULL },
+	{ SKINNY_LBL_BARGE, TRUE, sccp_sk_barge, NULL },
+	{ SKINNY_LBL_DND, FALSE, sccp_sk_dnd, NULL },
+	{ SKINNY_LBL_CONFLIST, TRUE, sccp_sk_conflist, NULL },
+	{ SKINNY_LBL_SELECT, TRUE, sccp_sk_select, NULL },
+	{ SKINNY_LBL_PRIVATE, FALSE, sccp_sk_private, NULL },
+	{ SKINNY_LBL_TRNSFVM, TRUE, sccp_sk_trnsfvm, NULL },
+	{ SKINNY_LBL_DIRTRFR, TRUE, sccp_sk_dirtrfr, NULL },
+	{ SKINNY_LBL_IDIVERT, TRUE, sccp_sk_trnsfvm, NULL },
+	{ SKINNY_LBL_VIDEO_MODE, TRUE, sccp_sk_videomode, NULL },
+	{ SKINNY_LBL_INTRCPT, TRUE, sccp_sk_resume, NULL },
+	{ SKINNY_LBL_EMPTY, FALSE, sccp_sk_empty, NULL },
+	{ SKINNY_LBL_DIAL, TRUE, sccp_sk_dial, NULL },
+	{ SKINNY_LBL_CBARGE, TRUE, sccp_sk_cbarge, NULL },
 };
 
 /*!

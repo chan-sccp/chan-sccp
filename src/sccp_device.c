@@ -59,6 +59,7 @@ struct sccp_private_device_data {
 	sccp_devicestate_t deviceState;											/*!< Device State */
 
 	skinny_registrationstate_t registrationState;
+	skinny_keymode_t keymode;
 
 #if HAVE_ICONV
 	iconv_t iconv;
@@ -1491,8 +1492,21 @@ void sccp_dev_set_keyset(constDevicePtr d, uint8_t lineInstance, uint32_t callid
 	msg->data.SelectSoftKeysMessage.les_validKeyMask = htolel(d->softKeyConfiguration.activeMask[softKeySetIndex]);
 
 	sccp_log((DEBUGCAT_SOFTKEY + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Set softkeyset to %s(%d) on line %d  and call %d\n", d->id, skinny_keymode2str(softKeySetIndex), softKeySetIndex, lineInstance, callid);
+	sccp_private_lock(d->privateData);
+	d->privateData->keymode = softKeySetIndex;
+	sccp_private_unlock(d->privateData);
 	sccp_log((DEBUGCAT_SOFTKEY + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: validKeyMask %u\n", d->id, msg->data.SelectSoftKeysMessage.les_validKeyMask);
+
 	sccp_dev_send(d, msg);
+}
+
+skinny_keymode_t sccp_dev_get_keymode(constDevicePtr d)
+{
+	skinny_keymode_t res = SKINNY_KEYMODE_SENTINEL;
+	sccp_private_lock(d->privateData);
+	res = d->privateData->keymode;
+	sccp_private_unlock(d->privateData);
+	return res;
 }
 
 /*!

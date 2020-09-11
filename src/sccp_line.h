@@ -15,6 +15,8 @@
 #define sccp_line_release(_x)			sccp_refcount_release_type(sccp_line_t, _x)
 #define sccp_line_refreplace(_x, _y)		sccp_refcount_refreplace_type(sccp_line_t, _x, _y)
 __BEGIN_C_EXTERN__
+
+typedef struct pbx_cc_config_params pbx_cc_config_params_t;
 /*!
  * \brief SCCP Line Structure
  * \note A line is the equivalent of a 'phone line' going to the phone.
@@ -97,6 +99,9 @@ struct sccp_line {
 		int oldmsgs;											/*!< Old Messages */
 	} voicemailStatistic;											/*!< VoiceMail Statistics Structure */
 	boolean_t transfer;											/*!< Transfer Phone Support */
+	pbx_cc_config_params_t * cc_params;
+	int cc_core_id;
+	sccp_callcompletion_state_t cc_state;
 
 	sccp_video_mode_t videomode;
 	/* this is for reload routines */

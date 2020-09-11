@@ -1812,6 +1812,10 @@ const char * const __CONST__ skinny_keymode2longstr(skinny_keymode_t keymode)
 			return "On Hook with Stealable Call Present";
 		case KEYMODE_HOLDCONF:
 			return "Have a Conference On Hold";
+		case KEYMODE_CALLCOMPLETION:
+			return "CallCompletion on offer/active";
+		case KEYMODE_CALLBACK:
+			return "Callback available";
 		default:
 			return "Unknown KeyMode";
 	}

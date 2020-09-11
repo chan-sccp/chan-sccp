@@ -450,6 +450,22 @@ typedef struct pbx_event_sub pbx_event_subscription_t;
 #define pbx_channel_connected_source(_a) (_a)->connected.source
 #define pbx_connected_line_source_name(_a) ast_connected_line_source_name(_a)
 
+// typedef struct ast_cc_config_params pbx_cc_config_params_t;
+#define pbx_cc_config_params             ast_cc_config_params
+#define pbx_cc_config_params_init        ast_cc_config_params_init
+#define pbx_channel_cc_params_init       ast_channel_cc_params_init
+#define pbx_cc_default_config_params     ast_cc_default_config_params
+#define pbx_cc_copy_config_params        ast_cc_copy_config_params
+#define pbx_set_cc_agent_policy          ast_set_cc_agent_policy
+#define pbx_cc_is_config_param           ast_cc_is_config_param
+#define pbx_cc_set_param                 ast_cc_set_param
+#define pbx_cc_config_params_destroy     ast_cc_config_params_destroy
+#define pbx_channel_get_cc_config_params ast_channel_get_cc_config_params
+#define pbx_queue_cc_frame               ast_queue_cc_frame
+#define pbx_cc_service_t                 enum ast_cc_service_type
+#define pbx_channel_get_device_name      ast_channel_get_device_name
+#define PBX_CHANNEL_NAME                 AST_CHANNEL_NAME
+
 #define pbx_streamfile ast_streamfile
 #if CS_TEST_FRAMEWORK
 #define pbx_test_validate_cleanup ast_test_validate_cleanup
