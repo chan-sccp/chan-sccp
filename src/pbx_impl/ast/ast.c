@@ -21,6 +21,7 @@
 #include "sccp_line.h"
 #include "sccp_linedevice.h"
 #include "sccp_labels.h"                                        // Call Completion Agent
+#include "sccp_webservice.h"                                        // Call Completion Agent
 
 SCCP_FILE_VERSION(__FILE__, "");
 
@@ -1539,11 +1540,13 @@ void sccp_astgenwrap_set_named_pickupgroups(sccp_channel_t *channel, struct ast_
 #endif
 
 /* Call Completion */
+#if 0
 int sccp_astgenwrap_pbx_cc_callback(struct ast_channel * inbound, const char * dest, ast_cc_callback_fn callback)
 {
 	sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_1 "%s: (call completion callback) destination:%s, callback function:%p\n", inbound ? pbx_channel_name(inbound) : "<no channel>", dest, callback);
 	return 0;
 }
+#endif
 
 struct sccp_cc_agent_pvt {
 	int offer_timer_id;
@@ -1555,6 +1558,7 @@ struct sccp_cc_agent_pvt {
 	char is_available;
 	skinny_keymode_t restore_keymode;
 	int core_id;
+	uint32_t transactionID;
 };
 
 static int __pbx_cc_agent_init(struct ast_cc_agent * agent, PBX_CHANNEL_TYPE * ast)
@@ -1583,6 +1587,7 @@ static int __pbx_cc_agent_init(struct ast_cc_agent * agent, PBX_CHANNEL_TYPE * a
 		channel->line->cc_state = SCCP_CC_OFFERED;
 	}
 	agent_pvt->core_id = agent->core_id;
+	agent_pvt->transactionID = sccp_random() % 1000;
 	return 0;
 }
 
@@ -1681,6 +1686,7 @@ static int __pbx_cc_agent_start_monitoring(struct ast_cc_agent * agent)
 	 */
 	return 0;
 }
+
 static int __pbx_cc_agent_recall(struct ast_cc_agent * agent)
 {
 	struct sccp_cc_agent_pvt * agent_pvt = agent->private_data;
@@ -1696,29 +1702,36 @@ static int __pbx_cc_agent_recall(struct ast_cc_agent * agent)
 	AUTO_RELEASE(sccp_device_t, d, sccp_device_find_byid(agent_pvt->deviceid, FALSE));
 	if(l && d) {
 		uint8_t lineInstance = agent_pvt->lineInstance;
-
 		sccp_device_clearMessageFromStack(d, SCCP_MESSAGE_PRIORITY_CALLBACK);
-		AUTO_RELEASE(sccp_channel_t, c, sccp_channel_getEmptyChannel(l, d, NULL, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL));
-		if(!c) {
-			pbx_log(LOG_ERROR, "%s: Can't allocate SCCP channel for line %s\n", d->id, l->name);
-			return -1;
-		}
-		c->softswitch_action = SCCP_SOFTSWITCH_DIAL;
-		c->ss_data = 0;
 
-		sccp_copy_string(c->dialedNumber, agent_pvt->original_exten, sizeof(c->dialedNumber));
-		iPbx.set_callstate(c, AST_STATE_OFFHOOK);
+		pbx_str_t * xmlStr = pbx_str_create(2048);
+		static const uint32_t appID = APPID_CC;
 
-		sccp_indicate(d, c, SCCP_CHANNELSTATE_OFFHOOK);
-		sccp_channel_set_calledparty(c, NULL, c->dialedNumber);
-		d->protocol->sendDialedNumber(d, lineInstance, c->callid, c->dialedNumber);
+		pbx_str_append(&xmlStr, 0, "<CiscoIPPhoneText appId=\"%d\" onAppClosed=\"%d\">", appID, appID);
+		pbx_str_append(&xmlStr, 0, "<Title>Call Completion</Title>");
+		pbx_str_append(&xmlStr, 0, "<Prompt>Party is now available</Prompt>");
+		pbx_str_append(&xmlStr, 0, "<Text>CallCompletion Scheduled for %s</Text>", agent_pvt->original_exten);
+		pbx_str_append(&xmlStr, 0, "<SoftKeyItem>");
+		pbx_str_append(&xmlStr, 0, "<Name>Call</Name>");
+		pbx_str_append(&xmlStr, 0, "<Position>1</Position>");
+		pbx_str_append(&xmlStr, 0, "<URL>UserCallData:%d:%d:%d:%d:Dial</URL>", appID, lineInstance, agent->core_id, agent_pvt->transactionID);
+		pbx_str_append(&xmlStr, 0, "</SoftKeyItem>");
+		pbx_str_append(&xmlStr, 0, "<SoftKeyItem>");
+		pbx_str_append(&xmlStr, 0, "<Name>Cancel</Name>");
+		pbx_str_append(&xmlStr, 0, "<Position>3</Position>");
+		pbx_str_append(&xmlStr, 0, "<URL>UserCallData:%d:%d:%d:%d:Cancel</URL>", appID, lineInstance, agent->core_id, agent_pvt->transactionID);
+		pbx_str_append(&xmlStr, 0, "</SoftKeyItem>");
+		pbx_str_append(&xmlStr, 0, "</CiscoIPPhoneText>");
+		// d->protocol->sendUserToDeviceDataVersionMessage(d, appID, agent->core_id, lineInstance, agent_pvt->transactionID, pbx_str_buffer(xmlStr), 2);
+		d->protocol->sendUserToDeviceDataVersionMessage(d, appID, 1, 2, agent_pvt->transactionID, pbx_str_buffer(xmlStr), 2);
+		sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_3 "%s: (%s) pushing:%s\n", d->id, __func__, pbx_str_buffer(xmlStr));
+		sccp_free(xmlStr);
+
 		pbx_str_t * buf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
 		ast_str_append(&buf, DEFAULT_PBX_STR_BUFFERSIZE, "%s:%s %s", SKINNY_DISP_CALLBACK, agent_pvt->original_exten, SKINNY_DISP_READY);
-		sccp_indicate(d, c, SCCP_CHANNELSTATE_DIALING);
-		sccp_dev_displayprompt(d, lineInstance, c->callid, pbx_str_buffer(buf), GLOB(digittimeout));
-		sccp_dev_set_keyset(d, agent_pvt->lineInstance, c->callid, KEYMODE_CALLBACK);
+		sccp_dev_displayprompt(d, lineInstance, 0, pbx_str_buffer(buf), GLOB(digittimeout));
+		sccp_dev_set_keyset(d, agent_pvt->lineInstance, 0, KEYMODE_CALLBACK);
 		l->cc_state = SCCP_CC_PARTY_AVAILABLE;
-		// setLinkedId
 		return 0;
 	}
 	return -1;

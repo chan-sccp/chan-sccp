@@ -1214,8 +1214,10 @@ static void sccp_protocol_sendUserToDeviceDataVersion1Message(constDevicePtr dev
 				memcpy(&msg->data.UserToDeviceDataVersion1Message.data, xmlData + xmlDataStart, msg_len);
 				xmlDataStart += msg_len;
 			}
-			
+
+			sccp_dump_msg(msg);
 			sccp_dev_send(device, msg);
+
 			sccp_log(DEBUGCAT_HIGH) (VERBOSE_PREFIX_1 "%s: (sccp_protocol_sendUserToDeviceDataVersion1Message) Message sent to device  (hdr_len: %d, msglen: %d/%d, msg-size: %d).\n", DEV_ID_LOG(device), hdr_len, msg_len, (int) strlen(xmlData), hdr_len + msg_len);
 			segment++;
 		}
@@ -1237,6 +1239,7 @@ static void sccp_protocol_sendUserToDeviceDataVersion1Message(constDevicePtr dev
 		if (msg_len) {
 			memcpy(&msg->data.UserToDeviceDataVersion1Message.data, xmlData, msg_len);
 		}
+		sccp_dump_msg(msg);
 		sccp_dev_send(device, msg);
 		sccp_log(DEBUGCAT_HIGH) (VERBOSE_PREFIX_1 "%s: (sccp_protocol_sendUserToDeviceDataVersion1Message) Message sent to device  (hdr_len: %d, msglen: %d, msg-size: %d).\n", DEV_ID_LOG(device), hdr_len, msg_len, hdr_len + msg_len);
 	} else {

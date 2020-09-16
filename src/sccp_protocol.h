@@ -103,6 +103,7 @@ MEDIA_ENCRYPTION_SUPPORT, STATION_MAX_FEATURE_MASK, INTERNALIZATION
 #define APPID_STREAM					9088
 #define APPID_PUSH					9089
 #define APPID_VISUALPARKINGLOT				9090
+#define APPID_CC                                        9091
 
 /*
  * \todo Merge sccp_button_type_t / sccp_buttontypes[] and this define

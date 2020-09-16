@@ -926,11 +926,11 @@ static void sccp_sk_callback(const sccp_softkeyMap_cb_t * const softkeyMap_cb, c
 		l->cc_state = SCCP_CC_QUEUED;
 		return;
 	}
-	if(l->cc_state == SCCP_CC_PARTY_AVAILABLE) {
-		sccp_log(DEBUGCAT_SOFTKEY)(VERBOSE_PREFIX_3 "%s: (CC) Core %d: CallCompletion SCCP_CC_PARTY_AVAILABLE -> Finish Call\n", c->designator, l->cc_core_id);
-		sccp_pbx_softswitch(c);
-		l->cc_state = SCCP_CC_COMPLETED;
-	}
+	/*	if(l->cc_state == SCCP_CC_PARTY_AVAILABLE) {
+			sccp_log(DEBUGCAT_SOFTKEY)(VERBOSE_PREFIX_3 "%s: (CC) Core %d: CallCompletion SCCP_CC_PARTY_AVAILABLE -> Finish Call\n", c->designator, l->cc_core_id);
+			sccp_pbx_softswitch(c);
+			l->cc_state = SCCP_CC_COMPLETED;
+		}*/
 }
 
 static void sccp_sk_empty(const sccp_softkeyMap_cb_t * const softkeyMap_cb, constDevicePtr d, constLinePtr l, const uint32_t lineInstance, channelPtr none)
