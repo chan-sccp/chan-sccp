@@ -872,6 +872,11 @@ void sccp_astwrap_connectedline(sccp_channel_t * channel, const void *data, size
 		SCCP_CALLINFO_ORIG_CALLEDPARTY_REDIRECT_REASON, &tmpOrigCalledPartyRedirectReason,
 		SCCP_CALLINFO_KEY_SENTINEL);
 
+	if (SCCP_CHANNELSTATE_CALLPARK == channel->state && !sccp_strlen_zero (pbx_builtin_getvar_helper (channel->owner, "PARKER"))) {
+		channel->calltype = SKINNY_CALLTYPE_OUTBOUND;
+		channel->state = SCCP_CHANNELSTATE_RINGOUT;
+	}
+
 	/* set the original calling/called party if the reason is a transfer */
 	if (channel->calltype == SKINNY_CALLTYPE_INBOUND) {
 		if (pbx_channel_connected_source(ast) == AST_CONNECTED_LINE_UPDATE_SOURCE_TRANSFER || pbx_channel_connected_source(ast) == AST_CONNECTED_LINE_UPDATE_SOURCE_TRANSFER_ALERTING) {
@@ -910,10 +915,7 @@ void sccp_astwrap_connectedline(sccp_channel_t * channel, const void *data, size
 					SCCP_CALLINFO_CALLINGPARTY_NAME, pbx_channel_connected_id(ast).name.str,
 					SCCP_CALLINFO_KEY_SENTINEL);
 			}
-			AUTO_RELEASE(sccp_device_t, d, sccp_channel_getDevice(channel));
-			if (d) {
-				sccp_indicate(d, channel, channel->state);
-			}
+			sccp_indicate (NULL, channel, channel->state);
 		}
 	} else /* OUTBOUND CALL */ {
 		if (sccp_strlen_zero(pbx_builtin_getvar_helper(ast, "SETCALLEDPARTY"))) {
@@ -942,6 +944,9 @@ void sccp_astwrap_connectedline(sccp_channel_t * channel, const void *data, size
 #endif
         }
 #endif
+	if (SCCP_CHANNELSTATE_CALLPARK == channel->state) {
+		sccp_indicate_force (NULL, channel, SCCP_CHANNELSTATE_CONNECTED);
+	}
 }
 
 void sccp_astwrap_sendRedirectedUpdate(const sccp_channel_t * channel, const char *fromNumber, const char *fromName, const char *toNumber, const char *toName, uint8_t reason)

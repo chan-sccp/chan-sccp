@@ -44,7 +44,7 @@ static void __sccp_indicate_remote_device(constDevicePtr device, channelPtr c, l
  * 
  */
 //void __sccp_indicate(sccp_device_t * _device, sccp_channel_t * c, uint8_t state, uint8_t debug, char *file, int line, const char *pretty_function)
-void __sccp_indicate(constDevicePtr maybe_device, channelPtr c, const sccp_channelstate_t state, const uint8_t debug, const char * file, const int line, const char * pretty_function)
+void __sccp_indicate (constDevicePtr maybe_device, channelPtr c, const sccp_channelstate_t state, boolean_t force, const uint8_t debug, const char * file, const int line, const char * pretty_function)
 {
 	if (debug) {
 		sccp_log((DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_1 "SCCP: [INDICATE] state '%d' in file '%s', on line %d (%s)\n", state, file, line, pretty_function);
@@ -157,7 +157,9 @@ void __sccp_indicate(constDevicePtr maybe_device, channelPtr c, const sccp_chann
 				// first ringout indicate (before connected line update */
 				sccp_device_sendcallstate(d, lineInstance, c->callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 				sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_RING_OUT, GLOB(digittimeout));
-				c->setTone(c, SKINNY_TONE_ALERTINGTONE, SKINNY_TONEDIRECTION_USER);
+				if (!(sccp_rtp_getState (&c->rtp.audio, SCCP_RTP_RECEPTION) & SCCP_RTP_STATUS_ACTIVE)) {
+					c->setTone (c, SKINNY_TONE_ALERTINGTONE, SKINNY_TONEDIRECTION_USER);
+				}
 				sccp_dev_set_keyset(d, lineInstance, c->callid, KEYMODE_RINGOUT);
 				iCallInfo.Send(ci, c->callid, c->calltype, lineInstance, d, FALSE);
 			}
@@ -279,6 +281,7 @@ void __sccp_indicate(constDevicePtr maybe_device, channelPtr c, const sccp_chann
 				} else {
 					sccp_rtp_setCallback(&c->rtp.audio, SCCP_RTP_RECEPTION, NULL);
 				}
+				c->setTone (c, SKINNY_TONE_SILENCE, SKINNY_TONEDIRECTION_USER);
 				sccp_dev_set_keyset(d, lineInstance, c->callid, KEYMODE_CONNECTED);
 			}
 			break;
@@ -421,11 +424,11 @@ void __sccp_indicate(constDevicePtr maybe_device, channelPtr c, const sccp_chann
 	}
 
 	/* if channel state has changed, notify the others */
-	if (d && c->state != c->previousChannelState) {
+	if (d && (c->state != c->previousChannelState || force)) {
 		/* if it is a shared line and a state of interest */
-		if((SCCP_RWLIST_GETSIZE(&l->devices) > 1) && !c->conference
-		   && (c->state == SCCP_CHANNELSTATE_OFFHOOK || c->state == SCCP_CHANNELSTATE_DOWN || c->state == SCCP_CHANNELSTATE_ONHOOK || c->state == SCCP_CHANNELSTATE_CONNECTED
-		       || c->state == SCCP_CHANNELSTATE_CONNECTEDCONFERENCE || c->state == SCCP_CHANNELSTATE_HOLD)) {
+		if ((SCCP_RWLIST_GETSIZE (&l->devices) > 1) && !c->conference
+		    && (c->state == SCCP_CHANNELSTATE_OFFHOOK || c->state == SCCP_CHANNELSTATE_DOWN || c->state == SCCP_CHANNELSTATE_ONHOOK || c->state == SCCP_CHANNELSTATE_CONNECTED
+			|| c->state == SCCP_CHANNELSTATE_CONNECTEDCONFERENCE || c->state == SCCP_CHANNELSTATE_HOLD || c->state == SCCP_CHANNELSTATE_CALLPARK)) {
 			/* notify all remote devices */
 			__sccp_indicate_remote_device(d, c, l, state);
 		}
@@ -555,6 +558,11 @@ static void __sccp_indicate_remote_device(constDevicePtr device, channelPtr c, l
 					}
 					break;
 
+				case SCCP_CHANNELSTATE_CALLPARK:
+					if (c->channelStateReason == SCCP_CHANNELSTATEREASON_NORMAL) {
+						remoteDevice->indicate->remoteHold (remoteDevice, lineInstance, callid, SKINNY_CALLPRIORITY_NORMAL, stateVisibility);
+						iCallInfo.Send (ci, callid, calltype, lineInstance, remoteDevice, TRUE);
+					}
 				default:
 					break;
 

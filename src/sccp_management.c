@@ -1065,25 +1065,26 @@ static int sccp_asterisk_managerHookHelper(int category, const char *event, char
 				sccp_asterisk_parseStrToAstMessage(str, &m);
 
 				const char *parkinglot = astman_get_header(&m, "Parkinglot");
-				const char *from = astman_get_header(&m, PARKING_FROM);
 				const char *extension = astman_get_header(&m, PARKING_SLOT);
 				int exten = sccp_atoi(extension, strlen(extension));
-				
-				if (sccp_strcaseequals("ParkedCall", event) && !sccp_strlen_zero(from)) {
-					AUTO_RELEASE(sccp_line_t, l, sccp_line_find_byname(from, FALSE));
-					if (l) {
-						sccp_linedevice_t * ld = NULL;
-						char extstr[20] = "";
-						snprintf(extstr, sizeof(extstr), "%c%c %.16s", 128, SKINNY_LBL_CALL_PARK_AT, extension);
-						SCCP_LIST_LOCK(&l->devices);
-						SCCP_LIST_TRAVERSE(&l->devices, ld, list) {
-							if (ld->line == l) {
-								sccp_dev_displayprinotify(ld->device, extstr, SCCP_MESSAGE_PRIORITY_TIMEOUT, 20);
-							}
-						}
-						SCCP_LIST_UNLOCK(&l->devices);
-					}
-				}
+
+				/*
+								//const char *from = astman_get_header(&m, PARKING_FROM);
+								if (sccp_strcaseequals("ParkedCall", event) && !sccp_strlen_zero(from)) {
+									AUTO_RELEASE(sccp_line_t, l, sccp_line_find_byname(from, FALSE));
+									if (l) {
+										sccp_linedevice_t * ld = NULL;
+										char extstr[20] = "";
+										snprintf(extstr, sizeof(extstr), "%c%c %.16s", 128, SKINNY_LBL_CALL_PARK_AT, extension);
+										SCCP_LIST_LOCK(&l->devices);
+										SCCP_LIST_TRAVERSE(&l->devices, ld, list) {
+											if (ld->line == l) {
+												sccp_dev_displayprinotify(ld->device, extstr, SCCP_MESSAGE_PRIORITY_TIMEOUT, 20);
+											}
+										}
+										SCCP_LIST_UNLOCK(&l->devices);
+									}
+								}*/
 				if (parkinglot && exten) {
 					if (sccp_strcaseequals("ParkedCall", event)) {
 						iParkingLot.addSlot(parkinglot, exten, &m);

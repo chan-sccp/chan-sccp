@@ -863,13 +863,13 @@ static void sccp_hint_updateLineStateForMultipleChannels(struct sccp_hint_lineSt
  * \param lineState SCCP LineState
  * 
  */
-static void sccp_hint_updateLineStateForSingleChannel(struct sccp_hint_lineState * lineState, sccp_channelstate_t _state)
+static void sccp_hint_updateLineStateForSingleChannel (struct sccp_hint_lineState * lineState, sccp_channelstate_t state)
 {
 	if (!lineState || !lineState->line) {
 		return;
 	}
 	sccp_line_t *line = lineState->line;
-	sccp_channelstate_t state = SCCP_CHANNELSTATE_SENTINEL;
+	// sccp_channelstate_t state = SCCP_CHANNELSTATE_SENTINEL;
 
 	//boolean_t dev_privacy = FALSE;
 
@@ -881,18 +881,16 @@ static void sccp_hint_updateLineStateForSingleChannel(struct sccp_hint_lineState
 	if(SCCP_LIST_GETSIZE(&line->channels) > 0) {
 		SCCP_LIST_LOCK(&line->channels);
 		sccp_channel_t * tmp = SCCP_LIST_LAST(&line->channels);
-		channel = sccp_channel_retain(tmp) /*ref_replace*/;
+		channel = sccp_channel_retain (tmp);
 		SCCP_LIST_UNLOCK(&line->channels);
 	}
 
 	if (channel) {
 		lineState->callInfo.calltype = channel->calltype;
-		state = channel->state;
-
 		SCCP_LIST_LOCK(&line->devices);
 		AUTO_RELEASE(sccp_linedevice_t, lineDevice, SCCP_LIST_FIRST(&line->devices) ? sccp_linedevice_retain(SCCP_LIST_FIRST(&line->devices)) : NULL);
-
 		SCCP_LIST_UNLOCK(&line->devices);
+
 		if(lineDevice) {
 			AUTO_RELEASE(sccp_device_t, device, sccp_device_retain(lineDevice->device));
 
@@ -906,17 +904,19 @@ static void sccp_hint_updateLineStateForSingleChannel(struct sccp_hint_lineState
 		switch (state) {
 			case SCCP_CHANNELSTATE_DOWN:
 				state = SCCP_CHANNELSTATE_ONHOOK;
-				lineState->callInfo.calltype = SKINNY_CALLTYPE_SENTINEL;
 				break;
 			case SCCP_CHANNELSTATE_SPEEDDIAL:
 				break;
 			case SCCP_CHANNELSTATE_ONHOOK:
-				lineState->callInfo.calltype = SKINNY_CALLTYPE_SENTINEL;
 				break;
 			case SCCP_CHANNELSTATE_DND:
 				lineState->callInfo.calltype = SKINNY_CALLTYPE_INBOUND;
 				sccp_copy_string(lineState->callInfo.partyName, "DND", sizeof(lineState->callInfo.partyName));
 				sccp_copy_string(lineState->callInfo.partyNumber, "DND", sizeof(lineState->callInfo.partyNumber));
+				break;
+			case SCCP_CHANNELSTATE_CALLPARK:
+				sccp_copy_string (lineState->callInfo.partyName, SKINNY_DISP_PARK, sizeof (lineState->callInfo.partyName));
+				sccp_copy_string (lineState->callInfo.partyNumber, "", sizeof (lineState->callInfo.partyNumber));
 				break;
 			case SCCP_CHANNELSTATE_OFFHOOK:
 			case SCCP_CHANNELSTATE_GETDIGITS:
@@ -932,7 +932,6 @@ static void sccp_hint_updateLineStateForSingleChannel(struct sccp_hint_lineState
 			case SCCP_CHANNELSTATE_HOLD:
 			case SCCP_CHANNELSTATE_CONGESTION:
 			case SCCP_CHANNELSTATE_CALLWAITING:
-			case SCCP_CHANNELSTATE_CALLPARK:
 			case SCCP_CHANNELSTATE_CALLREMOTEMULTILINE:
 			case SCCP_CHANNELSTATE_INVALIDNUMBER:
 			case SCCP_CHANNELSTATE_CALLCONFERENCE:
@@ -989,7 +988,6 @@ static void sccp_hint_updateLineStateForSingleChannel(struct sccp_hint_lineState
 		}
 
 		sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s (hint_updateLineStateForSingleChannel) partyName: %s, partyNumber: %s\n", line->name, lineState->callInfo.partyName, lineState->callInfo.partyNumber);
-
 		lineState->state = state;
 	} else {
 		sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s (hint_updateLineStateForSingleChannel) NO CHANNEL\n", line->name);

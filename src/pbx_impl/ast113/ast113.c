@@ -60,6 +60,7 @@ __BEGIN_C_EXTERN__
 #include <asterisk/bridge_channel.h>
 #include <asterisk/format_cap.h>		// for AST_FORMAT_CAP_NAMES_LEN
 #include <asterisk/timing.h>
+#include <asterisk/say.h>                                        // PARKING
 __END_C_EXTERN__
 #define pbx_module_info ast_module_info
 
@@ -344,35 +345,24 @@ static int sccp_astwrap_devicestate(const char *data)
 			res = AST_DEVICE_ONHOLD;
 			break;
 		case SCCP_CHANNELSTATE_INVALIDNUMBER:
+		case SCCP_CHANNELSTATE_INVALIDCONFERENCE:
 			res = AST_DEVICE_INVALID;
 			break;
 		case SCCP_CHANNELSTATE_BUSY:
-			/* fall through */
 		case SCCP_CHANNELSTATE_DND:
 			res = AST_DEVICE_BUSY;
 			break;
 		case SCCP_CHANNELSTATE_CONGESTION:
-#ifndef CS_EXPERIMENTAL
-		case SCCP_CHANNELSTATE_ZOMBIE:
-		case SCCP_CHANNELSTATE_SPEEDDIAL:
-		case SCCP_CHANNELSTATE_INVALIDCONFERENCE:
-#endif
 			res = AST_DEVICE_UNAVAILABLE;
 			break;
 		case SCCP_CHANNELSTATE_RINGOUT:
 		case SCCP_CHANNELSTATE_RINGOUT_ALERTING:
-#ifdef CS_EXPERIMENTAL
 			res = AST_DEVICE_RINGINUSE;
 			break;
-#endif
 		case SCCP_CHANNELSTATE_DIALING:
 		case SCCP_CHANNELSTATE_DIGITSFOLL:
 		case SCCP_CHANNELSTATE_PROGRESS:
 		case SCCP_CHANNELSTATE_CALLWAITING:
-#ifndef CS_EXPERIMENTAL
-			res = AST_DEVICE_BUSY;
-			break;
-#endif
 		case SCCP_CHANNELSTATE_CONNECTEDCONFERENCE:
 		case SCCP_CHANNELSTATE_OFFHOOK:
 		case SCCP_CHANNELSTATE_GETDIGITS:
@@ -383,15 +373,12 @@ static int sccp_astwrap_devicestate(const char *data)
 		case SCCP_CHANNELSTATE_CALLCONFERENCE:
 		case SCCP_CHANNELSTATE_CALLPARK:
 		case SCCP_CHANNELSTATE_CALLREMOTEMULTILINE:
+		case SCCP_CHANNELSTATE_SPEEDDIAL:
 			res = AST_DEVICE_INUSE;
 			break;
 		case SCCP_CHANNELSTATE_SENTINEL:
-#ifdef CS_EXPERIMENTAL
-		case SCCP_CHANNELSTATE_SPEEDDIAL:
-		case SCCP_CHANNELSTATE_INVALIDCONFERENCE:
 		case SCCP_CHANNELSTATE_ZOMBIE:
 			res = AST_DEVICE_UNKNOWN;
-#endif
 			break;
 	}
 
@@ -656,21 +643,21 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 	boolean_t inband_if_receivechannel = FALSE;
 	switch (ind) {
 		case AST_CONTROL_RINGING:
-			if (SKINNY_CALLTYPE_OUTBOUND == c->calltype && pbx_channel_state(c->owner) !=  AST_STATE_UP) {
-				if (c->remoteCapabilities.audio[0] == SKINNY_CODEC_NONE) {
-					pbx_retrieve_remote_capabilities(c);
+			if (SKINNY_CALLTYPE_OUTBOUND == c->calltype) {
+				if (pbx_channel_state (c->owner) != AST_STATE_UP) {
+					if (c->remoteCapabilities.audio[0] == SKINNY_CODEC_NONE) {
+						pbx_retrieve_remote_capabilities (c);
+					}
+					// Allow signalling of RINGOUT only on outbound calls.
+					// Otherwise, there are some issues with late arrival of ringing
+					// indications on ISDN calls (chan_lcr, chan_dahdi) (-DD).
+					iPbx.set_callstate (c, AST_STATE_RING);
+				} else {
+					iPbx.set_callstate (c, AST_STATE_RINGING);
 				}
-
-				// Allow signalling of RINGOUT only on outbound calls.
-				// Otherwise, there are some issues with late arrival of ringing
-				// indications on ISDN calls (chan_lcr, chan_dahdi) (-DD).
 				sccp_indicate(d, c, SCCP_CHANNELSTATE_RINGOUT);
-				iPbx.set_callstate(c, AST_STATE_RING);
-				inband_if_receivechannel = TRUE;
 			}
-			if (ast_channel_state(ast) != AST_STATE_RING) {
-				inband_if_receivechannel = TRUE;
-			}
+			inband_if_receivechannel = TRUE;
 			break;
 
 		case AST_CONTROL_BUSY:
@@ -1335,6 +1322,12 @@ static boolean_t sccp_astwrap_allocPBXChannel(sccp_channel_t * channel, const vo
 		ast_channel_zone_set(pbxDstChannel, ast_get_indication_zone(line->language));			/* this will core asterisk on hangup */
 	}
 
+	struct ast_cc_config_params * cc_params = ast_cc_config_params_init();
+	ast_cc_default_config_params (cc_params);
+	ast_cc_set_param (cc_params, "cc_agent_policy", "generic");
+	ast_cc_set_param (cc_params, "cc_agent_monitor", "generic");
+	ast_channel_cc_params_init (pbxDstChannel, cc_params);
+
 	ast_channel_stage_snapshot_done(pbxDstChannel);
 	ast_channel_unlock(pbxDstChannel);
 
@@ -1519,6 +1512,74 @@ int sccp_astwrap_hangup(PBX_CHANNEL_TYPE * ast_channel)
 	return res;
 }
 
+static void parking_event_cb (void * data, struct stasis_subscription * sub, struct stasis_message * message)
+{
+	struct ast_parked_call_payload * parked_payload = stasis_message_data (message);
+	AUTO_RELEASE (sccp_channel_t, parker, sccp_channel_retain ((sccp_channel_t *)data));
+	if (!parker) {
+		pbx_log (LOG_ERROR, "No Parker provided\n");
+		return;
+	}
+
+	RAII (struct ast_channel *, parker_chan, ast_channel_ref (parker->owner), ao2_cleanup);
+	if (!parker_chan) {
+		pbx_log (LOG_ERROR, "%s: No Park Owner set\n", parker->designator);
+		return;
+	}
+
+	if (stasis_subscription_final_message (sub, message)) {
+		// pbx_log(LOG_NOTICE, "%s: (parking_event_cb) Final Message", parker->designator);
+		return;
+	}
+
+	switch (parked_payload->event_type) {
+		case PARKED_CALL: {
+			sccp_log (DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "%s Parked call to parkingspace:%d@%s\n", ast_channel_name (parker_chan), parked_payload->parkingspace, parked_payload->parkinglot);
+			char parkingspace[16];
+			snprintf (parkingspace, sizeof (parkingspace), "%d", parked_payload->parkingspace);
+			AUTO_RELEASE (sccp_device_t, d, sccp_channel_getDevice (parker));
+			if (d) {
+				char extstr[20] = "";
+				snprintf (extstr, sizeof (extstr), "%c%c %s", 128, SKINNY_LBL_CALL_PARK_AT, parkingspace);
+				sccp_dev_displayprinotify (d, extstr, SCCP_MESSAGE_PRIORITY_TIMEOUT, 20);
+			}
+			RAII (struct ast_bridge *, bridge, ast_channel_get_bridge (parker_chan), ao2_cleanup);
+			if (bridge) {
+				ast_bridge_suspend (bridge, parker_chan);
+				ast_channel_lock (parker_chan);
+				ast_channel_ref (parker_chan);
+				ast_channel_unlock (parker_chan);
+				ast_say_digit_str (parker_chan, parkingspace, "", ast_channel_language (parker_chan));
+				ast_bridge_unsuspend (bridge, parker_chan);
+				ast_channel_unref (parker_chan);
+			} else {
+				parker->setTone (parker, SKINNY_TONE_CONFIRMATIONTONE, SKINNY_TONEDIRECTION_USER);
+			}
+			sccp_astgenwrap_requestHangup (parker);
+		} break;
+		case PARKED_CALL_FAILED: {
+			pbx_log (LOG_ERROR, "%s Parked failed\n", ast_channel_name (parker_chan));
+			AUTO_RELEASE (sccp_device_t, d, sccp_channel_getDevice (parker));
+			if (d) {
+				sccp_dev_displayprinotify (d, SKINNY_DISP_TEMP_FAIL, SCCP_MESSAGE_PRIORITY_TIMEOUT, GLOB (digittimeout));
+			}
+			parker->setTone (parker, SKINNY_TONE_REORDERTONE, SKINNY_TONEDIRECTION_USER);
+			sccp_astgenwrap_requestHangup (parker);
+		} break;
+		default:
+			break;
+	}
+}
+
+static void * parking_subscriptionCleanup (void * data)
+{
+	AUTO_RELEASE (sccp_channel_t, hostChannel, (sccp_channel_t *)data);
+	if (hostChannel && hostChannel->parking_sub) {
+		hostChannel->parking_sub = stasis_unsubscribe_and_join (hostChannel->parking_sub);
+	}
+	return NULL;
+}
+
 /*!
  * \brief Parking Thread Arguments Structure
  */
@@ -1536,31 +1597,70 @@ int sccp_astwrap_hangup(PBX_CHANNEL_TYPE * ast_channel)
 static sccp_parkresult_t sccp_astwrap_park(constChannelPtr hostChannel)
 {
 	sccp_parkresult_t res = PARK_RESULT_FAIL;
-	char extout[AST_MAX_EXTENSION] = "";
+	RAII (struct ast_channel *, parker_chan, ast_channel_ref (hostChannel->owner), ast_channel_cleanup);
 	RAII(struct ast_bridge_channel *, bridge_channel, NULL, ao2_cleanup);
 	
 	if (!ast_parking_provider_registered()) {
 		return res;
 	}
 
-	AUTO_RELEASE(sccp_device_t, device , sccp_channel_getDevice(hostChannel));
-	if (device && (ast_channel_state(hostChannel->owner) ==  AST_STATE_UP)) {
-		ast_channel_lock(hostChannel->owner);								/* we have to lock our channel, otherwise asterisk crashes internally */
-		bridge_channel = ast_channel_get_bridge_channel(hostChannel->owner);
-		ast_channel_unlock(hostChannel->owner);
-		if (bridge_channel) {
-			if (!ast_parking_park_call(bridge_channel, extout, sizeof(extout))) {			/* new asterisk-12/13 implementation returns the parkext not the parking_space */
-														/* See: https://issues.asterisk.org/jira/browse/ASTERISK-26029 */
-				char extstr[20];
-				memset(extstr, 0, sizeof(extstr));
-				//snprintf(extstr, sizeof(extstr), "%c%c %.16s", 128, SKINNY_LBL_CALL_PARK_AT, extout);
-				//sccp_dev_displayprinotify(device, extstr, 1, 10);				/* suppressing output of wrong parking information */
-				sccp_dev_displayprinotify(device, SKINNY_DISP_CALL_PARK, SCCP_MESSAGE_PRIORITY_TIMEOUT, 10);
-				sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Parked channel %s on %s\n", DEV_ID_LOG(device), ast_channel_name(hostChannel->owner), extout);
+	do {
+		AUTO_RELEASE (sccp_device_t, device, sccp_channel_getDevice (hostChannel));
+		sccp_log (DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "%s: Handling Park\n", hostChannel->designator);
+		if (device && (ast_channel_state (parker_chan) == AST_STATE_UP)) {
+			ast_channel_lock (parker_chan); /* we have to lock our channel, otherwise asterisk crashes internally */
+			bridge_channel = ast_channel_get_bridge_channel (parker_chan);
+			ast_channel_unlock (parker_chan);
+			if (!bridge_channel) {
+				pbx_log (LOG_ERROR, "Park action failed\n");
+				break;
+			}
+			if (!hostChannel->parking_sub) {
+				// pbx_log(LOG_NOTICE, "%s: Subscribing to park topic\n", hostChannel->designator);
+				channelPtr c = (channelPtr)hostChannel;                                        // casting away const
+				c->parking_sub = stasis_subscribe (ast_parking_topic(), parking_event_cb, (void *)c);
+#if CS_AST_HAS_STASIS_SUBSCRIPTION_SET_FILTER
+				stasis_subscription_accept_message_type (c->parking_sub, ast_parked_call_type());
+				stasis_subscription_set_filter (c->parking_sub, STASIS_SUBSCRIPTION_FILTER_SELECTIVE);
+#endif
+				// pbx_log(LOG_NOTICE, "%s: Added cleaning job\n", hostChannel->designator);
+				sccp_channel_addCleanupJob (c, &parking_subscriptionCleanup, (void *)sccp_channel_retain (c));
+			}
+			if (bridge_channel) {
+				RAII (struct ast_channel *, other_chan, NULL, ast_channel_cleanup);
+				ast_bridge_channel_lock_bridge (bridge_channel);
+				uint8_t peer_count = bridge_channel->bridge->num_channels;
+				if (peer_count == 2) {
+					struct ast_bridge_channel * other = ast_bridge_channel_peer (bridge_channel);
+					other_chan = other->chan;
+					ast_channel_ref (other_chan);
+				}
+				ast_bridge_unlock (bridge_channel->bridge);
+				if (!other_chan) {
+					pbx_log (LOG_WARNING, "%s: Remote channel is missing, giving up (connected to application?)\n", hostChannel->designator);
+					break;
+				}
+				sccp_log (DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "%s: Parking %s\n", hostChannel->designator, ast_channel_name (other_chan));
+				const char * parkinglot = ast_channel_parkinglot (bridge_channel->chan);
+				char app_data[256];
+				snprintf (app_data, 256, "%s,%s", parkinglot, "s");
+				if (ast_bridge_channel_write_park (bridge_channel, ast_channel_uniqueid (other_chan), ast_channel_uniqueid (bridge_channel->chan), app_data) != 0) {
+					pbx_log (LOG_ERROR, "%s: Parking bridge_channel failed\n", hostChannel->designator);
+					break;
+				}
+
+				AUTO_RELEASE (sccp_channel_t, remote, get_sccp_channel_from_pbx_channel (other_chan));
+				if (remote) {
+					sccp_indicate (NULL, remote, SCCP_CHANNELSTATE_CALLPARK);
+				}
+
+				pbx_channel_set_hangupcause (parker_chan, AST_CAUSE_REDIRECTED_TO_NEW_DESTINATION);
+				sccp_channel_schedule_hangup (hostChannel, SCCP_HANGUP_TIMEOUT);
+
 				res = PARK_RESULT_SUCCESS;
 			}
 		}
-	}
+	} while (0);
 	return res;
 }
 

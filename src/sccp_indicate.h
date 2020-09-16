@@ -12,7 +12,7 @@
 #define SCCP_INDICATE_NOLOCK 	0
 #define SCCP_INDICATE_LOCK		1
 
-SCCP_API void SCCP_CALL __sccp_indicate(constDevicePtr maybe_device, channelPtr c, const sccp_channelstate_t state, const uint8_t debug, const char * file, const int line, const char * pretty_function);
+SCCP_API void SCCP_CALL __sccp_indicate (constDevicePtr maybe_device, channelPtr c, const sccp_channelstate_t state, boolean_t force, const uint8_t debug, const char * file, const int line, const char * pretty_function);
 
 #define SCCP_GROUPED_CHANNELSTATE_IDLE		9
 #define SCCP_GROUPED_CHANNELSTATE_DIALING	19
@@ -27,8 +27,10 @@ SCCP_API void SCCP_CALL __sccp_indicate(constDevicePtr maybe_device, channelPtr 
 #define SCCP_CHANNELSTATE_IsTerminating(_x) (( _x) > SCCP_GROUPED_CHANNELSTATE_CONNECTION && ( _x) <= SCCP_GROUPED_CHANNELSTATE_TERMINATION)
 
 #ifdef CS_DEBUG_INDICATIONS
-#define sccp_indicate(x, y, z)	__sccp_indicate(x, (channelPtr) y, z, 1, __FILE__, __LINE__, __PRETTY_FUNCTION__)
+#	define sccp_indicate(x, y, z)       __sccp_indicate (x, (channelPtr)y, z, FALSE, 1, __FILE__, __LINE__, __PRETTY_FUNCTION__)
+#	define sccp_indicate_force(x, y, z) __sccp_indicate (x, (channelPtr)y, z, TRUE, 1, __FILE__, __LINE__, __PRETTY_FUNCTION__)
 #else
-#define sccp_indicate(x, y, z)	__sccp_indicate(x, (channelPtr) y, z, 0, NULL, 0, NULL)
+#	define sccp_indicate(x, y, z)       __sccp_indicate (x, (channelPtr)y, z, FALSE, 0, NULL, 0, NULL)
+#	define sccp_indicate_force(x, y, z) __sccp_indicate (x, (channelPtr)y, z, TRUE, 0, NULL, 0, NULL)
 #endif
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

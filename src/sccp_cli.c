@@ -513,7 +513,7 @@ static char *sccp_complete_set(OLDCONST char *line, OLDCONST char *word, int pos
 
 	char *types[] = { "device", "channel", "line", "fallback", "debug" };
 
-	char *properties_channel[] = { "hold" };
+	char * properties_channel[] = { "hold", "park" };
 	char * properties_device[] = { "ringtone", "backgroundImage" };
 	char *properties_fallback[] = { "true", "false", "odd", "even", "path" };
 
@@ -3571,6 +3571,7 @@ static int sccp_set_object(int fd, int argc, char *argv[])
 				if (sccp_strcaseequals("on", argv[5])) {					/* check to see if enable hold */
 					pbx_cli(fd, "Placing channel %s on hold\n", argv[3]);
 					sccp_channel_hold(c);
+					return RESULT_SUCCESS;
 				} else if (!strcmp("off", argv[5])) {						/* check to see if disable hold */
 					if (argc < 7) {
 						pbx_cli(fd, "For resuming a channel from hold, you have to specify the resuming device\n%s %s %s %s %s %s <device>\n", argv[0], argv[1], argv[2], argv[3], argv[4], argv[5]);
@@ -3598,13 +3599,17 @@ static int sccp_set_object(int fd, int argc, char *argv[])
 					pbx_cli(fd, "Removing channel %s from hold\n", argv[3]);
 
 					sccp_channel_resume(d, c, FALSE);
+					return RESULT_SUCCESS;
 				} else {
 					/* wrong parameter value */
 					return RESULT_SHOWUSAGE;
 				}
+			} else if (sccp_strcaseequals ("park", argv[4])) {
+				pbx_cli (fd, "Parking channel %s\n", argv[3]);
+				sccp_channel_park (c);
+				return RESULT_SUCCESS;
 			}
 		} while (FALSE);
-
 	} else if (sccp_strcaseequals("device", argv[2])) {
 		if (argc < 6) {
 			return RESULT_SHOWUSAGE;

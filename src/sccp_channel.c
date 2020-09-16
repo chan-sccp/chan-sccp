@@ -2937,7 +2937,9 @@ void sccp_channel_park(constChannelPtr channel)
 	if (PARK_RESULT_SUCCESS != result) {
 		AUTO_RELEASE(sccp_device_t, d , sccp_channel_getDevice(channel));
 		if (d) {
-			sccp_dev_displaynotify(d, SKINNY_DISP_NO_PARK_NUMBER_AVAILABLE, 10);
+			uint16_t lineInstance = sccp_device_find_index_for_line (d, channel->line->name);
+			sccp_dev_displayprompt (d, lineInstance, channel->callid, SKINNY_DISP_TEMP_FAIL " " SKINNY_DISP_PARK, SCCP_DISPLAYSTATUS_TIMEOUT);
+			channel->setTone (channel, SKINNY_TONE_BEEPBONK, SKINNY_TONEDIRECTION_USER);
 		}
 	}
 }
