@@ -1261,7 +1261,6 @@ static boolean_t sccp_astwrap_allocPBXChannel(sccp_channel_t * channel, const vo
 	if (line->pickupgroup) {
 		ast_channel_pickupgroup_set(pbxDstChannel, line->pickupgroup);
 	}
-#endif
 #if CS_AST_HAS_NAMEDGROUP
 	if (!sccp_strlen_zero(line->namedcallgroup)) {
 		ast_channel_named_callgroups_set(pbxDstChannel, ast_get_namedgroups(line->namedcallgroup));
@@ -1270,6 +1269,7 @@ static boolean_t sccp_astwrap_allocPBXChannel(sccp_channel_t * channel, const vo
 	if (!sccp_strlen_zero(line->namedpickupgroup)) {
 		ast_channel_named_pickupgroups_set(pbxDstChannel, ast_get_namedgroups(line->namedpickupgroup));
 	}
+#	endif
 #endif
 	if (!sccp_strlen_zero(line->parkinglot)) {
 		ast_channel_parkinglot_set(pbxDstChannel, line->parkinglot);

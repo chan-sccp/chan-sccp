@@ -513,7 +513,11 @@ static char *sccp_complete_set(OLDCONST char *line, OLDCONST char *word, int pos
 
 	char *types[] = { "device", "channel", "line", "fallback", "debug" };
 
-	char * properties_channel[] = { "hold", "park" };
+	char * properties_channel[] = { "hold",
+#ifdef CS_SCCP_PARK
+					"park"
+#endif
+	};
 	char * properties_device[] = { "ringtone", "backgroundImage" };
 	char *properties_fallback[] = { "true", "false", "odd", "even", "path" };
 
@@ -1576,10 +1580,10 @@ static int sccp_show_line(int fd, sccp_cli_totals_t *totals, struct mansession *
 	CLI_AMI_OUTPUT_BOOL("Directed Pickup",		CLI_AMI_LIST_WIDTH, l->directed_pickup);
 	CLI_AMI_OUTPUT_PARAM("Directed Pickup Context",	CLI_AMI_LIST_WIDTH, "%s %s", l->directed_pickup_context, sccp_strlen_zero(l->directed_pickup_context) ? "" : (pbx_context_find(l->directed_pickup_context) ? "<context exists>" : "<context not found !!>"));
 	CLI_AMI_OUTPUT_BOOL("Pickup Mode Answer",	CLI_AMI_LIST_WIDTH, l->pickup_modeanswer);
-#endif
 #ifdef CS_AST_HAS_NAMEDGROUP
 	CLI_AMI_OUTPUT_PARAM("Named Call Group",	CLI_AMI_LIST_WIDTH, "%s", l->namedcallgroup ? l->namedcallgroup : "NONE");
 	CLI_AMI_OUTPUT_PARAM("Named Pickup Group",	CLI_AMI_LIST_WIDTH, "%s", l->namedpickupgroup ? l->namedpickupgroup : "NONE");
+#	endif
 #endif
 	CLI_AMI_OUTPUT_PARAM("Combined Audio Caps",	CLI_AMI_LIST_WIDTH, "%s", acap_buf);
 	CLI_AMI_OUTPUT_PARAM("Audio Preferences",	CLI_AMI_LIST_WIDTH, "%s", apref_buf);
@@ -3604,11 +3608,14 @@ static int sccp_set_object(int fd, int argc, char *argv[])
 					/* wrong parameter value */
 					return RESULT_SHOWUSAGE;
 				}
-			} else if (sccp_strcaseequals ("park", argv[4])) {
+			}
+#ifdef CS_SCCP_PARK
+			else if (sccp_strcaseequals ("park", argv[4])) {
 				pbx_cli (fd, "Parking channel %s\n", argv[3]);
 				sccp_channel_park (c);
 				return RESULT_SUCCESS;
 			}
+#endif
 		} while (FALSE);
 	} else if (sccp_strcaseequals("device", argv[2])) {
 		if (argc < 6) {

@@ -731,7 +731,11 @@ static int sccp_func_sccpline(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char 
 #endif
 #ifdef CS_AST_HAS_NAMEDGROUP
 			} else if (!strcasecmp(token, "named_callgroup")) {
+#	ifdef CS_SCCP_PICKUP
 				ast_copy_string(buf, l->namedcallgroup, len);
+#	else
+				sccp_copy_string (buf, "not supported", len);
+#	endif
 			} else if (!strcasecmp(token, "named_pickupgroup")) {
 #ifdef CS_SCCP_PICKUP
 				ast_copy_string(buf, l->namedpickupgroup, len);
