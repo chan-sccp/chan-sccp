@@ -310,12 +310,16 @@ static int sccp_hint_devstate_cb(char *context, char *id, enum ast_extension_sta
 	char cidNumber[StationMaxDirnumSize] = "";
 
 	hint = (sccp_hint_list_t *) data;
+	if (!hint) {
+		return -1;
+	}
 
 #if ASTERISK_VERSION_GROUP >= 111
 	extensionState = info->exten_state;
 #else
 	extensionState = state;
 #endif
+	sccp_channelstate_t previousState = hint->currentState;
 
 	if (hint->callInfo) {
 		if (hint->calltype == SKINNY_CALLTYPE_INBOUND) {
@@ -332,9 +336,9 @@ static int sccp_hint_devstate_cb(char *context, char *id, enum ast_extension_sta
 	}
 
 	/* save previousState */
-	hint->previousState = hint->currentState;
-
 	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_2 "%s (hint_devstate_cb) Got new hint event %s, state: %d (%s), cidname: %s, cidnum: %s\n", hint->exten, hint->hint_dialplan, extensionState, ast_extension_state2str(extensionState), cidName, cidNumber);
+	sccp_log ((DEBUGCAT_HINT)) (VERBOSE_PREFIX_2 "%s (hint_devstate_cb) previousState:%s, currentState:%s\n", hint->exten, sccp_channelstate2str (hint->previousState), sccp_channelstate2str (hint->currentState));
+
 	switch (extensionState) {
 		case AST_EXTENSION_REMOVED:
 		case AST_EXTENSION_DEACTIVATED:
@@ -349,7 +353,9 @@ static int sccp_hint_devstate_cb(char *context, char *id, enum ast_extension_sta
 			hint->currentState = SCCP_CHANNELSTATE_ONHOOK;
 			break;
 		case AST_EXTENSION_INUSE:
-			if (SCCP_CHANNELSTATE_ONHOOK == hint->previousState || SCCP_CHANNELSTATE_DOWN == hint->previousState) {
+			sccp_log ((DEBUGCAT_HINT)) (VERBOSE_PREFIX_2 "%s !!!!!! (hint_devstate_cb) !!!!!!! previousState:%s, currentState:%s\n", hint->exten, sccp_channelstate2str (hint->previousState),
+						    sccp_channelstate2str (hint->currentState));
+			if (SCCP_CHANNELSTATE_Idling (hint->currentState)) {
 				hint->currentState = SCCP_CHANNELSTATE_DIALING;
 			} else {
 				hint->currentState = SCCP_CHANNELSTATE_CONNECTED;
@@ -371,6 +377,7 @@ static int sccp_hint_devstate_cb(char *context, char *id, enum ast_extension_sta
 			hint->currentState = SCCP_CHANNELSTATE_HOLD;
 			break;
 	}
+	hint->previousState = previousState;
 
 	sccp_hint_notifySubscribers(hint);
 	return 0;
@@ -1412,6 +1419,8 @@ static void sccp_hint_notifyLineStateUpdate(struct sccp_hint_lineState *lineStat
 			sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "SCCP: (sccp_hint_notifyLineStateUpdate) Notify asterisk to set state to sccp channelstate '%s' (%d) on line '%s'\n", sccp_channelstate2str(lineState->state), lineState->state, lineName);
 			sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "SCCP: (sccp_hint_notifyLineStateUpdate) => asterisk: '%s' (%d) => '%s' (%d) on line %s\n", pbxsccp_devicestate2str(oldDeviceState), oldDeviceState, pbxsccp_devicestate2str(newDeviceState), newDeviceState, lineName);
 			if (newDeviceState == oldDeviceState) {
+				hint->previousState = hint->currentState;
+				hint->currentState = lineState->state;
 				sccp_hint_notifySubscribers(hint);							/* shortcut to inform sccp subscribers about cid update changes only */
 			}
 		}

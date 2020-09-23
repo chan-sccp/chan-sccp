@@ -1678,6 +1678,9 @@ static sccp_parkresult_t sccp_astwrap_park(constChannelPtr hostChannel)
 					pbx_log (LOG_WARNING, "%s: Remote channel is missing, giving up (connected to application?)\n", hostChannel->designator);
 					break;
 				}
+				pbx_builtin_setvar_helper (other_chan, "_PARKED_BY_CHANNEL", ast_channel_name (parker_chan));
+				pbx_builtin_setvar_helper (other_chan, "_PARKED_BY_UNIQUEID", ast_channel_uniqueid (parker_chan));
+
 				sccp_log (DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "%s: Parking %s\n", hostChannel->designator, ast_channel_name (other_chan));
 				const char * parkinglot = ast_channel_parkinglot (bridge_channel->chan);
 				char app_data[256];

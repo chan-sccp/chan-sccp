@@ -874,13 +874,13 @@ void sccp_astwrap_connectedline(sccp_channel_t * channel, const void *data, size
 
 	if (SCCP_CHANNELSTATE_CALLPARK == channel->state && !sccp_strlen_zero (pbx_builtin_getvar_helper (channel->owner, "PARKER"))) {
 		channel->calltype = SKINNY_CALLTYPE_OUTBOUND;
-		channel->state = SCCP_CHANNELSTATE_RINGOUT;
+		sccp_channel_setChannelstate (channel, SCCP_CHANNELSTATE_RINGOUT);
 	}
 
 	/* set the original calling/called party if the reason is a transfer */
 	if (channel->calltype == SKINNY_CALLTYPE_INBOUND) {
 		if (pbx_channel_connected_source(ast) == AST_CONNECTED_LINE_UPDATE_SOURCE_TRANSFER || pbx_channel_connected_source(ast) == AST_CONNECTED_LINE_UPDATE_SOURCE_TRANSFER_ALERTING) {
-			sccp_log(DEBUGCAT_CHANNEL) ("SCCP: (connectedline) Transfer Destination\n");
+			// sccp_log(DEBUGCAT_CHANNEL) ("SCCP: (connectedline) Transfer Destination\n");
 			changes = iCallInfo.Setter(callInfo,
 				SCCP_CALLINFO_CALLINGPARTY_NUMBER, pbx_channel_connected_id(ast).number.str,
 				SCCP_CALLINFO_CALLINGPARTY_NAME, pbx_channel_connected_id(ast).name.str,
@@ -943,10 +943,10 @@ void sccp_astwrap_connectedline(sccp_channel_t * channel, const void *data, size
 		}
 #endif
         }
-#endif
-	if (SCCP_CHANNELSTATE_CALLPARK == channel->state) {
+	if (SCCP_CHANNELSTATE_CALLPARK == channel->state || !sccp_strlen_zero (pbx_builtin_getvar_helper (channel->owner, "PARK_RETRIEVER"))) {
 		sccp_indicate_force (NULL, channel, SCCP_CHANNELSTATE_CONNECTED);
 	}
+#endif
 }
 
 void sccp_astwrap_sendRedirectedUpdate(const sccp_channel_t * channel, const char *fromNumber, const char *fromName, const char *toNumber, const char *toName, uint8_t reason)
