@@ -30,7 +30,8 @@ SCCP_FILE_VERSION(__FILE__, "");
 #include "sccp_linedevice.h"
 #include "sccp_labels.h"
 #include "sccp_devstate.h"
-#include "sccp_featureParkingLot.h"
+#include "sccp_featureParkingLot.h"                                            //dtu
+#include "sccp_featureCallCompletion.h"                                        //dtu
 
 /*!
  * \remarks
@@ -4657,17 +4658,10 @@ void handle_device_to_user(constSessionPtr s, devicePtr d, constMessagePtr msg_i
 			case APPID_INPUT:
 				pbx_log(LOG_NOTICE, "%s: APPID_INPUT: appid:%d,call:%d,line:%d,trans:%d,len:%d\ndata:%s\n", d->id, appID, callReference, lineInstance, transactionID, dataLength, data);
 				break;
-			case APPID_CC: {
+			case APPID_CC:
 				pbx_log(LOG_NOTICE, "%s: APPID_CC: appid:%d, lineInstace:%d, core_id:%d, transaction:%d, data:%s\n", d->id, appID, lineInstance, callReference, transactionID, data);
-				/*					char action[7] = "";
-									char exten[DEFAULT_PBX_STR_BUFFERSIZE] = "";
-									uint32_t core_id;
-									if (sscanf(data, "%10s[^/]/%10s[^/]/%10u", action, exten, &core_id) > 0) {
-										pbx_log(LOG_NOTICE, "%s: APPID_CC: appid:%d, action:%s, exten:%s, core_id:%d\n", d->id, appID, action, exten, core_id);
-										//iParkingLot.handleDevice2User(parkinglot, d, slot_exten, lineInstance, transactionID);
-									}
-									pbx_log(LOG_NOTICE, "%s: ERROR Parsing APPID_CC: appid:%d, action:%s, exten:%s, core_id:%d\n", d->id, appID, action, exten, core_id);*/
-			} break;
+				iCallCompletion.handleDevice2User(d, appID, lineInstance, callReference, transactionID, data);
+				break;
 		}
 	}
 }

@@ -28,6 +28,7 @@
 #include "sccp_enum.h" 
 #include "pbx_impl/ast116/ast116.h"
 #include "pbx_impl/ast_announce/ast_announce.h"
+#include "sccp_featureCallCompletion.h"
 
 SCCP_FILE_VERSION(__FILE__, "");
 
@@ -3043,7 +3044,6 @@ static int sccp_astwrap_queryOption(struct ast_channel *ast, int option, void *d
         sccp_mutex_unlock(&c->lock);
 
         return res;
-                
 }
 #endif
 
@@ -3947,8 +3947,9 @@ static int unload_module(void)
 		ast_sched_context_destroy(sched);
 		sched = NULL;
 	}
-
-	sccp_astgenwrap_unregister_cc_agent_callback();
+	if(iCallCompletion.unregisterCcAgentCallback) {
+		iCallCompletion.unregisterCcAgentCallback();
+	}
 	pbx_log(LOG_NOTICE, "Running Cleanup\n");
 	sccp_free(sccp_globals);
 	pbx_log(LOG_NOTICE, "Module chan_sccp unloaded\n");
@@ -4032,7 +4033,7 @@ static enum ast_module_load_result load_module(void)
 			pbx_log(LOG_ERROR, "SCCP: postPBXLoad Failed\n");
 			break;
 		}
-		if(!sccp_astgenwrap_register_cc_agent_callback()) {
+		if(iCallCompletion.registerCcAgentCallback && !iCallCompletion.registerCcAgentCallback()) {
 			pbx_log(LOG_ERROR, "SCCP: Failed to register cc agent callbacks\n");
 			break;
 		}

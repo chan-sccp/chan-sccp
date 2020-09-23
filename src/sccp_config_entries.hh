@@ -355,7 +355,6 @@ static const SCCPConfigOption sccpLineConfigOptions[] = {
  * \brief List of SCCP Config Options for SCCP SoftKey
  */
 static const SCCPConfigOption sccpSoftKeyConfigOptions[] = {
-<<<<<<< HEAD
 	{ "type", 0, 0, TYPE_STRING, SCCP_CONFIG_FLAG_NONE, SCCP_CONFIG_NOUPDATENEEDED, "softkeyset", "This should be set to softkeyset" },
 	{ "name", 0, 0, TYPE_STRING, SCCP_CONFIG_FLAG_IGNORE, SCCP_CONFIG_NOUPDATENEEDED, "default", "softkeyset name\n" },
 	{ "onhook", S_OBJ_REF(modes[KEYMODE_ONHOOK]), TYPE_STRING, SCCP_CONFIG_FLAG_NONE, SCCP_CONFIG_NOUPDATENEEDED,

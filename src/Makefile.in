@@ -184,6 +184,7 @@ am_libsccp_la_OBJECTS = libsccp_la-sccp_callinfo.lo \
 	libsccp_la-sccp_codec.lo libsccp_la-sccp_labels.lo \
 	libsccp_la-sccp_xml.lo libsccp_la-sccp_webservice.lo \
 	libsccp_la-sccp_utils.lo libsccp_la-sccp_featureParkingLot.lo \
+	libsccp_la-sccp_featureCallCompletion.lo \
 	libsccp_la-sccp_transport_tcp.lo \
 	libsccp_la-sccp_transport_tls.lo
 libsccp_la_OBJECTS = $(am_libsccp_la_OBJECTS)
@@ -221,6 +222,7 @@ am__depfiles_remade = ./$(DEPDIR)/chan_sccp_la-chan_sccp.Plo \
 	./$(DEPDIR)/libsccp_la-sccp_event.Plo \
 	./$(DEPDIR)/libsccp_la-sccp_feature.Plo \
 	./$(DEPDIR)/libsccp_la-sccp_featureButton.Plo \
+	./$(DEPDIR)/libsccp_la-sccp_featureCallCompletion.Plo \
 	./$(DEPDIR)/libsccp_la-sccp_featureParkingLot.Plo \
 	./$(DEPDIR)/libsccp_la-sccp_globals.Plo \
 	./$(DEPDIR)/libsccp_la-sccp_hint.Plo \
@@ -633,7 +635,7 @@ noinst_HEADERS = chan_sccp.h			sccp_actions.h			sccp_cli.h			sccp_devstate.h			\
 			  revision.h			sccp_channel.h			sccp_device.h			sccp_event.h			\
 			  sccp_labels.h			sccp_protocol.h			sccp_enum.h			sccp_codec.h			\
 			  define.h			sccp_netsock.h			sccp_xml.h			sccp_webservice.h		\
-			  sccp_utils.h			sccp_featureParkingLot.h	sccp_transport.h
+			  sccp_utils.h			sccp_featureParkingLot.h	sccp_featureCallCompletion.h	sccp_transport.h
 
 libsccp_la_SOURCES = sccp_callinfo.c 		sccp_channel.c			sccp_device.c			sccp_debug.c			\
 			  sccp_indicate.c 		sccp_pbx.c 			sccp_session.c			sccp_threadpool.c		\
@@ -643,7 +645,8 @@ libsccp_la_SOURCES = sccp_callinfo.c 		sccp_channel.c			sccp_device.c			sccp_deb
 			  sccp_conference.c		sccp_rtp.c			sccp_appfunctions.c		sccp_protocol.c			\
 			  sccp_devstate.c		sccp_event.c			sccp_enum.c			sccp_globals.c			\
 			  sccp_netsock.c		sccp_codec.c			sccp_labels.c			sccp_xml.c			\
-			  sccp_webservice.c 		sccp_utils.c			sccp_featureParkingLot.c	sccp_transport_tcp.c	sccp_transport_tls.c
+			  sccp_webservice.c 		sccp_utils.c			sccp_featureParkingLot.c	sccp_featureCallCompletion.c	\
+			  sccp_transport_tcp.c		sccp_transport_tls.c
 
 chan_sccp_la_SOURCES = chan_sccp.c
 libsccp_la_DEPENDENCIES = revision.h sccp_enum.h sccp_enum.c
@@ -768,6 +771,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsccp_la-sccp_event.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsccp_la-sccp_feature.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsccp_la-sccp_featureButton.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsccp_la-sccp_featureCallCompletion.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsccp_la-sccp_featureParkingLot.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsccp_la-sccp_globals.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsccp_la-sccp_hint.Plo@am__quote@ # am--include-marker
@@ -1073,6 +1077,13 @@ libsccp_la-sccp_featureParkingLot.lo: sccp_featureParkingLot.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libsccp_la_CFLAGS) $(CFLAGS) -c -o libsccp_la-sccp_featureParkingLot.lo `test -f 'sccp_featureParkingLot.c' || echo '$(srcdir)/'`sccp_featureParkingLot.c
 
+libsccp_la-sccp_featureCallCompletion.lo: sccp_featureCallCompletion.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libsccp_la_CFLAGS) $(CFLAGS) -MT libsccp_la-sccp_featureCallCompletion.lo -MD -MP -MF $(DEPDIR)/libsccp_la-sccp_featureCallCompletion.Tpo -c -o libsccp_la-sccp_featureCallCompletion.lo `test -f 'sccp_featureCallCompletion.c' || echo '$(srcdir)/'`sccp_featureCallCompletion.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsccp_la-sccp_featureCallCompletion.Tpo $(DEPDIR)/libsccp_la-sccp_featureCallCompletion.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='sccp_featureCallCompletion.c' object='libsccp_la-sccp_featureCallCompletion.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libsccp_la_CFLAGS) $(CFLAGS) -c -o libsccp_la-sccp_featureCallCompletion.lo `test -f 'sccp_featureCallCompletion.c' || echo '$(srcdir)/'`sccp_featureCallCompletion.c
+
 libsccp_la-sccp_transport_tcp.lo: sccp_transport_tcp.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libsccp_la_CFLAGS) $(CFLAGS) -MT libsccp_la-sccp_transport_tcp.lo -MD -MP -MF $(DEPDIR)/libsccp_la-sccp_transport_tcp.Tpo -c -o libsccp_la-sccp_transport_tcp.lo `test -f 'sccp_transport_tcp.c' || echo '$(srcdir)/'`sccp_transport_tcp.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libsccp_la-sccp_transport_tcp.Tpo $(DEPDIR)/libsccp_la-sccp_transport_tcp.Plo
@@ -1315,6 +1326,7 @@ distclean: distclean-recursive
 	-rm -f ./$(DEPDIR)/libsccp_la-sccp_event.Plo
 	-rm -f ./$(DEPDIR)/libsccp_la-sccp_feature.Plo
 	-rm -f ./$(DEPDIR)/libsccp_la-sccp_featureButton.Plo
+	-rm -f ./$(DEPDIR)/libsccp_la-sccp_featureCallCompletion.Plo
 	-rm -f ./$(DEPDIR)/libsccp_la-sccp_featureParkingLot.Plo
 	-rm -f ./$(DEPDIR)/libsccp_la-sccp_globals.Plo
 	-rm -f ./$(DEPDIR)/libsccp_la-sccp_hint.Plo
@@ -1398,6 +1410,7 @@ maintainer-clean: maintainer-clean-recursive
 	-rm -f ./$(DEPDIR)/libsccp_la-sccp_event.Plo
 	-rm -f ./$(DEPDIR)/libsccp_la-sccp_feature.Plo
 	-rm -f ./$(DEPDIR)/libsccp_la-sccp_featureButton.Plo
+	-rm -f ./$(DEPDIR)/libsccp_la-sccp_featureCallCompletion.Plo
 	-rm -f ./$(DEPDIR)/libsccp_la-sccp_featureParkingLot.Plo
 	-rm -f ./$(DEPDIR)/libsccp_la-sccp_globals.Plo
 	-rm -f ./$(DEPDIR)/libsccp_la-sccp_hint.Plo
