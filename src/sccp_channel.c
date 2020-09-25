@@ -887,9 +887,9 @@ int sccp_channel_receiveChannelOpen(sccp_device_t *d, sccp_channel_t *c)
 			if(d->nat >= SCCP_NAT_ON) {
 				sccp_channel_startHolePunch(c);
 			}
-			iPbx.queue_control(c->owner, (enum ast_control_frame_type)-1);						// 'PROD' the remote side to let them know
-																// we can receive inband signalling from this
-																// moment onwards -> inband signalling required
+			// iPbx.queue_control(c->owner, (enum ast_control_frame_type)-1);						// 'PROD' the remote side to let them know
+			// we can receive inband signalling from this
+			// moment onwards -> inband signalling required
 		}
 	}
 	return sccp_rtp_getState(audio, SCCP_RTP_RECEPTION);
@@ -1802,9 +1802,12 @@ static void channel_answer_completion(constChannelPtr channel)
 		PBX_CHANNEL_TYPE * pbx_channel = NULL;
 		if((pbx_channel = sccp_channel_lock_full(c, TRUE))) {
 			if(!pbx_check_hangup_locked(pbx_channel)) {
-				sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: (%s) Answering Call: %s (state:%s)\n", d->id, __func__, c->designator, ast_state2str(ast_channel_state(pbx_channel)));
-				sccp_channel_startMediaTransmission(c);
-				if(ast_channel_state(pbx_channel) != AST_STATE_UP) {
+				sccp_log ((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (%s) Answering Call: %s (state:%s) (%s)\n", d->id, __func__, c->designator, ast_state2str (ast_channel_state (pbx_channel)),
+							    c->rtp.audio.directMedia ? "DirectRtp" : "IndirectRtp");
+				if (!c->rtp.audio.directMedia && !sccp_rtp_getState (&c->rtp.audio, SCCP_RTP_TRANSMISSION)) {
+					sccp_channel_startMediaTransmission (c);
+				}
+				if (pbx_channel_state (pbx_channel) != AST_STATE_UP) {
 					iPbx.queue_control(pbx_channel, AST_CONTROL_ANSWER);
 				}
 #ifdef CS_SCCP_VIDEO
@@ -1812,23 +1815,6 @@ static void channel_answer_completion(constChannelPtr channel)
 					sccp_channel_openMultiMediaReceiveChannel(c);
 				}
 #endif
-				/*
-								AUTO_RELEASE(sccp_line_t, l, sccp_line_retain(c->line));
-								if (l && SCCP_LIST_GETSIZE(&l->devices) > 1) {
-									sccp_linedevice_t * ld = NULL;
-									SCCP_LIST_LOCK(&l->devices);
-									SCCP_LIST_TRAVERSE(&l->devices, ld, list) {
-										sccp_device_t *otherdevice = ld->device;
-										if (otherdevice != d) {
-											sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: (%s) Hangingup up sharing subscribers\n", DEV_ID_LOG(otherdevice), __func__);
-											otherdevice->indicate->callhistory(otherdevice, ld->lineInstance, c->callid, otherdevice->callhistory_answered_elsewhere);
-											sccp_dev_displayprompt(otherdevice, ld->lineInstance, c->callid, SKINNY_DISP_IN_USE_REMOTE, GLOB(digittimeout));
-											otherdevice->indicate->onhook(otherdevice, ld->lineInstance, c->callid);
-										}
-									}
-									SCCP_LIST_UNLOCK(&l->devices);
-								}
-				*/
 				/** check for monitor request */
 				if((d->monitorFeature.status & SCCP_FEATURE_MONITOR_STATE_REQUESTED) && !(d->monitorFeature.status & SCCP_FEATURE_MONITOR_STATE_ACTIVE)) {
 					pbx_log(LOG_NOTICE, "%s: request monitor\n", d->id);
@@ -1856,6 +1842,7 @@ static void channel_answer_completion(constChannelPtr channel)
 						      c->designator, c->line->name, d->id, iPbx.getChannelUniqueID(c), tmpCallingNumber, tmpCallingName, tmpOrigCallingName, tmpLastRedirectingName);
 				}
 #endif
+				pbx_setstate (pbx_channel, AST_STATE_UP);
 				sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: (%s) Answered channel %s\n", d->id, __func__, c->designator);
 			} else {
 				pbx_log(LOG_WARNING, "%s: (%s) Attempted to answer channel '%s' but someone else beat us to it (actual state:%s)\n", DEV_ID_LOG(d), __func__, c->designator,
@@ -1921,8 +1908,11 @@ void sccp_channel_answer(constDevicePtr device, channelPtr channel)
 			pbx_setstate(pbx_channel, AST_STATE_OFFHOOK);
 			sccp_device_sendcallstate(device, lineInstance, channel->callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_LOW,
 						  SKINNY_CALLINFO_VISIBILITY_DEFAULT);	// send connected, so it is not listed as missed call on device that fail the answer first
-			sccp_rtp_setCallback(&channel->rtp.audio, SCCP_RTP_RECEPTION, channel_answer_completion);
-			sccp_channel_openReceiveChannel(channel);
+
+			if (!sccp_rtp_getState (&channel->rtp.audio, SCCP_RTP_RECEPTION)) {
+				sccp_rtp_setCallback (&channel->rtp.audio, SCCP_RTP_RECEPTION, channel_answer_completion);
+				sccp_channel_openReceiveChannel (channel);
+			}
 
 			AUTO_RELEASE(sccp_line_t, l, sccp_line_retain(channel->line));
 			if(l && SCCP_LIST_GETSIZE(&l->devices) > 1) {

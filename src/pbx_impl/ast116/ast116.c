@@ -222,8 +222,7 @@ static void pbx_format_cap_append_skinny(struct ast_format_cap *caps, skinny_cod
 		}
 		struct ast_format *format = sccp_astwrap_skinny2ast_format(codecs[n]);
 		if (format != ast_format_none) {
-			unsigned int framing = ast_format_get_default_ms(format);
-			ast_format_cap_append(caps, format, framing);
+			ast_format_cap_append (caps, format, ast_format_get_default_ms (format));
 		}
 	}
 }
@@ -534,7 +533,7 @@ static void __find_joint_capabilities(sccp_channel_t *c, PBX_CHANNEL_TYPE* peer,
 				sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_4 "%s: (find_joint_capabilities) NOT transcoding, best_native:%s\n", c->designator, ast_format_get_codec_name(best_fmt_native));
 				if (best_fmt_native) {
 					ast_format_cap_remove_by_type(caps, media_type);
-					ast_format_cap_append(caps, best_fmt_native, media_type);
+					ast_format_cap_append (caps, best_fmt_native, ast_format_get_default_ms (best_fmt_native));
 				}
 				ast_format_cap_append_from_cap(caps, joint, media_type);
 			} else {
@@ -542,7 +541,7 @@ static void __find_joint_capabilities(sccp_channel_t *c, PBX_CHANNEL_TYPE* peer,
 				if (best_fmt_native) {
 					ao2_ref(best_fmt_native, +1);
 					ast_format_cap_remove_by_type(caps, media_type);
-					ast_format_cap_append(caps, best_fmt_cap, media_type);
+					ast_format_cap_append (caps, best_fmt_native, ast_format_get_default_ms (best_fmt_native));
 				} else {
 					best_fmt_native = ast_format_cap_get_best_by_type(caps, media_type);
 				}
@@ -576,6 +575,8 @@ static void __find_joint_capabilities(sccp_channel_t *c, PBX_CHANNEL_TYPE* peer,
 						ast_rtp_instance_set_read_format(c->rtp.video.instance, best_fmt_native);
 					}
 				}
+				int framing = ast_format_cap_get_framing (caps);
+				ast_rtp_codecs_set_framing (ast_rtp_instance_get_codecs (c->rtp.audio.instance), framing ? framing : ast_format_get_default_ms (best_fmt_native));
 				ao2_ref(best_fmt_native, -1);
 			}
 		}
@@ -1210,7 +1211,7 @@ static boolean_t sccp_astwrap_allocPBXChannel(sccp_channel_t * channel, const vo
 	struct ast_format *fmt = ast_format_cap_get_best_by_type(what, AST_MEDIA_TYPE_AUDIO); /* get the best audio format */
 	if (fmt) {
 		ast_format_cap_remove_by_type(caps, AST_MEDIA_TYPE_AUDIO); /* remove only the other audio formats */
-		ast_format_cap_append(caps, fmt, 0); /* add our best choice back */
+		ast_format_cap_append (caps, fmt, ast_format_get_default_ms (fmt)); /* add our best choice back */
 	} else {
 		/* If we don't have an audio format, try to get something */
 		fmt = ast_format_cap_get_format(caps, 0);
@@ -1325,7 +1326,7 @@ static boolean_t sccp_astwrap_allocTempPBXChannel(PBX_CHANNEL_TYPE * pbxSrcChann
 	struct ast_assigned_ids assignedids = {NULL, NULL};
 
 	struct ast_format *tmpfmt;
-	unsigned int framing;
+	// unsigned int framing;
 
 	if (!pbxSrcChannel) {
 		pbx_log(LOG_ERROR, "SCCP: (alloc_conferenceTempPBXChannel) no pbx channel provided\n");
@@ -1366,8 +1367,7 @@ static boolean_t sccp_astwrap_allocTempPBXChannel(PBX_CHANNEL_TYPE * pbxSrcChann
 	} else {
 		tmpfmt = ast_format_cap_get_best_by_type(pbx_channel_nativeformats(pbxSrcChannel), AST_MEDIA_TYPE_AUDIO);
 	}
-	framing = ast_format_get_default_ms(tmpfmt);
-	ast_format_cap_append(caps, tmpfmt, framing);
+	ast_format_cap_append (caps, tmpfmt, ast_format_get_default_ms (tmpfmt));
 	ast_channel_nativeformats_set(pbxDstChannel, caps);
 	ao2_ref(caps, -1);
 	ast_channel_set_writeformat(pbxDstChannel, tmpfmt);
@@ -1396,7 +1396,7 @@ static PBX_CHANNEL_TYPE *sccp_astwrap_requestAnnouncementChannel(pbx_format_type
 	int cause;
 	struct ast_format_cap *cap;
 	struct ast_format *ast_format;
-	unsigned int framing;
+	// unsigned int framing;
 
 	cap = ast_format_cap_alloc(AST_FORMAT_CAP_FLAG_DEFAULT);
 	if (!cap) {
@@ -1404,9 +1404,8 @@ static PBX_CHANNEL_TYPE *sccp_astwrap_requestAnnouncementChannel(pbx_format_type
 	}
 	// TODO(dkgroot): convert format_type to ast_format
 	ast_format = ast_format_alaw;
-	framing = ast_format_get_default_ms(ast_format);
 
-	ast_format_cap_append(cap, ast_format, framing);
+	ast_format_cap_append (cap, ast_format, ast_format_get_default_ms (ast_format));
 	chan = ast_request("SCCPCBAnn", cap, NULL, NULL, (char *) data, &cause);
 	ao2_ref(cap, -1);
 
@@ -1958,8 +1957,7 @@ static int sccp_astwrap_answer(PBX_CHANNEL_TYPE * pbxchan)
 
 		AUTO_RELEASE(sccp_device_t, d, sccp_channel_getDevice(c));
 		if(d && d->session) {
-			sccp_log(DEBUGCAT_PBX)(VERBOSE_PREFIX_3 "%s: Waiting for pendingRequests\n", c->designator);
-			// this needs to be done with the pbx_channel unlocked to prevent lock investion
+			// this needs to be done with the pbx_channel unlocked to prevent lock inversion
 			// note we still have a pbx_channel_ref, so the channel cannot be removed under our feet
 			pbx_channel_unlock(pbxchan);
 			timedout = sccp_session_waitForPendingRequests(d->session);
@@ -1968,6 +1966,11 @@ static int sccp_astwrap_answer(PBX_CHANNEL_TYPE * pbxchan)
 		if (!timedout) {
 			// pbx_indicate(pbxchan, AST_CONTROL_PROGRESS);
 			res = sccp_pbx_remote_answer(c);
+		}
+		if (d && d->session) {
+			pbx_channel_unlock (pbxchan);
+			timedout = sccp_session_waitForPendingRequests (d->session);
+			pbx_channel_lock (pbxchan);
 		}
 	}
 	pbx_channel_unref(pbxchan);
@@ -2091,52 +2094,77 @@ static enum ast_bridge_result sccp_astwrap_rtpBridge(PBX_CHANNEL_TYPE * c0, PBX_
 #endif
 #endif
 
+static void set_instance_dtmf (constChannelPtr c, sccp_rtp_t * rtp)
+{
+	if (c && c->rtp.audio.instance) {
+		if (c->rtp.audio.directMedia) {
+			ast_rtp_instance_dtmf_mode_set (rtp->instance, AST_RTP_DTMF_MODE_NONE);
+		} else {
+			ast_rtp_instance_set_prop (rtp->instance, AST_RTP_PROPERTY_DTMF, 1);
+			if (c->dtmfmode == SCCP_DTMFMODE_SKINNY) {
+				ast_rtp_instance_set_prop (rtp->instance, AST_RTP_PROPERTY_DTMF_COMPENSATE, 1);
+				ast_rtp_instance_dtmf_mode_set (rtp->instance, AST_RTP_DTMF_MODE_INBAND);
+			} else {
+				ast_rtp_instance_dtmf_mode_set (rtp->instance, AST_RTP_DTMF_MODE_RFC2833);
+			}
+		}
+	}
+}
+
 static enum ast_rtp_glue_result sccp_astwrap_get_rtp_info(PBX_CHANNEL_TYPE * ast, PBX_RTP_TYPE ** rtp)
 {
 	//AUTO_RELEASE(sccp_channel_t, c , get_sccp_channel_from_pbx_channel(ast));				// not following the refcount rules... channel is already retained
 	sccp_channel_t *c = NULL;
 	sccp_rtp_info_t rtpInfo = SCCP_RTP_INFO_NORTP;
-	struct sccp_rtp *audioRTP = NULL;
+	sccp_rtp_t * audioRTP = NULL;
 	enum ast_rtp_glue_result res = AST_RTP_GLUE_RESULT_REMOTE;
 
-	if (!(c = CS_AST_CHANNEL_PVT(ast))) {
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "SCCP: (get_rtp_info) NO PVT\n");
+	if (!(c = CS_AST_CHANNEL_PVT (ast))) {
+		sccp_log ((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "SCCP: (get_rtp_info) NO PVT\n");
 		return AST_RTP_GLUE_RESULT_FORBID;
 	}
 
-	if (pbx_channel_state(ast) != AST_STATE_UP) {
-		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (get_rtp_info) Asterisk requested EarlyRTP peer for channel %s\n", c->currentDeviceId, pbx_channel_name(ast));
-		return AST_RTP_GLUE_RESULT_LOCAL;		
-	} else {
-		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (get_rtp_info) Asterisk requested RTP peer for channel %s\n", c->currentDeviceId, pbx_channel_name(ast));
+	if (pbx_channel_state (ast) != AST_STATE_UP) {
+		sccp_log ((DEBUGCAT_CHANNEL | DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (get_rtp_info) Asterisk requested EarlyRTP peer for channel %s\n", c->currentDeviceId, pbx_channel_name (ast));
+		return AST_RTP_GLUE_RESULT_LOCAL;
 	}
+	do {
+		sccp_log ((DEBUGCAT_CHANNEL | DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (get_rtp_info) Asterisk requested RTP peer for channel %s\n", c->currentDeviceId, pbx_channel_name (ast));
+		rtpInfo = sccp_rtp_getAudioPeerInfo (c, &audioRTP);
+		if (rtpInfo == SCCP_RTP_INFO_NORTP) {
+			res = AST_RTP_GLUE_RESULT_FORBID;
+			break;
+		}
 
-	rtpInfo = sccp_rtp_getAudioPeerInfo(c, &audioRTP);
-	if (rtpInfo == SCCP_RTP_INFO_NORTP) {
-		return AST_RTP_GLUE_RESULT_FORBID;
-	}
-
-	*rtp = audioRTP->instance;
-	if (!*rtp) {
-		sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_2 "%s: (get_rtp_info) no rtp instance yet => returning AST_RTP_GLUE_RESULT_FORBID\n", c->designator);
-		return AST_RTP_GLUE_RESULT_FORBID;
-	}
+		*rtp = audioRTP->instance;
+		if (!*rtp) {
+			sccp_log (DEBUGCAT_RTP) (VERBOSE_PREFIX_2 "%s: (get_rtp_info) no rtp instance yet => returning AST_RTP_GLUE_RESULT_FORBID\n", c->designator);
+			res = AST_RTP_GLUE_RESULT_FORBID;
+			break;
+		}
 #ifdef HAVE_PBX_RTP_ENGINE_H
-	ao2_ref(*rtp, +1);
+		ao2_ref (*rtp, +1);
 #endif
-	// struct ast_sockaddr ast_sockaddr_tmp;
-	// ast_rtp_instance_get_remote_address(*rtp, &ast_sockaddr_tmp);
-	// sccp_log((DEBUGCAT_RTP | DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: (get_rtp_info) remote address:'%s:%d'\n", c->currentDeviceId, ast_sockaddr_stringify_host(&ast_sockaddr_tmp), ast_sockaddr_port(&ast_sockaddr_tmp));
+		// struct ast_sockaddr ast_sockaddr_tmp;
+		// ast_rtp_instance_get_remote_address(*rtp, &ast_sockaddr_tmp);
+		// sccp_log((DEBUGCAT_RTP | DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: (get_rtp_info) remote address:'%s:%d'\n", c->currentDeviceId, ast_sockaddr_stringify_host(&ast_sockaddr_tmp),
+		// ast_sockaddr_port(&ast_sockaddr_tmp));
 
-	if (ast_test_flag(GLOB(global_jbconf), AST_JB_FORCED)) {
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (get_rtp_info) JitterBuffer is Forced. AST_RTP_GET_FAILED\n", c->currentDeviceId);
-		return AST_RTP_GLUE_RESULT_LOCAL;
-	}
+		if (ast_test_flag (GLOB (global_jbconf), AST_JB_FORCED)) {
+			sccp_log ((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (get_rtp_info) JitterBuffer is Forced. AST_RTP_GET_FAILED\n", c->currentDeviceId);
+			res = AST_RTP_GLUE_RESULT_LOCAL;
+			break;
+		}
 
-	if (!(rtpInfo & SCCP_RTP_INFO_ALLOW_DIRECTRTP)) {
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (get_rtp_info) Direct RTP disabled ->  Using AST_RTP_TRY_PARTIAL for channel %s\n", c->currentDeviceId, pbx_channel_name(ast));
-		return AST_RTP_GLUE_RESULT_LOCAL;
-	}
+		if (!(rtpInfo & SCCP_RTP_INFO_ALLOW_DIRECTRTP)) {
+			sccp_log ((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (get_rtp_info) Direct RTP disabled ->  Using AST_RTP_TRY_PARTIAL for channel %s\n", c->currentDeviceId, pbx_channel_name (ast));
+			res = AST_RTP_GLUE_RESULT_LOCAL;
+			break;
+		}
+	} while (0);
+
+	c->rtp.audio.directMedia = res == AST_RTP_GLUE_RESULT_REMOTE ? TRUE : FALSE;
+	set_instance_dtmf (c, audioRTP);
 
 	sccp_log((DEBUGCAT_RTP | DEBUGCAT_HIGH)) (VERBOSE_PREFIX_1 "%s: (get_rtp_info) Channel %s Returning res: %s\n", c->currentDeviceId, pbx_channel_name(ast), ((res == 2) ? "indirect-rtp" : ((res == 1) ? "direct-rtp" : "forbid")));
 	return res;
@@ -2150,44 +2178,52 @@ static enum ast_rtp_glue_result sccp_astwrap_get_vrtp_info(PBX_CHANNEL_TYPE * as
 	struct sccp_rtp *videoRTP = NULL;
 	enum ast_rtp_glue_result res = AST_RTP_GLUE_RESULT_REMOTE;
 
-	if (!(c = CS_AST_CHANNEL_PVT(ast))) {
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "SCCP: (get_vrtp_info) NO PVT\n");
+	if (!(c = CS_AST_CHANNEL_PVT (ast))) {
+		sccp_log ((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "SCCP: (get_vrtp_info) NO PVT\n");
 		return AST_RTP_GLUE_RESULT_FORBID;
 	}
 
-	if (pbx_channel_state(ast) != AST_STATE_UP) {
-		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (get_vrtp_info) Asterisk requested EarlyRTP peer for channel %s\n", c->currentDeviceId, pbx_channel_name(ast));
-	} else {
-		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (get_vrtp_info) Asterisk requested RTP peer for channel %s\n", c->currentDeviceId, pbx_channel_name(ast));
-	}
-
-#ifdef CS_SCCP_VIDEO
-	rtpInfo = sccp_rtp_getVideoPeerInfo(c, &videoRTP);
-#endif
-	if (rtpInfo == SCCP_RTP_INFO_NORTP) {
-		return AST_RTP_GLUE_RESULT_FORBID;
-	}
-
-	*rtp = videoRTP->instance;
-	if (!*rtp) {
-		return AST_RTP_GLUE_RESULT_FORBID;
-	}
-#ifdef HAVE_PBX_RTP_ENGINE_H
-	ao2_ref(*rtp, +1);
-#endif
-	// struct ast_sockaddr ast_sockaddr_tmp;
-	// ast_rtp_instance_get_remote_address(*rtp, &ast_sockaddr_tmp);
-	// sccp_log((DEBUGCAT_RTP | DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: (get_vrtp_info) remote address:'%s:%d'\n", c->currentDeviceId, ast_sockaddr_stringify_host(&ast_sockaddr_tmp), ast_sockaddr_port(&ast_sockaddr_tmp));
-	if (ast_test_flag(GLOB(global_jbconf), AST_JB_FORCED)) {
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (get_vrtp_info) JitterBuffer is Forced. AST_RTP_GET_FAILED\n", c->currentDeviceId);
-		return AST_RTP_GLUE_RESULT_FORBID;
-	}
-
-	if (!(rtpInfo & SCCP_RTP_INFO_ALLOW_DIRECTRTP)) {
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (get_vrtp_info) Direct RTP disabled ->  Using AST_RTP_TRY_PARTIAL for channel %s\n", c->currentDeviceId, pbx_channel_name(ast));
+	if (pbx_channel_state (ast) != AST_STATE_UP) {
+		sccp_log ((DEBUGCAT_CHANNEL | DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (get_vrtp_info) Asterisk requested EarlyRTP peer for channel %s\n", c->currentDeviceId, pbx_channel_name (ast));
 		return AST_RTP_GLUE_RESULT_LOCAL;
 	}
+	do {
+		sccp_log ((DEBUGCAT_CHANNEL | DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (get_vrtp_info) Asterisk requested RTP peer for channel %s\n", c->currentDeviceId, pbx_channel_name (ast));
 
+#ifdef CS_SCCP_VIDEO
+		rtpInfo = sccp_rtp_getVideoPeerInfo (c, &videoRTP);
+#endif
+		if (rtpInfo == SCCP_RTP_INFO_NORTP) {
+			res = AST_RTP_GLUE_RESULT_FORBID;
+			break;
+		}
+
+		*rtp = videoRTP->instance;
+		if (!*rtp) {
+			res = AST_RTP_GLUE_RESULT_FORBID;
+			break;
+		}
+#ifdef HAVE_PBX_RTP_ENGINE_H
+		ao2_ref (*rtp, +1);
+#endif
+		// struct ast_sockaddr ast_sockaddr_tmp;
+		// ast_rtp_instance_get_remote_address(*rtp, &ast_sockaddr_tmp);
+		// sccp_log((DEBUGCAT_RTP | DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: (get_vrtp_info) remote address:'%s:%d'\n", c->currentDeviceId, ast_sockaddr_stringify_host(&ast_sockaddr_tmp),
+		// ast_sockaddr_port(&ast_sockaddr_tmp));
+		if (ast_test_flag (GLOB (global_jbconf), AST_JB_FORCED)) {
+			sccp_log ((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (get_vrtp_info) JitterBuffer is Forced. AST_RTP_GET_FAILED\n", c->currentDeviceId);
+			res = AST_RTP_GLUE_RESULT_FORBID;
+			break;
+		}
+
+		if (!(rtpInfo & SCCP_RTP_INFO_ALLOW_DIRECTRTP)) {
+			sccp_log ((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (get_vrtp_info) Direct RTP disabled ->  Using AST_RTP_TRY_PARTIAL for channel %s\n", c->currentDeviceId, pbx_channel_name (ast));
+			res = AST_RTP_GLUE_RESULT_LOCAL;
+			break;
+		}
+	} while (0);
+
+	c->rtp.video.directMedia = res == AST_RTP_GLUE_RESULT_REMOTE ? TRUE : FALSE;
 	sccp_log((DEBUGCAT_RTP | DEBUGCAT_HIGH)) (VERBOSE_PREFIX_1 "%s: (get_vrtp_info) Channel %s Returning res: %s\n", c->currentDeviceId, pbx_channel_name(ast), ((res == 2) ? "indirect-rtp" : ((res == 1) ? "direct-rtp" : "forbid")));
 	return res;
 }
@@ -2296,15 +2332,16 @@ static int sccp_astwrap_update_rtp_peer(PBX_CHANNEL_TYPE * ast, PBX_RTP_TYPE * r
 		    );
 
 		if (rtp) {											// send peer info to phone
-			sccp_rtp_set_peer(c, &c->rtp.audio, &sas);
 			c->rtp.audio.directMedia = directmedia;
+			sccp_rtp_set_peer (c, &c->rtp.audio, &sas);
 		} else if (vrtp) {
-			sccp_rtp_set_peer(c, &c->rtp.video, &sas);
 			c->rtp.video.directMedia = directmedia;
+			sccp_rtp_set_peer (c, &c->rtp.video, &sas);
 		} else {
 			//sccp_rtp_set_peer(c, &c->rtp.text, &sas);
 			//c->rtp.text.directMedia = directmedia;
 		}
+
 	} while (0);
 
 	/* Need a return here to break the bridge */
@@ -2326,15 +2363,13 @@ static void sccp_astwrap_getCodec(PBX_CHANNEL_TYPE * ast, struct ast_format_cap 
 	for (i = 0; i < ARRAY_LEN(channel->preferences.audio); i++) {
 		struct ast_format *ast_format = sccp_astwrap_skinny2ast_format(channel->preferences.audio[i]);
 		if (ast_format != ast_format_none) {
-			unsigned int framing = ast_format_get_default_ms(ast_format);
-			ast_format_cap_append(result, ast_format, framing);
+			ast_format_cap_append (result, ast_format, ast_format_get_default_ms (ast_format));
 		}
 	}
 	for (i = 0; i < ARRAY_LEN(channel->preferences.video); i++) {
 		struct ast_format *ast_format = sccp_astwrap_skinny2ast_format(channel->preferences.video[i]);
 		if (ast_format != ast_format_none) {
-			unsigned int framing = ast_format_get_default_ms(ast_format);
-			ast_format_cap_append(result, ast_format, framing);
+			ast_format_cap_append (result, ast_format, ast_format_get_default_ms (ast_format));
 		}
 	}
 
@@ -2513,18 +2548,9 @@ static boolean_t sccp_astwrap_createRtpInstance(constDevicePtr d, constChannelPt
 		ast_channel_set_fd(c->owner, fd_offset, ast_rtp_instance_fd(instance, 0));		// RTP
 		ast_channel_set_fd(c->owner, fd_offset + 1, ast_rtp_instance_fd(instance, 1));		// RTCP
 	}
-	ast_rtp_instance_set_prop(instance, AST_RTP_PROPERTY_RTCP, 1);
-	if (rtp->type == SCCP_RTP_AUDIO) {
-		ast_rtp_instance_set_prop(instance, AST_RTP_PROPERTY_DTMF, 1);
-		if (c->dtmfmode == SCCP_DTMFMODE_SKINNY) {
-			ast_rtp_instance_set_prop(instance, AST_RTP_PROPERTY_DTMF_COMPENSATE, 1);
-			ast_rtp_instance_dtmf_mode_set(instance, AST_RTP_DTMF_MODE_INBAND);
-		} else {
-			ast_rtp_instance_dtmf_mode_set(instance, AST_RTP_DTMF_MODE_RFC2833);
-		}
-	}
-	ast_rtp_instance_set_qos(instance, tos, cos, "SCCP RTP");
 
+	set_instance_dtmf (c, rtp);
+	ast_rtp_instance_set_qos(instance, tos, cos, "SCCP RTP");
 	if (rtp->type == SCCP_RTP_AUDIO) {
 		sccp_log(DEBUGCAT_CODEC)(VERBOSE_PREFIX_2 "%s: update rtpmap: format:%s, payload:%d, mime:%s, rate:%d\n",
 			c->designator, "CISCO-DTMF", 101, "audio", 0);
@@ -2535,7 +2561,10 @@ static boolean_t sccp_astwrap_createRtpInstance(constDevicePtr d, constChannelPt
 		ast_rtp_codecs_payload_replace_format(ast_rtp_instance_get_codecs(instance), 25, ast_format_slin16);				// replace slin16 RTPPayloadType=25 (wideband-256)
 	}
 
-	ast_rtp_codecs_set_framing(ast_rtp_instance_get_codecs(instance), ast_format_cap_get_framing(ast_channel_nativeformats(c->owner)));
+	uint framing = ast_format_cap_get_framing (ast_channel_nativeformats (c->owner));
+	if (framing != UINT_MAX) {
+		ast_rtp_codecs_set_framing (ast_rtp_instance_get_codecs (instance), framing);
+	}
 	ast_rtp_instance_activate(instance);
 
 	if (c->owner) {
@@ -2665,9 +2694,13 @@ static int sccp_astwrap_setNativeVideoFormats(constChannelPtr channel, skinny_co
 	ast_format_cap_append_from_cap(caps, ast_channel_nativeformats(channel->owner), AST_MEDIA_TYPE_UNKNOWN);
 	ast_format_cap_remove_by_type(caps, AST_MEDIA_TYPE_VIDEO);
 	pbx_format_cap_append_skinny(caps, codecs);
+	uint framing = ast_format_cap_get_framing (caps);
 
 	ast_channel_lock(channel->owner);
 	ast_channel_nativeformats_set(channel->owner, caps);
+	if (channel->rtp.audio.instance && framing != UINT_MAX) {
+		ast_rtp_codecs_set_framing (ast_rtp_instance_get_codecs (channel->rtp.audio.instance), framing);
+	}
 	ast_channel_unlock(channel->owner);
 	ao2_t_ref(caps, -1, "sccp_channel_caps");
 

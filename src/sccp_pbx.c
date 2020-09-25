@@ -618,6 +618,15 @@ channelPtr sccp_pbx_hangup(constChannelPtr channel)
 	return NULL;
 }
 
+static void pbx_set_callstate_up (constChannelPtr channel)
+{
+	sccp_log (DEBUGCAT_PBX) (VERBOSE_PREFIX_3 "%s: (%s) Switching to STATE_UP (%s)\n", channel->designator, __func__, channel->rtp.audio.directMedia ? "DirectRtp" : "IndirectRtp");
+	if (!channel->rtp.audio.directMedia && !sccp_rtp_getState (&channel->rtp.audio, SCCP_RTP_TRANSMISSION)) {
+		sccp_channel_startMediaTransmission (channel);
+	}
+	iPbx.set_callstate ((sccp_channel_t *)channel, AST_STATE_UP);
+}
+
 /*!
  * \brief Asterisk Channel as been answered by remote
  * \note we have no bridged channel at this point
@@ -733,6 +742,8 @@ int sccp_pbx_remote_answer(constChannelPtr channel)
 				sccp_channel_setChannelstate (c, SCCP_CHANNELSTATE_CALLPARK);
 				pbx_builtin_setvar_helper (c->owner, "_PARK_RETRIEVER", c->designator);
 			}
+			sccp_rtp_setCallback (&c->rtp.audio, SCCP_RTP_RECEPTION, pbx_set_callstate_up);
+			sccp_channel_openReceiveChannel (c);
 #if CS_SCCP_CONFERENCE
 			sccp_indicate(d, c, d->conference ? SCCP_CHANNELSTATE_CONNECTEDCONFERENCE : SCCP_CHANNELSTATE_CONNECTED);
 #else
@@ -743,9 +754,6 @@ int sccp_pbx_remote_answer(constChannelPtr channel)
 				pbx_log(LOG_NOTICE, "%s: (%s) request monitor/record\n", d->id, __func__);
 				sccp_feat_monitor(d, NULL, 0, c);
 			}
-
-			sccp_log(DEBUGCAT_PBX)(VERBOSE_PREFIX_3 "%s: (%s) Switching to STATE_UP\n", c->designator, __func__);
-			iPbx.set_callstate(c, AST_STATE_UP);
 			res = 0;
 		}
 
