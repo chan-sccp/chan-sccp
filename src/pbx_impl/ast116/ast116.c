@@ -2145,11 +2145,6 @@ static enum ast_rtp_glue_result sccp_astwrap_get_rtp_info(PBX_CHANNEL_TYPE * ast
 #ifdef HAVE_PBX_RTP_ENGINE_H
 		ao2_ref (*rtp, +1);
 #endif
-		// struct ast_sockaddr ast_sockaddr_tmp;
-		// ast_rtp_instance_get_remote_address(*rtp, &ast_sockaddr_tmp);
-		// sccp_log((DEBUGCAT_RTP | DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: (get_rtp_info) remote address:'%s:%d'\n", c->currentDeviceId, ast_sockaddr_stringify_host(&ast_sockaddr_tmp),
-		// ast_sockaddr_port(&ast_sockaddr_tmp));
-
 		if (ast_test_flag (GLOB (global_jbconf), AST_JB_FORCED)) {
 			sccp_log ((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (get_rtp_info) JitterBuffer is Forced. AST_RTP_GET_FAILED\n", c->currentDeviceId);
 			res = AST_RTP_GLUE_RESULT_LOCAL;
@@ -2206,10 +2201,6 @@ static enum ast_rtp_glue_result sccp_astwrap_get_vrtp_info(PBX_CHANNEL_TYPE * as
 #ifdef HAVE_PBX_RTP_ENGINE_H
 		ao2_ref (*rtp, +1);
 #endif
-		// struct ast_sockaddr ast_sockaddr_tmp;
-		// ast_rtp_instance_get_remote_address(*rtp, &ast_sockaddr_tmp);
-		// sccp_log((DEBUGCAT_RTP | DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: (get_vrtp_info) remote address:'%s:%d'\n", c->currentDeviceId, ast_sockaddr_stringify_host(&ast_sockaddr_tmp),
-		// ast_sockaddr_port(&ast_sockaddr_tmp));
 		if (ast_test_flag (GLOB (global_jbconf), AST_JB_FORCED)) {
 			sccp_log ((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (get_vrtp_info) JitterBuffer is Forced. AST_RTP_GET_FAILED\n", c->currentDeviceId);
 			res = AST_RTP_GLUE_RESULT_FORBID;
@@ -2247,8 +2238,8 @@ static int sccp_astwrap_update_rtp_peer(PBX_CHANNEL_TYPE * ast, PBX_RTP_TYPE * r
 			result = -1;
 			break;
 		}
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (update_rtp_peer) stage: %s, remote codecs capabilty: %s, nat_active: %d\n", c->currentDeviceId,
-			S_COR(AST_STATE_UP == pbx_channel_state(ast), "RTP", "EarlyRTP"), ast_format_cap_get_names((struct ast_format_cap *) codecs, &codec_buf), nat_active);
+		sccp_log ((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (update_rtp_peer) type:%s, stage: %s, remote codecs capabilty: %s, nat_active: %d\n", c->currentDeviceId, rtp ? "rtp" : (vrtp ? "vrtp" : "unsupported"),
+					   S_COR (AST_STATE_UP == pbx_channel_state (ast), "RTP", "EarlyRTP"), ast_format_cap_get_names ((struct ast_format_cap *)codecs, &codec_buf), nat_active);
 
 		if (!c->line) {
 			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (update_rtp_peer) NO LINE\n", c->currentDeviceId);
@@ -2283,30 +2274,21 @@ static int sccp_astwrap_update_rtp_peer(PBX_CHANNEL_TYPE * ast, PBX_RTP_TYPE * r
 			instance = rtp;
 		} else if (vrtp) {
 			instance = vrtp;
-#ifdef CS_SCCP_VIDEO			
-			/* video requested by remote side, let's see if we support video */ 
- 			/* should be moved to sccp_rtp.c */
-/*
-			if (ast_format_cap_has_type(codecs, AST_MEDIA_TYPE_VIDEO) && sccp_device_isVideoSupported(d) && sccp_channel_getVideoMode(c) == SCCP_VIDEO_MODE_AUTO) {
-				if (!c->rtp.video.instance && !sccp_rtp_createVideoServer(c)) {
-					sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: can not start vrtp\n", DEV_ID_LOG(d));
-				} else {
-					if (!c->rtp.video.transmission.state) {
-						sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: video rtp started\n", DEV_ID_LOG(d));
-						sccp_channel_startMultiMediaTransmission(c);
-					}
-				}
-			}
-*/
-#endif			
 		} else {
 			instance = trtp;
 		}
 
 		if (d->directrtp && d->nat < SCCP_NAT_ON && !nat_active && !c->conference) {			// assume directrtp
 			ast_rtp_instance_get_remote_address(instance, &sin_tmp);
+			if (ast_sockaddr_port (&sin_tmp) == 0) {
+				pbx_log (LOG_NOTICE, "No port specified, cancelling remote bridging\n");
+				if (vrtp) {
+					sccp_channel_setVideoMode (c, "off");
+				}
+				result = -1;
+				break;
+			}
 			memcpy(&sas, &sin_tmp, sizeof(struct sockaddr_storage));
-			//ast_sockaddr_to_sin(&sin_tmp, &sin);
 			if (d->nat == SCCP_NAT_OFF) {								// forced nat off to circumvent autodetection + direcrtp, requires checking both phone_ip and external session ip address against devices permit/deny
 				struct ast_sockaddr sin_local;
 				struct sockaddr_storage localsas = { 0, };
@@ -2317,19 +2299,25 @@ static int sccp_astwrap_update_rtp_peer(PBX_CHANNEL_TYPE * ast, PBX_RTP_TYPE * r
 				}
 			} else if (sccp_apply_ha(d->ha, &sas) == AST_SENSE_ALLOW) {					// check remote sin against local device acl (to match netmask)
 				directmedia = TRUE;
-				// ast_channel_defer_dtmf(ast);
 			}
 		}
 		if (!directmedia) {										// fallback to indirectrtp
 			ast_rtp_instance_get_local_address(instance, &sin_tmp);
+			if (ast_sockaddr_port (&sin_tmp) == 0) {
+				pbx_log (LOG_NOTICE, "No port specified, cancelling local bridging\n");
+				if (vrtp) {
+					sccp_channel_setVideoMode (c, "off");
+				}
+				result = -1;
+				break;
+			}
 			memcpy(&sas, &sin_tmp, sizeof(struct sockaddr_storage));
 			sccp_session_getOurIP(d->session, &sas, sccp_netsock_is_IPv4(&sas) ? AF_INET : AF_INET6);
 		}
 
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (update_rtp_peer) new remote rtp ip = '%s'\n (d->directrtp: %s && !d->nat: %s && !remote->nat_active: %s && d->acl_allow: %s) => directmedia=%s\n", c->currentDeviceId, sccp_netsock_stringify(&sas), S_COR(d->directrtp, "yes", "no"),
-					  sccp_nat2str(d->nat),
-					  S_COR(!nat_active, "yes", "no"), S_COR(directmedia, "yes", "no"), S_COR(directmedia, "yes", "no")
-		    );
+		sccp_log ((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (update_rtp_peer) new remote %srtp ip = '%s'\n (d->directrtp: %s && !d->nat: %s && !remote->nat_active: %s && d->acl_allow: %s) => directmedia=%s\n",
+					   c->currentDeviceId, vrtp ? "v" : "", sccp_netsock_stringify (&sas), S_COR (d->directrtp, "yes", "no"), sccp_nat2str (d->nat), S_COR (!nat_active, "yes", "no"),
+					   S_COR (directmedia, "yes", "no"), S_COR (directmedia, "yes", "no"));
 
 		if (rtp) {											// send peer info to phone
 			c->rtp.audio.directMedia = directmedia;

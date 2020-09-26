@@ -273,14 +273,18 @@ void __sccp_indicate (constDevicePtr maybe_device, channelPtr c, const sccp_chan
 			{
 				d->indicate->connected(d, lineInstance, c->callid, c->calltype, ci);
 				if (pbx_channel_state (c->owner) == AST_STATE_UP && (!sccp_rtp_getState (&c->rtp.audio, SCCP_RTP_RECEPTION) || !sccp_rtp_getState (&c->rtp.audio, SCCP_RTP_TRANSMISSION))) {
-					sccp_rtp_setCallback (&c->rtp.audio, SCCP_RTP_RECEPTION, sccp_channel_startMediaTransmission);
-					if (!sccp_rtp_getState (&c->rtp.audio, SCCP_RTP_RECEPTION)) {
-						sccp_channel_openReceiveChannel (c);
-					} else if (!sccp_rtp_getState (&c->rtp.audio, SCCP_RTP_TRANSMISSION)) {
-						// this looks a little confusing, maybe we should not have two but only one rtp callback
-						sccp_rtp_runCallback (&c->rtp.audio, SCCP_RTP_RECEPTION, c);
+					if (!c->rtp.audio.directMedia) {
+						sccp_rtp_setCallback (&c->rtp.audio, SCCP_RTP_RECEPTION, sccp_channel_startMediaTransmission);
+						if (!sccp_rtp_getState (&c->rtp.audio, SCCP_RTP_RECEPTION)) {
+							sccp_channel_openReceiveChannel (c);
+						} else if (!sccp_rtp_getState (&c->rtp.audio, SCCP_RTP_TRANSMISSION)) {
+							// this looks a little confusing, maybe we should not have two but only one rtp callback
+							sccp_rtp_runCallback (&c->rtp.audio, SCCP_RTP_RECEPTION, c);
+						} else {
+							sccp_rtp_setCallback (&c->rtp.audio, SCCP_RTP_RECEPTION, NULL);
+						}
 					} else {
-						sccp_rtp_setCallback (&c->rtp.audio, SCCP_RTP_RECEPTION, NULL);
+						sccp_channel_openReceiveChannel (c);
 					}
 				}
 				c->setTone (c, SKINNY_TONE_SILENCE, SKINNY_TONEDIRECTION_USER);

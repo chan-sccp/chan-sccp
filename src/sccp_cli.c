@@ -1728,22 +1728,24 @@ static int sccp_show_channels(int fd, sccp_cli_totals_t *totals, struct mansessi
 #define CLI_AMI_TABLE_LIST_LOCK SCCP_RWLIST_RDLOCK
 #define CLI_AMI_TABLE_LIST_ITERATOR SCCP_RWLIST_TRAVERSE
 #define CLI_AMI_TABLE_LIST_UNLOCK SCCP_RWLIST_UNLOCK
-#define CLI_AMI_TABLE_BEFORE_ITERATION                                                                                                        \
-	AUTO_RELEASE(sccp_line_t, l, sccp_line_retain(line));                                                                                 \
-	SCCP_LIST_LOCK(&l->channels);                                                                                                         \
-	SCCP_LIST_TRAVERSE(&l->channels, channel, list) {                                                                                     \
-		if(channel->conference_id) {                                                                                                  \
-			snprintf(tmpname, sizeof(tmpname), "SCCPCONF/%03d/%03d", channel->conference_id, channel->conference_participant_id); \
-		} else {                                                                                                                      \
-			snprintf(tmpname, sizeof(tmpname), "%s", channel->designator);                                                        \
-		}                                                                                                                             \
-		if(&channel->rtp) {                                                                                                           \
-			sccp_copy_string(addrStr, sccp_netsock_stringify(&channel->rtp.audio.phone), sizeof(addrStr));                        \
-		}                                                                                                                             \
-		sccp_rtp_print(channel, SCCP_RTP_AUDIO, buf, DEFAULT_PBX_STR_BUFFERSIZE);                                                     \
-		sccp_log(DEBUGCAT_RTP)("%s: %s\n", channel->designator, pbx_str_buffer(buf));                                                 \
-		sccp_rtp_print(channel, SCCP_RTP_VIDEO, buf, DEFAULT_PBX_STR_BUFFERSIZE);                                                     \
-		sccp_log(DEBUGCAT_RTP)("%s: %s\n", channel->designator, pbx_str_buffer(buf));
+#define CLI_AMI_TABLE_BEFORE_ITERATION                                                                                                          \
+	AUTO_RELEASE (sccp_line_t, l, sccp_line_retain (line));                                                                                 \
+	SCCP_LIST_LOCK (&l->channels);                                                                                                          \
+	SCCP_LIST_TRAVERSE (&l->channels, channel, list) {                                                                                      \
+		if (channel->conference_id) {                                                                                                   \
+			snprintf (tmpname, sizeof (tmpname), "SCCPCONF/%03d/%03d", channel->conference_id, channel->conference_participant_id); \
+		} else {                                                                                                                        \
+			snprintf (tmpname, sizeof (tmpname), "%s", channel->designator);                                                        \
+		}                                                                                                                               \
+		if (&channel->rtp) {                                                                                                            \
+			sccp_copy_string (addrStr, sccp_netsock_stringify (&channel->rtp.audio.phone), sizeof (addrStr));                       \
+		}                                                                                                                               \
+		sccp_rtp_print (channel, SCCP_RTP_AUDIO, buf, DEFAULT_PBX_STR_BUFFERSIZE);                                                      \
+		sccp_log (DEBUGCAT_RTP) ("%s: %s\n", channel->designator, pbx_str_buffer (buf));                                                \
+		if (sccp_channel_getVideoMode (channel) != SCCP_VIDEO_MODE_OFF) {                                                               \
+			sccp_rtp_print (channel, SCCP_RTP_VIDEO, buf, DEFAULT_PBX_STR_BUFFERSIZE);                                              \
+			sccp_log (DEBUGCAT_RTP) ("%s: %s\n", channel->designator, pbx_str_buffer (buf));                                        \
+		}
 
 #define CLI_AMI_TABLE_AFTER_ITERATION 												\
 		}														\

@@ -430,35 +430,46 @@ void sccp_rtp_print(constChannelPtr c, sccp_rtp_type_t type, struct ast_str * bu
 {
 	pbx_assert(c && buf);
 	const sccp_rtp_t * rtp;
+	pbx_str_reset (buf);
 	switch(type) {
 		case SCCP_RTP_AUDIO:
+			pbx_str_append (&buf, 0, "(audio) ");
 			rtp = &(c->rtp.audio);
 			break;
-#if CS_SCCP_VIDEO
 		case SCCP_RTP_VIDEO:
+#if CS_SCCP_VIDEO
+			pbx_str_append (&buf, 0, "(video) ");
 			rtp = &(c->rtp.video);
 			break;
+#else
+			return;
 #endif
 		default:
 			pbx_log(LOG_ERROR, "%s: (sccp_rtp_print) unknown/unhandled rtp type, cancelling\n", c->designator);
 			return;
 	}
 	AUTO_RELEASE(sccp_device_t, d, sccp_channel_getDevice(c));
-	if(!d || !rtp) {
+	if (!d || !rtp || sccp_netsock_getPort (&rtp->phone) == 0) {
 		return;
 	}
 
+	struct sockaddr_storage them = { 0 };
+	sccp_rtp_getPeer (rtp, &them);
+	// struct sockaddr_storage us = {0};
+	// sccp_rtp_getUs(rtp, &us);
 	boolean_t isNatted = d->nat >= SCCP_NAT_ON ? TRUE : FALSE;
 	boolean_t isIPv4 = sccp_netsock_is_IPv4(&rtp->phone_remote) || sccp_netsock_ipv4_mapped(&rtp->phone_remote, (struct sockaddr_storage *)&rtp->phone_remote) ? TRUE : FALSE;
-	boolean_t isDirectRTP = d->directrtp;
+	boolean_t isDirectRTP = rtp->directMedia;
 	const struct sockaddr_storage * const ip = isIPv4 ? &d->ipv4 : &d->ipv6;
 
-	pbx_str_reset(buf);
 	if(isNatted) {
-		pbx_str_append(&buf, 0, "PH1:%s -> FW:%s ----> FW:%s --> %s:%s\n", sccp_netsock_stringify(ip), sccp_netsock_stringify(&rtp->phone), "", isDirectRTP ? sccp_netsock_stringify(&rtp->phone_remote) : "",
-			       isDirectRTP ? "AST" : "PH");
+		pbx_str_append (&buf, 0, "PH1:%s --> ", sccp_netsock_stringify (ip));
+		pbx_str_append (&buf, 0, "FW:%s ----> ", sccp_netsock_stringify (&rtp->phone));
+		pbx_str_append (&buf, 0, "FW:%s --> ", sccp_netsock_stringify (&them));
+		pbx_str_append (&buf, 0, "%s:%s", sccp_netsock_stringify (&rtp->phone_remote), isDirectRTP ? "PH2" : "AST");
 	} else {
-		pbx_str_append(&buf, 0, "PH1:%s ----> %s:%s\n", sccp_netsock_stringify(&rtp->phone), isDirectRTP ? sccp_netsock_stringify(&rtp->phone_remote) : "", isDirectRTP ? "AST" : "PH");
+		pbx_str_append (&buf, 0, "PH1:%s ----> ", sccp_netsock_stringify (&rtp->phone));
+		pbx_str_append (&buf, 0, "%s:%s", sccp_netsock_stringify (&rtp->phone_remote), isDirectRTP ? "PH2" : "AST");
 	}
 }
 
