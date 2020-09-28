@@ -236,9 +236,10 @@ SCCP_FILE_VERSION(__FILE__, "");
 //#define BITSET(a, b) ((a)[BITSLOT(b)] |= BITMASK(b))
 //#define BITTEST(a, b) ((a)[BITSLOT(b)] & BITMASK(b))
 //#define BITTOGGLE(a, b) ((a)[BITSLOT(b)] ^= BITMASK(b))
-    /*!
-     * \brief Enum for Config Option Types
-     */
+
+/*!
+ * \brief Enum for Config Option Types
+ */
 enum SCCPConfigOptionType {
 /* *INDENT-OFF* */
 	SCCP_CONFIG_DATATYPE_BOOLEAN			= 1 << 0,
@@ -363,7 +364,6 @@ static const SCCPConfigSegment *sccp_find_segment(const sccp_config_segment_t se
  */
 static const SCCPConfigOption *sccp_find_config(const sccp_config_segment_t segment, const char *name)
 {
-	long unsigned int i = 0;
 	const SCCPConfigSegment *sccpConfigSegment = sccp_find_segment(segment);
 	const SCCPConfigOption *config = sccpConfigSegment->config;
 
@@ -372,7 +372,7 @@ static const SCCPConfigOption *sccp_find_config(const sccp_config_segment_t segm
 	char * tokenrest = NULL;
 	char * config_name = NULL;
 
-	for (i = 0; i < sccpConfigSegment->config_size; i++) {
+	for (long unsigned int i = 0; i < sccpConfigSegment->config_size; i++) {
 		if (strstr(config[i].name, delims) != NULL) {
 			config_name = pbx_strdup(config[i].name);
 			token = strtok_r(config_name, delims, &tokenrest);
@@ -517,12 +517,11 @@ static sccp_configurationchange_t sccp_config_object_setValue(void * const obj, 
 	
 	// check if already set during first pass (multi_entry)
 	if (SetEntries != NULL && ((flags & SCCP_CONFIG_FLAG_MULTI_ENTRY) == SCCP_CONFIG_FLAG_MULTI_ENTRY)) {
-		uint y = 0;
-
-		for (y = 0; y < sccpConfigSegment->config_size; y++) {
+		for (long unsigned int y = 0; y < sccpConfigSegment->config_size; y++) {
 			if (sccpConfigOption->offset == sccpConfigSegment->config[y].offset) {
 				if (SetEntries[y] == TRUE) {
-					sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: (sccp_config_object_setValue) Set Entry[%d] = TRUE for MultiEntry %s -> SKIPPING\n", y, sccpConfigSegment->config[y].name);
+					sccp_log_and ((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: (sccp_config_object_setValue) Set Entry[%lu] = TRUE for MultiEntry %s -> SKIPPING\n", y,
+											  sccpConfigSegment->config[y].name);
 					return SCCP_CONFIG_NOUPDATENEEDED;
 				}
 			}
@@ -806,11 +805,9 @@ static sccp_configurationchange_t sccp_config_object_setValue(void * const obj, 
 	) {
 		/* if SetEntries is provided lookup the first offset of the struct variable we have set and note the index in SetEntries by changing the boolean_t to TRUE */
 		if (SetEntries != NULL) {
-			uint x = 0;
-
-			for (x = 0; x < sccpConfigSegment->config_size; x++) {
+			for (long unsigned int x = 0; x < sccpConfigSegment->config_size; x++) {
 				if (sccpConfigOption->offset == sccpConfigSegment->config[x].offset) {
-					sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: (sccp_config_object_setValue) Set Entry[%d] = TRUE for %s\n", x, sccpConfigSegment->config[x].name);
+					sccp_log_and ((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: (sccp_config_object_setValue) Set Entry[%lu] = TRUE for %s\n", x, sccpConfigSegment->config[x].name);
 					SetEntries[x] = TRUE;
 				}
 			}
@@ -849,19 +846,17 @@ static void sccp_config_set_defaults(void * const obj, const sccp_config_segment
 	boolean_t referralValueFound = FALSE;
 
 	// already Set
-	uint skip_elem = 0;
 	boolean_t skip = FALSE;
 
 	/* find the defaultValue, first check the reference, if no reference is specified, us the local defaultValue */
-	long unsigned int cur_elem = 0;
-
-	for (cur_elem = 0; cur_elem < sccpConfigSegment->config_size; cur_elem++) {
+	for (long unsigned int cur_elem = 0; cur_elem < sccpConfigSegment->config_size; cur_elem++) {
 		/* Lookup the first offset of the struct variable we want to set default for, find the corresponding entry in the SetEntries array and check the boolean flag, skip if true */
 		skip = FALSE;
-		for (skip_elem = 0; skip_elem < sccpConfigSegment->config_size; skip_elem++) {
+		for (long unsigned int skip_elem = 0; skip_elem < sccpConfigSegment->config_size; skip_elem++) {
 			//if (sccpDstConfig[cur_elem].offset == sccpConfigSegment->config[skip_elem].offset && (SetEntries[skip_elem] || sccpConfigSegment->config[cur_elem].flags & (SCCP_CONFIG_FLAG_DEPRECATED | SCCP_CONFIG_FLAG_OBSOLETE))) {
 			if (sccpDstConfig[cur_elem].offset == sccpConfigSegment->config[skip_elem].offset && (SetEntries[skip_elem] || sccpConfigSegment->config[cur_elem].flags & (SCCP_CONFIG_FLAG_OBSOLETE))) {
-				sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "SCCP: (sccp_config_set_defaults) skip setting default (SetEntry[%d] = TRUE for %s)\n", skip_elem, sccpConfigSegment->config[skip_elem].name);
+				sccp_log_and ((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "SCCP: (sccp_config_set_defaults) skip setting default (SetEntry[%lu] = TRUE for %s)\n", skip_elem,
+										  sccpConfigSegment->config[skip_elem].name);
 				skip = TRUE;
 				break;
 			}
@@ -955,8 +950,7 @@ void sccp_config_cleanup_dynamically_allocated_memory(void * const obj, const sc
 	void * dst = NULL;
 	char * str = NULL;
 
-	long unsigned int i = 0;
-	for (i = 0; i < sccpConfigSegment->config_size; i++) {
+	for (long unsigned int i = 0; i < sccpConfigSegment->config_size; i++) {
 		if (sccpConfigOption[i].type == SCCP_CONFIG_DATATYPE_STRINGPTR) {
 			dst = ((uint8_t *) obj) + sccpConfigOption[i].offset;
 			str = *(char **) dst;
@@ -2070,6 +2064,12 @@ sccp_value_changed_t sccp_config_parse_button(void * const dest, const size_t si
 sccp_value_changed_t sccp_config_checkButton(sccp_buttonconfig_list_t *buttonconfigList, int buttonindex, sccp_config_buttontype_t type, const char *name, const char *options, const char *args)
 {
 	sccp_buttonconfig_t *config = NULL;
+	char * parse;
+	AST_DECLARE_APP_ARGS (elems, AST_APP_ARG (option); AST_APP_ARG (arg););
+	if (args && !sccp_strlen_zero (args)) {
+		parse = pbx_strdupa (args);
+		AST_STANDARD_APP_ARGS (elems, parse);
+	}
 
 	// boolean_t is_new = FALSE;
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
@@ -2143,12 +2143,6 @@ sccp_value_changed_t sccp_config_checkButton(sccp_buttonconfig_list_t *buttoncon
 					char *default_arg = "";
 					char combined_args[512] = "";
 					char combined_current[512] = "";
-					AST_DECLARE_APP_ARGS(elems, AST_APP_ARG(option); AST_APP_ARG(arg););
-					if(args && !sccp_strlen_zero(args)) {
-						char * parse = pbx_strdup (args);
-						AST_STANDARD_APP_ARGS(elems, parse);
-						sccp_free (parse);
-					}
 					snprintf(combined_current, sizeof(combined_current), "%s, %s",
 						config->button.feature.options ? config->button.feature.options : "",
 						config->button.feature.args ? config->button.feature.args : "");
@@ -2213,8 +2207,15 @@ sccp_value_changed_t sccp_config_checkButton(sccp_buttonconfig_list_t *buttoncon
 sccp_value_changed_t sccp_config_addButton(sccp_buttonconfig_list_t *buttonconfigList, int buttonindex, sccp_config_buttontype_t type, const char *name, const char *options, const char *args)
 {
 	sccp_buttonconfig_t *config = NULL;
+
+	char * parse;
+	AST_DECLARE_APP_ARGS (elems, AST_APP_ARG (option); AST_APP_ARG (arg););
+	if (args && !sccp_strlen_zero (args)) {
+		parse = pbx_strdupa (args);
+		AST_STANDARD_APP_ARGS (elems, parse);
+	}
+
 	sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCP: Loading New Button Config\n");
-	
 	/*
 	if (!sccp_config_buttontype_exists(type)) {
 		sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_4 "SCCP: Unknown ButtonType. Skipping\n");
@@ -2298,12 +2299,6 @@ sccp_value_changed_t sccp_config_addButton(sccp_buttonconfig_list_t *buttonconfi
 
 			config->button.feature.options = NULL;
 			config->button.feature.args = NULL;
-			AST_DECLARE_APP_ARGS(elems, AST_APP_ARG(option); AST_APP_ARG(arg););
-			if(args && !sccp_strlen_zero(args)) {
-				char * parse = pbx_strdup (args);
-				AST_STANDARD_APP_ARGS(elems, parse);
-				sccp_free (parse);
-			}
 
 			if(SCCP_FEATURE_PARKINGLOT == config->button.feature.id) {
 				if(elems.option && !sccp_strlen_zero(elems.option)) {
@@ -3394,10 +3389,9 @@ int sccp_manager_config_metadata(struct mansession *s, const struct message *m)
 				astman_append(s, "JSON: {");
 				astman_append(s, "\"Segment\":\"%s\",", sccpConfigSegment->name);
 				astman_append(s, "\"Options\":[");
-				uint8_t cur_elem = 0;
 				comma = 0;
 
-				for (cur_elem = 0; cur_elem < sccpConfigSegment->config_size; cur_elem++) {
+				for (long unsigned int cur_elem = 0; cur_elem < sccpConfigSegment->config_size; cur_elem++) {
 					if ((config[cur_elem].flags & SCCP_CONFIG_FLAG_IGNORE) != SCCP_CONFIG_FLAG_IGNORE) {
 						astman_append(s, "%s", comma ? "," : "");
 						astman_append(s, "{");
@@ -3546,10 +3540,9 @@ static int _config_generate_wiki(char * filename)
 	}
 
 	char date[256] = "";
-	time_t t = 0;
-
-	time(&t);
-	sccp_copy_string(date, ctime(&t), sizeof(date));
+	struct ast_tm tm;
+	struct timeval now = ast_tvnow();
+	ast_strftime (date, sizeof (date), "%b %e %T", ast_localtime (&now, &tm, NULL));
 
 	fprintf(f, "*sccp.conf options*\n\n");
 	for(segment = SCCP_CONFIG_GLOBAL_SEGMENT; segment <= SCCP_CONFIG_SOFTKEY_SEGMENT; segment++) {
@@ -3585,7 +3578,7 @@ static int _config_generate_wiki(char * filename)
 							fprintf(f, "<td class='format'>max length:%d</td>\n", (int)config[sccp_option].size - 1);
 							break;
 						case SCCP_CONFIG_DATATYPE_ENUM: {
-							char * all_entries = pbx_strdupa(config[sccp_option].all_entries());
+							char * all_entries = pbx_strdup (config[sccp_option].all_entries());
 							char * possible_entry = "";
 							int subcomma = 0;
 
@@ -3595,6 +3588,7 @@ static int _config_generate_wiki(char * filename)
 								subcomma = 1;
 							}
 							fprintf(f, "]</small></td>\n");
+							sccp_free (all_entries);
 						} break;
 						default:
 							fprintf(f, "<td class='format'>-</td>\n");
@@ -3677,10 +3671,9 @@ int sccp_config_generate(char *filename, int configType)
 	}
 
 	char date[256] = "";
-	time_t t = 0;
-
-	time(&t);
-	sccp_copy_string(date, ctime(&t), sizeof(date));
+	struct ast_tm tm;
+	struct timeval now = ast_tvnow();
+	ast_strftime (date, sizeof (date), "%b %e %T", ast_localtime (&now, &tm, NULL));
 
 	fprintf(f, ";!\n");
 	fprintf(f, ";! Automatically generated configuration file\n");

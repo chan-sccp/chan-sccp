@@ -68,6 +68,7 @@ SCCP_FILE_VERSION(__FILE__, "");
 #include <sys/stat.h>
 #include <asterisk/cli.h>
 #include <asterisk/paths.h>
+#include <asterisk/localtime.h>
 
 /*** DOCUMENTATION
 	<manager name="SCCPAnswerCall1" language="en_US">
@@ -881,7 +882,6 @@ CLI_AMI_ENTRY(show_globals, sccp_show_globals, "List defined SCCP global setting
      * 
      */
     //static int sccp_show_devices(int fd, int argc, char *argv[])
-#include <asterisk/localtime.h>
 static int sccp_show_devices(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
 	char regtime[25];
@@ -898,18 +898,23 @@ static int sccp_show_devices(int fd, sccp_cli_totals_t *totals, struct mansessio
 #define CLI_AMI_TABLE_LIST_ITER_VAR list_dev
 #define CLI_AMI_TABLE_LIST_LOCK SCCP_RWLIST_RDLOCK
 #define CLI_AMI_TABLE_LIST_ITERATOR SCCP_RWLIST_TRAVERSE
-#define CLI_AMI_TABLE_BEFORE_ITERATION 																\
-	{																			\
-		AUTO_RELEASE(sccp_device_t, d , sccp_device_retain(list_dev));											\
-		if (d) {																	\
-			if(d->session) {															\
-				struct sockaddr_storage sas = { 0 };												\
-				struct timeval when = {d->registrationTime, 0};											\
-				ast_localtime(&when, &tm, NULL);												\
-				ast_strftime_locale(regtime, sizeof(regtime), "%c ", &tm, NULL);								\
-				sccp_session_getSas(d->session, &sas);											 	\
-				sccp_copy_string(addrStr,sccp_netsock_stringify(&sas),sizeof(addrStr));								\
- 			} else {addrStr[0] = '-'; addrStr[1] = '-';addrStr[2] = '\0';regtime[0] = '\0';}
+#define CLI_AMI_TABLE_BEFORE_ITERATION                                                                       \
+	{                                                                                                    \
+		AUTO_RELEASE (sccp_device_t, d, sccp_device_retain (list_dev));                              \
+		if (d) {                                                                                     \
+			if (d->session) {                                                                    \
+				struct sockaddr_storage sas = { 0 };                                         \
+				struct timeval when = { d->registrationTime, 0 };                            \
+				ast_localtime (&when, &tm, NULL);                                            \
+				ast_strftime (regtime, sizeof (regtime), "%c ", &tm);                        \
+				sccp_session_getSas (d->session, &sas);                                      \
+				sccp_copy_string (addrStr, sccp_netsock_stringify (&sas), sizeof (addrStr)); \
+			} else {                                                                             \
+				addrStr[0] = '-';                                                            \
+				addrStr[1] = '-';                                                            \
+				addrStr[2] = '\0';                                                           \
+				regtime[0] = '\0';                                                           \
+			}
 
 #define CLI_AMI_TABLE_AFTER_ITERATION 																\
 		}																		\

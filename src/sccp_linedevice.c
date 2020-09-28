@@ -62,7 +62,10 @@ static void regcontext_exten(constLineDevicePtr ld, int onoff)
 
 	char * ext = "";
 
-	char * context = "";
+	char cntxt[SCCP_MAX_CONTEXT];
+	sccp_copy_string (cntxt, GLOB (regcontext), sizeof (cntxt));
+	;
+	char * context = cntxt;
 
 	// char extension[SCCP_MAX_CONTEXT]="";
 	// char name[SCCP_MAX_CONTEXT]="";
@@ -90,7 +93,8 @@ static void regcontext_exten(constLineDevicePtr ld, int onoff)
 				continue;
 			}
 		} else {
-			context = pbx_strdupa(GLOB(regcontext));
+			sccp_copy_string (cntxt, GLOB (regcontext), sizeof (cntxt));
+			context = cntxt;
 		}
 		con = pbx_context_find_or_create(NULL, NULL, context, "SCCP"); /* make sure the context exists */
 		if(con) {
