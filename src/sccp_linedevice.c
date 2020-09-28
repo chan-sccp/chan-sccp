@@ -374,7 +374,7 @@ lineDevicePtr __sccp_linedevice_findByLineinstance(constDevicePtr device, uint16
 		return NULL;
 	}
 
-	if(0 < instance && instance < device->lineButtons.size && device->lineButtons.instance[instance]) { /* 0 < instance < lineButton.size */
+	if (instance < device->lineButtons.size && device->lineButtons.instance[instance]) { /* 0 < instance < lineButton.size */
 		ld = sccp_linedevice_retain(device->lineButtons.instance[instance]);
 	}
 

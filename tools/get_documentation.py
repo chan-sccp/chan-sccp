@@ -11,7 +11,6 @@ the GNU General Public License Version 2.
 import sys
 import xml.dom.minidom
 
-
 def get_manager_event_method_type(candidate_string):
     if "ast_manager_event_multichan" in candidate_string:
         return "multichan"
@@ -129,10 +128,6 @@ def parse_manager_event_instance(xml_fragment):
 
 
 def main(argv=None):
-
-    if argv is None:
-        argv = sys.argv
-
     in_doc = False
     xml_fragment = []
     xml = []
