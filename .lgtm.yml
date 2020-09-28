@@ -1,11 +1,3 @@
-path_classifiers:
-  src:
-    - "src/*"
-  contrib:
-    - "contrib/*"
-  tests:
-    - "/tests/*"
-
 queries:
   - exclude: cpp/non-member-const-no-effect
             
