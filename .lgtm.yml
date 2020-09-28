@@ -25,7 +25,6 @@ extraction:
           - asterisk-dev
           - asterisk-config
           - asterisk-modules
-          - asterisk-dbg
           - binutils.dev
           - libc6-dev
           - gettext
