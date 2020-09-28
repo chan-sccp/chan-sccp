@@ -1,9 +1,10 @@
 queries:
+  - include: "*"
   - exclude: cpp/non-member-const-no-effect
   - exclude: non-member-const-no-effect
+  - exclude:
+    - ID: cpp/non-member-const-no-effect
 
 extraction:
   cpp:
-    queries:
-      -exclude: non-member-const-no-effect
   python:
