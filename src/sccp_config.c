@@ -236,9 +236,10 @@ SCCP_FILE_VERSION(__FILE__, "");
 //#define BITSET(a, b) ((a)[BITSLOT(b)] |= BITMASK(b))
 //#define BITTEST(a, b) ((a)[BITSLOT(b)] & BITMASK(b))
 //#define BITTOGGLE(a, b) ((a)[BITSLOT(b)] ^= BITMASK(b))
-    /*!
-     * \brief Enum for Config Option Types
-     */
+
+/*!
+ * \brief Enum for Config Option Types
+ */
 enum SCCPConfigOptionType {
 /* *INDENT-OFF* */
 	SCCP_CONFIG_DATATYPE_BOOLEAN			= 1 << 0,
