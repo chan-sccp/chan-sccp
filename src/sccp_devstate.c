@@ -192,7 +192,7 @@ static void deviceRegistered(const sccp_device_t * device)
 	if (d) {
 		SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
 			if (config->type == FEATURE && config->button.feature.id == SCCP_FEATURE_DEVSTATE) {
-				char * devStateStr = pbx_strdupa(config->button.feature.options);
+				char * devStateStr = pbx_strdup (config->button.feature.options);
 				if(devStateStr != NULL) {
 					SCCP_LIST_LOCK(&deviceStates);
 					deviceState = getDeviceStateHandler(devStateStr);
@@ -213,6 +213,7 @@ static void deviceRegistered(const sccp_device_t * device)
 						notifySubscriber(deviceState, subscriber); /* set initial state */
 					}
 				}
+				sccp_free (devStateStr);
 			}
 		}
 	}
@@ -228,7 +229,7 @@ static void deviceUnRegistered(const sccp_device_t * device)
 	if (d) {
 		SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
 			if (config->type == FEATURE && config->button.feature.id == SCCP_FEATURE_DEVSTATE) {
-				char * devStateStr = pbx_strdupa(config->button.feature.options);
+				char * devStateStr = pbx_strdup (config->button.feature.options);
 				if(devStateStr != NULL) {
 					SCCP_LIST_LOCK(&deviceStates);
 					deviceState = getDeviceStateHandler(devStateStr);
@@ -237,6 +238,7 @@ static void deviceUnRegistered(const sccp_device_t * device)
 					}
 					SCCP_LIST_UNLOCK(&deviceStates);
 				}
+				sccp_free (devStateStr);
 			}
 		}
 	}

@@ -21,6 +21,7 @@
 #	include "sccp_labels.h"
 #	include "sccp_featureParkingLot.h"
 #	include <asterisk/threadstorage.h>
+#	include <asterisk/localtime.h>
 
 SCCP_FILE_VERSION(__FILE__, "");
 
@@ -394,7 +395,6 @@ static int sccp_manager_show_devices(struct mansession *s, const struct message 
 	sccp_device_t *device = NULL;
 	char idtext[256] = "";
 	int total = 0;
-	struct tm * timeinfo = NULL;
 	char regtime[25];
 	char clientAddress[INET6_ADDRSTRLEN];
 
@@ -404,7 +404,9 @@ static int sccp_manager_show_devices(struct mansession *s, const struct message 
 	// List the peers in separate manager events 
 	SCCP_RWLIST_RDLOCK(&GLOB(devices));
 	SCCP_RWLIST_TRAVERSE(&GLOB(devices), device, list) {
-		timeinfo = localtime(&device->registrationTime);
+		struct ast_tm tm;
+		struct timeval when = { device->registrationTime, 0 };
+		ast_localtime (&when, &tm, NULL);
 
 		struct sockaddr_storage sas = { 0 };
 		if (sccp_session_getSas(device->session, &sas)) {
@@ -413,7 +415,7 @@ static int sccp_manager_show_devices(struct mansession *s, const struct message 
 			sccp_copy_string(clientAddress, "--", sizeof(clientAddress));
 		}
 
-		strftime(regtime, sizeof(regtime), "%c", timeinfo);
+		ast_strftime (regtime, sizeof (regtime), "%c ", &tm);
 		astman_append(s, "Event: DeviceEntry\r\n%s", idtext);
 		astman_append(s, "ChannelType: SCCP\r\n");
 		astman_append(s, "ObjectId: %s\r\n", device->id);
