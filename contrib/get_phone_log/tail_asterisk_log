@@ -3,7 +3,7 @@
 # pip install pygtail
 #
 from pygtail import Pygtail
-import sys, os, argparse, re, subprocess
+import sys, os, argparse, re
 from retrieve_phone_debug_logs import retrieve_debug_logs
 
 def tail_grep_act(args):

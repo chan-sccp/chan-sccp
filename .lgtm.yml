@@ -1,0 +1,50 @@
+path_classifiers:
+  src:
+    - "src/*"
+  contrib:
+    - "contrib/*"
+  tests:
+    - "/tests/*"
+
+queries:
+  - exclude: cpp/non-member-const-no-effect
+            
+extraction:
+  cpp:
+     prepare:
+        packages: 
+          - libblocksruntime0
+          - libblocksruntime-dev
+          - libpj2
+          - libpjmedia2
+          - libpjnath2
+          - libpjproject-dev
+          - libpjsip2
+          - libpjsua2
+          - asterisk
+          - asterisk-dev
+          - asterisk-config
+          - asterisk-modules
+          - asterisk-dbg
+          - binutils.dev
+          - libc6-dev
+          - gettext
+          - autoconf
+          - automake
+          - m4
+          - autotools-dev
+          - libltdl-dev
+     after_prepare:
+       - export GNU_MAKE=make
+     configure:
+        command:
+        - autoreconf -fi
+        - ./configure --enable-video --enable-conference --enable-distributed-devicestate --enable-advanced-functions --enable-experimental-xml --with-hash-size=3001
+     index:         
+       build_command:
+         - $GNU_MAKE -j4 -s 
+
+  python:
+    python_setup: 
+      version: 3
+      setup_py: false
