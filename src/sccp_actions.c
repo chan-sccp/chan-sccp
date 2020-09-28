@@ -49,6 +49,7 @@ SCCP_FILE_VERSION(__FILE__, "");
 #  include <asterisk/acl.h>
 #endif
 #include <math.h>
+#include <asterisk/localtime.h>
 
 /* prototypes */
 void handle_unknown_message(constSessionPtr s, devicePtr d, constMessagePtr msg_in)			__NONNULL(1,2,3);
@@ -2940,21 +2941,22 @@ void handle_dialedphonebook_message(constSessionPtr s, devicePtr d, constMessage
 void sccp_handle_time_date_req(constSessionPtr s, devicePtr d, constMessagePtr none)
 {
 	pbx_assert(s != NULL);
-	time_t timer = 0;
-	struct tm * cmtime = NULL;
 	sccp_msg_t * msg_out = NULL;
 	REQ(msg_out, DefineTimeDate);
 
 	/* modulate the timezone by full hours only */
-	timer = time(0) + (d->tz_offset * 3600);
-	cmtime = localtime(&timer);
-	msg_out->data.DefineTimeDate.lel_year = htolel(cmtime->tm_year + 1900);
-	msg_out->data.DefineTimeDate.lel_month = htolel(cmtime->tm_mon + 1);
-	msg_out->data.DefineTimeDate.lel_dayOfWeek = htolel(cmtime->tm_wday);
-	msg_out->data.DefineTimeDate.lel_day = htolel(cmtime->tm_mday);
-	msg_out->data.DefineTimeDate.lel_hour = htolel(cmtime->tm_hour);
-	msg_out->data.DefineTimeDate.lel_minute = htolel(cmtime->tm_min);
-	msg_out->data.DefineTimeDate.lel_seconds = htolel(cmtime->tm_sec);
+	time_t timer = time(0) + (d->tz_offset * 3600);
+	struct timeval when = { timer, 0 };
+	struct ast_tm tm;
+	ast_localtime(&when, &tm, NULL);
+	
+	msg_out->data.DefineTimeDate.lel_year = htolel(tm.tm_year + 1900);
+	msg_out->data.DefineTimeDate.lel_month = htolel(tm.tm_mon + 1);
+	msg_out->data.DefineTimeDate.lel_dayOfWeek = htolel(tm.tm_wday);
+	msg_out->data.DefineTimeDate.lel_day = htolel(tm.tm_mday);
+	msg_out->data.DefineTimeDate.lel_hour = htolel(tm.tm_hour);
+	msg_out->data.DefineTimeDate.lel_minute = htolel(tm.tm_min);
+	msg_out->data.DefineTimeDate.lel_seconds = htolel(tm.tm_sec);
 	msg_out->data.DefineTimeDate.lel_milliseconds = htolel(0);
 	msg_out->data.DefineTimeDate.lel_systemTime = htolel(timer);
 	sccp_dev_send(d, msg_out);

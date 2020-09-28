@@ -511,7 +511,7 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 			} else if (!strcasecmp(token, "current_line")) {
 				sccp_copy_string(buf, d->currentLine->id, buf_len);
 			} else if (!strcasecmp(token, "button_config")) {
-				pbx_str_t *lbuf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
+				pbx_str_t * lbuf = pbx_str_create (DEFAULT_PBX_STR_BUFFERSIZE);
 				sccp_buttonconfig_t * config = NULL;
 
 				SCCP_LIST_LOCK(&d->buttonconfig);
@@ -538,6 +538,7 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 				}
 				SCCP_LIST_UNLOCK(&d->buttonconfig);
 				snprintf(buf, buf_len, "[ %s ]", pbx_str_buffer(lbuf));
+				sccp_free (lbuf);
 			} else if (!strcasecmp(token, "pending_delete")) {
 				sccp_copy_string(buf, d->pendingDelete ? "yes" : "no", buf_len);
 			} else if (!strcasecmp(token, "pending_update")) {
@@ -781,16 +782,17 @@ static int sccp_func_sccpline(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char 
 				snprintf(buf, buf_len, "%d", SCCP_LIST_GETSIZE(&l->devices));
 			} else if (!strcasecmp(token, "mailboxes")) {
 				sccp_mailbox_t * mailbox = NULL;
-				pbx_str_t *lbuf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
+				pbx_str_t * lbuf = pbx_str_create (DEFAULT_PBX_STR_BUFFERSIZE);
 				SCCP_LIST_LOCK(&l->mailboxes);
 				SCCP_LIST_TRAVERSE(&l->mailboxes, mailbox, list) {
 					pbx_str_append(&lbuf, 0, "%s%s", addcomma++ ? "," : "", mailbox->uniqueid);
 				}
 				SCCP_LIST_UNLOCK(&l->mailboxes);
 				snprintf(buf, buf_len, "%s", pbx_str_buffer(lbuf));
+				sccp_free (lbuf);
 			} else if (!strcasecmp(token, "cfwd")) {
 				sccp_linedevice_t * ld = NULL;
-				pbx_str_t *lbuf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
+				pbx_str_t * lbuf = pbx_str_create (DEFAULT_PBX_STR_BUFFERSIZE);
 
 				SCCP_LIST_LOCK(&l->devices);
 				SCCP_LIST_TRAVERSE(&l->devices, ld, list) {
@@ -799,9 +801,10 @@ static int sccp_func_sccpline(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char 
 				}
 				SCCP_LIST_UNLOCK(&l->devices);
 				snprintf(buf, buf_len, "[ %s ]", pbx_str_buffer(lbuf));
+				sccp_free (lbuf);
 			} else if (!strcasecmp(token, "devices")) {
 				sccp_linedevice_t * ld = NULL;
-				pbx_str_t *lbuf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
+				pbx_str_t * lbuf = pbx_str_create (DEFAULT_PBX_STR_BUFFERSIZE);
 
 				SCCP_LIST_LOCK(&l->devices);
 				SCCP_LIST_TRAVERSE(&l->devices, ld, list) {
@@ -809,6 +812,7 @@ static int sccp_func_sccpline(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char 
 				}
 				SCCP_LIST_UNLOCK(&l->devices);
 				snprintf(buf, buf_len, "[ %s ]", pbx_str_buffer(lbuf));
+				sccp_free (lbuf);
 			} else if (!strncasecmp(token, "chanvar[", 8)) {
 				char *chanvar = token + 8;
 

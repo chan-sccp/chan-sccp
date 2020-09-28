@@ -174,14 +174,17 @@ static inline void __do_nothing(void) {}									// will be optimized out
 		static char *cli_ami_params[] = { CLI_COMMAND, CLI_AMI_PARAMS };				\
 		struct message m = { 0 };									\
 		size_t hdrlen; 											\
-		uint8_t x;											\
-                for (x = 0; x < ARRAY_LEN(cli_ami_params) && x < a->argc; x++) {				\
+                for (int x = 0; x < (int)ARRAY_LEN(cli_ami_params) && x < a->argc; x++) {			\
                         hdrlen = strlen(cli_ami_params[x]) + 2 + strlen(a->argv[x]) + 1;			\
-                        m.headers[m.hdrcount] = (const char *)alloca(hdrlen);					\
+                        m.headers[m.hdrcount] = (const char *)sccp_malloc(hdrlen);				\
                         snprintf((char *) m.headers[m.hdrcount], hdrlen, "%s: %s", cli_ami_params[x], a->argv[x]);	\
                         m.hdrcount++;                                        					\
                 }												\
-		switch (_CALLED_FUNCTION(a->fd, NULL, NULL, &m, a->argc, (char **) a->argv)) {			\
+                int result = (_CALLED_FUNCTION)(a->fd, NULL, NULL, &m, a->argc, (char **) a->argv);		\
+                for (int x = 0; x < (int)ARRAY_LEN(cli_ami_params) && x < a->argc; x++) {			\
+			sccp_free(m.headers[x]);								\
+		}												\
+		switch (result) {										\
 			case RESULT_SUCCESS: return CLI_SUCCESS;						\
 			case RESULT_FAILURE: return CLI_FAILURE;						\
 			case RESULT_SHOWUSAGE: return CLI_SHOWUSAGE;						\

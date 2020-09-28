@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 from lxml import html
-from lxml import etree
 import sys, os, requests, argparse, time, socket
 
 def retrieve_debug_logs(hostip, outdirectory):
@@ -41,10 +40,10 @@ def main(argv):
         os.makedirs(args.outdirectory)
 
     try:
-        print('ip-address: %s, output directory:%s' %(hostip, outdirectory))    
-        retrieve_debug_logs(agrs.ipaddress, args.outdirectory)
-    except (Exception):
-        print('SCCP phone could not be reached');
+        print('ip-address: %s, output directory:%s' %(args.ipaddress, args.outdirectory))    
+        retrieve_debug_logs(args.ipaddress, args.outdirectory)
+    except Exception as e:
+        print('SCCP phone could not be reached: "%s"' %(e));
         sys.exit(-1)
 
     sys.exit(0)
