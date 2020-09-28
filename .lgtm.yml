@@ -1,4 +1,5 @@
 queries:
+  - include: "*"
   - exclude: cpp/non-member-const-no-effect
 
 extraction:

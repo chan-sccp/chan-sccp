@@ -1545,11 +1545,11 @@ gcc_inline int sccp_atoi(const char * const buf, size_t buflen)
 {
 	int result = 0;
 	if (buf && buflen > 0) {
-	        errno = 0;
+		errno = 0;
 		char *end = NULL;
-        	long temp = strtol(buf, &end, 10);
-	        if (end != buf && errno != ERANGE && (temp >= INT_MIN || temp <= INT_MAX)) {
-        		result = (int)temp;
+		long temp = strtol (buf, &end, 10);
+		if (end != buf && errno != ERANGE && temp >= INT_MIN && temp <= INT_MAX) {
+			result = (int)temp;
 		}
 	}
 	return result;
