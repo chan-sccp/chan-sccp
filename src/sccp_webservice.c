@@ -127,7 +127,6 @@ static boolean_t parse_manager_conf(void)
 					pbx_log(LOG_NOTICE, "SCCP: manager.conf:webenabled=yes are required\n");
         	                	break;
         	                }
-			} else {
 			}
 		}
 	        ast_config_destroy(cfg);
