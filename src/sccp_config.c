@@ -374,14 +374,16 @@ static const SCCPConfigOption *sccp_find_config(const sccp_config_segment_t segm
 
 	for (i = 0; i < sccpConfigSegment->config_size; i++) {
 		if (strstr(config[i].name, delims) != NULL) {
-			config_name = pbx_strdupa(config[i].name);
+			config_name = pbx_strdup(config[i].name);
 			token = strtok_r(config_name, delims, &tokenrest);
 			while (token != NULL) {
 				if(strcasecmp(token, name) == 0) {
+					sccp_free(config_name);
 					return &config[i];
 				}
 				token = strtok_r(NULL, delims, &tokenrest);
 			}
+			sccp_free(config_name);
 		}
 		if(strcasecmp(config[i].name, name) == 0) {
 			return &config[i];
@@ -851,7 +853,7 @@ static void sccp_config_set_defaults(void * const obj, const sccp_config_segment
 	boolean_t skip = FALSE;
 
 	/* find the defaultValue, first check the reference, if no reference is specified, us the local defaultValue */
-	uint8_t cur_elem = 0;
+	long unsigned int cur_elem = 0;
 
 	for (cur_elem = 0; cur_elem < sccpConfigSegment->config_size; cur_elem++) {
 		/* Lookup the first offset of the struct variable we want to set default for, find the corresponding entry in the SetEntries array and check the boolean flag, skip if true */
@@ -876,7 +878,8 @@ static void sccp_config_set_defaults(void * const obj, const sccp_config_segment
 			/* check if referring to another segment, or ourself */
 			if ((flags & SCCP_CONFIG_FLAG_GET_DEVICE_DEFAULT) == SCCP_CONFIG_FLAG_GET_DEVICE_DEFAULT) {	/* get default value from device */
 				referral_device = &(*(sccp_device_t *) obj);
-				referral_cat = pbx_strdupa(referral_device->id);
+				//referral_cat = pbx_strdup(referral_device->id);
+				referral_cat = referral_device->id;
 				search_segment_type = SCCP_CONFIG_DEVICE_SEGMENT;
 
 			} else if ((flags & SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT) == SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT) {	/* get default value from global */
@@ -925,6 +928,7 @@ static void sccp_config_set_defaults(void * const obj, const sccp_config_segment
 						continue;
 					}
 				}
+				
 			} else if (!sccp_strlen_zero(sccpDstConfig[cur_elem].defaultValue)) {			/* Non-Referral, pass defaultValue on in raw string format (including tokens) */
 				sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "Set parameter '%s' to own default, being:'%s'\n", sccpDstConfig[cur_elem].name, sccpDstConfig[cur_elem].defaultValue);
 				sccp_config_object_setValue(obj, NULL, sccpDstConfig[cur_elem].name, sccpDstConfig[cur_elem].defaultValue, __LINE__, segment, SetEntries, TRUE);
@@ -952,8 +956,7 @@ void sccp_config_cleanup_dynamically_allocated_memory(void * const obj, const sc
 	void * dst = NULL;
 	char * str = NULL;
 
-	uint8_t i = 0;
-
+	long unsigned int i = 0;
 	for (i = 0; i < sccpConfigSegment->config_size; i++) {
 		if (sccpConfigOption[i].type == SCCP_CONFIG_DATATYPE_STRINGPTR) {
 			dst = ((uint8_t *) obj) + sccpConfigOption[i].offset;
@@ -2981,6 +2984,7 @@ sccp_config_file_status_t sccp_config_getConfig(boolean_t force, const char * co
 	pbx_log(LOG_NOTICE, "Config file '%s' loaded.\n", newfilename);
 	res = CONFIG_STATUS_FILE_OK;
 FUNC_EXIT:
+	if (GLOB(config_file_name)) {sccp_free(GLOB(config_file_name));}
 	GLOB(config_file_name) = pbx_strdup(newfilename);
 	return res;
 }
