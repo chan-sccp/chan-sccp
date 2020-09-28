@@ -68,6 +68,7 @@ SCCP_FILE_VERSION(__FILE__, "");
 #include <sys/stat.h>
 #include <asterisk/cli.h>
 #include <asterisk/paths.h>
+#include <asterisk/localtime.h>
 
 /*** DOCUMENTATION
 	<manager name="SCCPAnswerCall1" language="en_US">
@@ -881,7 +882,6 @@ CLI_AMI_ENTRY(show_globals, sccp_show_globals, "List defined SCCP global setting
      * 
      */
     //static int sccp_show_devices(int fd, int argc, char *argv[])
-#include <asterisk/localtime.h>
 static int sccp_show_devices(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
 	char regtime[25];
