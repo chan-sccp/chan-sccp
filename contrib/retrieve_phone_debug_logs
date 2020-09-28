@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 from lxml import html
-from lxml import etree
 import sys, os, requests, argparse, time, socket
 
 def retrieve_debug_logs(host, outdirectory):
