@@ -283,26 +283,25 @@ int pbx_manager_register(const char *action, int authority, int (*func) (struct 
 			if(a->argc < (int)(ARRAY_LEN(cli_command) - 1)) {                                                                            \
 				return CLI_SHOWUSAGE;                                                                                                \
 			}                                                                                                                            \
-			static char * cli_ami_params[] = { CLI_COMMAND, CLI_AMI_PARAMS };                                                            \
-			struct message m = { 0 };                                                                                                    \
-			size_t hdrlen;                                                                                                               \
-			uint8_t x;                                                                                                                   \
-			for(x = 0; x < ARRAY_LEN(cli_ami_params) && x < a->argc; x++) {                                                              \
-				hdrlen = strlen(cli_ami_params[x]) + 2 + strlen(a->argv[x]) + 1;                                                     \
-				m.headers[m.hdrcount] = (const char *)alloca(hdrlen);                                                                \
-				snprintf((char *)m.headers[m.hdrcount], hdrlen, "%s: %s", cli_ami_params[x], a->argv[x]);                            \
-				m.hdrcount++;                                                                                                        \
-			}                                                                                                                            \
-			switch((_CALLED_FUNCTION)(a->fd, NULL, NULL, NULL, a->argc, (char **)a->argv)) {                                             \
-				case RESULT_SUCCESS:                                                                                                 \
-					return CLI_SUCCESS;                                                                                          \
-				case RESULT_FAILURE:                                                                                                 \
-					return CLI_FAILURE;                                                                                          \
-				case RESULT_SHOWUSAGE:                                                                                               \
-					return CLI_SHOWUSAGE;                                                                                        \
-				default:                                                                                                             \
-					return CLI_FAILURE;                                                                                          \
-			}                                                                                                                            \
+		static char *cli_ami_params[] = { CLI_COMMAND, CLI_AMI_PARAMS };				\
+		struct message m = { 0 };									\
+		size_t hdrlen; 											\
+                for (int x = 0; x < (int)ARRAY_LEN(cli_ami_params) && x < a->argc; x++) {			\
+                        hdrlen = strlen(cli_ami_params[x]) + 2 + strlen(a->argv[x]) + 1;			\
+                        m.headers[m.hdrcount] = (const char *)sccp_malloc(hdrlen);				\
+                        snprintf((char *) m.headers[m.hdrcount], hdrlen, "%s: %s", cli_ami_params[x], a->argv[x]);	\
+                        m.hdrcount++;                                        					\
+                }												\
+                int result = (_CALLED_FUNCTION)(a->fd, NULL, NULL, &m, a->argc, (char **) a->argv);		\
+                for (int x = 0; x < (int)ARRAY_LEN(cli_ami_params) && x < a->argc; x++) {			\
+			sccp_free(m.headers[x]);								\
+		}												\
+		switch (result) {										\
+			case RESULT_SUCCESS: return CLI_SUCCESS;						\
+			case RESULT_FAILURE: return CLI_FAILURE;						\
+			case RESULT_SHOWUSAGE: return CLI_SHOWUSAGE;						\
+			default: return CLI_FAILURE;								\
+		}												\
 		};
 #define CLI_ENTRY(_FUNCTION_NAME,_CALLED_FUNCTION,_DESCR,_USAGE, _COMPLETER_REPEAT)				\
 	static char *_FUNCTION_NAME(struct ast_cli_entry *e, int cmd, struct ast_cli_args *a) {			\

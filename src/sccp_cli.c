@@ -881,12 +881,13 @@ CLI_AMI_ENTRY(show_globals, sccp_show_globals, "List defined SCCP global setting
      * 
      */
     //static int sccp_show_devices(int fd, int argc, char *argv[])
+#include <asterisk/localtime.h>
 static int sccp_show_devices(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
-	struct tm * timeinfo = NULL;
 	char regtime[25];
 	int local_line_total = 0;
 	char addrStr[INET6_ADDRSTRLEN];
+	struct ast_tm tm;
 
 	// table definition
 #define CLI_AMI_TABLE_NAME Devices
@@ -903,8 +904,9 @@ static int sccp_show_devices(int fd, sccp_cli_totals_t *totals, struct mansessio
 		if (d) {																	\
 			if(d->session) {															\
 				struct sockaddr_storage sas = { 0 };												\
-				timeinfo = localtime(&d->registrationTime); 											\
-				strftime(regtime, sizeof(regtime), "%c ", timeinfo);										\
+				struct timeval when = {d->registrationTime, 0};											\
+				ast_localtime(&when, &tm, NULL);												\
+				ast_strftime_locale(regtime, sizeof(regtime), "%c ", &tm, NULL);								\
 				sccp_session_getSas(d->session, &sas);											 	\
 				sccp_copy_string(addrStr,sccp_netsock_stringify(&sas),sizeof(addrStr));								\
  			} else {addrStr[0] = '-'; addrStr[1] = '-';addrStr[2] = '\0';regtime[0] = '\0';}
