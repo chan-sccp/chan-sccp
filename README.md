@@ -4,6 +4,7 @@
 [![Build TR Status](http://img.shields.io/travis/chan-sccp/chan-sccp.svg?style=flat&branch=develop)](https://travis-ci.org/chan-sccp/chan-sccp)
 [![Build GH Status](https://github.com/chan-sccp/chan-sccp/workflows/CI/badge.svg)](https://github.com/chan-sccp/chan-sccp/actions?query=workflow%3ACI)
 [![Coverity](https://img.shields.io/coverity/scan/8656.svg)](https://scan.coverity.com/projects/chan-sccp)
+[![Language grade: C/C++](https://img.shields.io/lgtm/grade/cpp/g/chan-sccp/chan-sccp.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/chan-sccp/chan-sccp/context:cpp)
 [![Average time to resolve an issue](http://isitmaintained.com/badge/resolution/chan-sccp/chan-sccp.svg)](https://github.com/chan-sccp/chan-sccp/issues "Average time to resolve an issue")
 [![Percentage of issues still open](http://isitmaintained.com/badge/open/chan-sccp/chan-sccp.svg)](https://github.com/chan-sccp/chan-sccp/issues?utf8=✓&q=is%3Aopen+is%3Aissue+-label%3Aenhancement+ "Percentage of issues still open")
 [![Download Chan-SCCP channel driver for Asterisk](https://img.shields.io/sourceforge/dt/chan-sccp-b.svg)](https://github.com/chan-sccp/chan-sccp/releases/latest)
