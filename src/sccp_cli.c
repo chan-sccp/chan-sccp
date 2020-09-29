@@ -694,7 +694,6 @@ static char *sccp_exec_completer(sccp_cli_completer_t completer, OLDCONST char *
  * \called_from_asterisk
  * 
  */
-//static int sccp_show_globals(int fd, int argc, char *argv[])
 static int sccp_show_globals(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
 	char apref_buf[256];
@@ -1332,7 +1331,6 @@ CLI_AMI_ENTRY(show_device, sccp_show_device, "Lists device settings", cli_device
      * \called_from_asterisk
      * 
      */
-    //static int sccp_show_lines(int fd, int argc, char *argv[])
 static int sccp_show_lines(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
 	sccp_line_t *l = NULL;

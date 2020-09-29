@@ -1163,11 +1163,11 @@ int sccp_astgenwrap_channel_read(PBX_CHANNEL_TYPE * ast, NEWCONST char *funcname
 			sccp_copy_string(buf, "--", buflen);
 		}
 	} else if (sccp_strcaseequals(args.type, "codec")) {
-		sccp_codec_multiple2str(buf, sizeof(buf) - 1, c->capabilities.audio, SKINNY_MAX_CAPABILITIES);
-		sccp_codec_multiple2str(buf, sizeof(buf) - 1, c->preferences.audio, SKINNY_MAX_CAPABILITIES);
+		sccp_codec_multiple2str (buf, buflen - 1, c->capabilities.audio, SKINNY_MAX_CAPABILITIES);
+		sccp_codec_multiple2str (buf, buflen - 1, c->preferences.audio, SKINNY_MAX_CAPABILITIES);
 #if CS_SCCP_VIDEO
-		sccp_codec_multiple2str(buf, sizeof(buf) - 1, c->capabilities.video, SKINNY_MAX_CAPABILITIES);
-		sccp_codec_multiple2str(buf, sizeof(buf) - 1, c->preferences.video, SKINNY_MAX_CAPABILITIES);
+		sccp_codec_multiple2str (buf, buflen - 1, c->capabilities.video, SKINNY_MAX_CAPABILITIES);
+		sccp_codec_multiple2str (buf, buflen - 1, c->preferences.video, SKINNY_MAX_CAPABILITIES);
 #endif
 	} else if (sccp_strcaseequals(args.type, "video")) {
 #if CS_SCCP_VIDEO
