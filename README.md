@@ -162,3 +162,6 @@ If you like our project, then please consider to
 
 ### License
 [![GitHub license](https://img.shields.io/badge/license-GPL-blue.svg)](https://raw.githubusercontent.com/chan-sccp/chan-sccp/master/LICENSE)
+
+### GPG Key
+E774 D1A4 6210 4F41 C844  897E AFA7 2825 0A1B ECD6
