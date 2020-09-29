@@ -3535,6 +3535,7 @@ static int _config_generate_wiki(char * filename)
 	int fd = open (fn, O_CREAT | O_EXCL | O_RDWR, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
 	if (fd == -1 || errno == EEXIST) {
 		pbx_log (LOG_WARNING, "Error creating new wiki file: %s\n", strerror (errno));
+		close(fd);
 		return -1;
 	}
 	FILE * f = NULL;
@@ -3673,6 +3674,7 @@ int sccp_config_generate(char *filename, int configType)
 	int fd = open (fn, O_CREAT | O_EXCL | O_RDWR, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
 	if (fd == -1 || errno == EEXIST) {
 		pbx_log (LOG_WARNING, "Error creating new config file: %s\n", strerror (errno));
+		close(fd);
 		return -1;
 	}
 	FILE * f = NULL;
