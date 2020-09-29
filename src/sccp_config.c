@@ -3633,6 +3633,7 @@ static int _config_generate_wiki(char * filename)
 		fprintf(f, "</table><br>\n");
 	}
 	fclose(f);
+	close (fd);
 	pbx_log (LOG_NOTICE, "Created new wiki file '%s'\n", fn);
 
 	return 0;
