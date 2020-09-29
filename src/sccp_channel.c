@@ -856,15 +856,17 @@ void sccp_channel_openReceiveChannel(constChannelPtr channel)
 	d->protocol->sendOpenReceiveChannel(d, channel);                                        // extra channel retain, released when receive channel is closed
 }
 
-static void sccp_channel_synchronousOpenReceiveChannel (constChannelPtr channel)
+static void sccp_channel_synchronousOpenReceiveChannel(constChannelPtr channel)
 {
-	AUTO_RELEASE (sccp_device_t, d, sccp_channel_getDevice (channel));
+	AUTO_RELEASE(sccp_device_t, d, sccp_channel_getDevice(channel));
 	if (!d) {
 		pbx_log (LOG_ERROR, "%s: (%s) Could not retrieve device from channel\n", channel->designator, __func__);
 		return;
 	}
-	sccp_channel_openReceiveChannel (channel);
-	sccp_session_waitForPendingRequests (d->session);
+	sccp_channel_openReceiveChannel(channel);
+	if ((sccp_rtp_getState(&channel->rtp.audio, SCCP_RTP_RECEPTION) & SCCP_RTP_STATUS_ACTIVE) != SCCP_RTP_STATUS_ACTIVE) {
+		sccp_session_waitForPendingRequests(d->session);
+	}
 }
 
 int sccp_channel_receiveChannelOpen(sccp_device_t *d, sccp_channel_t *c)
