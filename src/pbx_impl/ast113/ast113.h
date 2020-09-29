@@ -168,51 +168,55 @@ int pbx_manager_register(const char *action, int authority, int (*func) (struct 
 	*ptr='\0';												\
 })
 
-#define CLI_AMI_OUTPUT_PARAM(param, width, fmt, ...) ({ 							\
-	if (NULL != (s)) {											\
-		char *camelParam = pbx_strdupa((param));							\
-		CLI_AMI_CAMEL_PARAM((param), (camelParam));							\
-		astman_append((s), "%s: " fmt "\r\n", (camelParam), __VA_ARGS__);				\
-		local_line_total++;										\
-	} else {												\
-		ast_cli((fd), "%-*.*s %s " fmt "\n", (width), (width), (param), ":", __VA_ARGS__);		\
-	}													\
-})
+#	define CLI_AMI_OUTPUT_PARAM(param, width, fmt, ...)                                                        \
+		({                                                                                                  \
+			if (NULL != (s)) {                                                                          \
+				char camelParam[width + 1];                                                         \
+				CLI_AMI_CAMEL_PARAM ((param), (camelParam));                                        \
+				astman_append ((s), "%s: " fmt "\r\n", (camelParam), __VA_ARGS__);                  \
+				local_line_total++;                                                                 \
+			} else {                                                                                    \
+				ast_cli ((fd), "%-*.*s %s " fmt "\n", (width), (width), (param), ":", __VA_ARGS__); \
+			}                                                                                           \
+		})
 
-#define CLI_AMI_OUTPUT_BOOL(param, width, value) ({ 								\
-	if (NULL != (s)) {											\
-		char *camelParam = pbx_strdupa((param));							\
-		CLI_AMI_CAMEL_PARAM((param), (camelParam));							\
-		astman_append((s), "%s: %s\r\n", (camelParam), ((value) ? "on" : "off"));			\
-		local_line_total++;										\
-	} else {												\
-		ast_cli((fd), "%-*.*s %s %s\n", (width), (width), (param), ":", ((value) ? "on" : "off")); 	\
-	}													\
-})
+#	define CLI_AMI_OUTPUT_BOOL(param, width, value)                                                                    \
+		({                                                                                                          \
+			if (NULL != (s)) {                                                                                  \
+				char camelParam[width + 1];                                                                 \
+				CLI_AMI_CAMEL_PARAM ((param), (camelParam));                                                \
+				astman_append ((s), "%s: %s\r\n", (camelParam), ((value) ? "on" : "off"));                  \
+				local_line_total++;                                                                         \
+			} else {                                                                                            \
+				ast_cli ((fd), "%-*.*s %s %s\n", (width), (width), (param), ":", ((value) ? "on" : "off")); \
+			}                                                                                                   \
+		})
 
-#define CLI_AMI_OUTPUT_YES_NO(param, width, value) ({ 								\
-	if (NULL != (s)) {											\
-		char *camelParam = pbx_strdupa((param));							\
-		CLI_AMI_CAMEL_PARAM((param), (camelParam));							\
-		astman_append((s), "%s: %s\r\n", (camelParam), ((value) ? "yes" : "no"));			\
-		local_line_total++;										\
-	} else {												\
-		ast_cli((fd), "%-*.*s %s %s\n", (width), (width), (param), ":", ((value) ? "yes" : "no")); 	\
-	}													\
-})
+#	define CLI_AMI_OUTPUT_YES_NO(param, width, value)                                                                  \
+		({                                                                                                          \
+			if (NULL != (s)) {                                                                                  \
+				char camelParam[width + 1];                                                                 \
+				CLI_AMI_CAMEL_PARAM ((param), (camelParam));                                                \
+				astman_append ((s), "%s: %s\r\n", (camelParam), ((value) ? "yes" : "no"));                  \
+				local_line_total++;                                                                         \
+			} else {                                                                                            \
+				ast_cli ((fd), "%-*.*s %s %s\n", (width), (width), (param), ":", ((value) ? "yes" : "no")); \
+			}                                                                                                   \
+		})
 
-#	define _CLI_AMI_RETURN_ERROR(fd, s, m, line, fmt, ...) ({                   \
-		if(NULL != (s)) {                                                   \
-			char tmp_##line[101];                                       \
-			snprintf(tmp_##line, sizeof(tmp_##line), (fmt), __VA_ARGS__); \
-			astman_send_error((s), (m), tmp_##line);                    \
-			local_line_total++;                                         \
-		} else {                                                            \
-			ast_cli((fd), "SCCP CLI ERROR: " fmt, __VA_ARGS__);       \
-		}                                                                   \
-		return RESULT_FAILURE;						    \
-	})
-#	define CLI_AMI_RETURN_ERROR(fd, s, m, fmt, ...) _CLI_AMI_RETURN_ERROR((fd), (s), (m), __LINE__, fmt, __VA_ARGS__)
+#	define _CLI_AMI_RETURN_ERROR(fd, s, m, line, fmt, ...)                                 \
+		({                                                                              \
+			if (NULL != (s)) {                                                      \
+				char tmp_##line[101];                                           \
+				snprintf (tmp_##line, sizeof (tmp_##line), (fmt), __VA_ARGS__); \
+				astman_send_error ((s), (m), tmp_##line);                       \
+				local_line_total++;                                             \
+			} else {                                                                \
+				ast_cli ((fd), "SCCP CLI ERROR: " fmt, __VA_ARGS__);            \
+			}                                                                       \
+			return RESULT_FAILURE;                                                  \
+		})
+#	define CLI_AMI_RETURN_ERROR(fd, s, m, fmt, ...) _CLI_AMI_RETURN_ERROR ((fd), (s), (m), __LINE__, fmt, __VA_ARGS__)
 
 // CLI_ENTRY
 //   param1=registration_name
