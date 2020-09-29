@@ -21,7 +21,7 @@ BinPackArguments: true
 BinPackParameters: true
 BreakBeforeBraces: Custom
 BraceWrapping:
-  AfterCaseLabel:        false
+  AfterCaseLabel:        true
   AfterClass:            true
   AfterControlStatement: false
   AfterEnum:             false
@@ -33,13 +33,13 @@ BraceWrapping:
   AfterExternBlock:      false
   BeforeCatch:           false
   BeforeElse:            false
-  IndentBraces:          false
+  IndentBraces:          true
   SplitEmptyRecord:      false
   SplitEmptyNamespace: false
 BreakBeforeBinaryOperators: NonAssignment
 BreakBeforeBraces: Linux
 BreakBeforeTernaryOperators: true
-BreakConstructorInitializers: BeforeComma
+BreakConstructorInitializers: AfterColon
 BreakInheritanceList: BeforeComma
 BreakStringLiterals: true
 ColumnLimit:     225
@@ -117,16 +117,18 @@ SpaceAfterTemplateKeyword: false
 SpaceBeforeAssignmentOperators: true
 SpaceBeforeCpp11BracedList: false
 SpaceBeforeCtorInitializerColon: false
-SpaceBeforeParens: NonEmptyParentheses
+SpaceBeforeParens: ControlStatementsExceptForEachMacros
 SpaceBeforeRangeBasedForLoopColon: false
+SpaceBeforeSquareBrackets: false
 SpaceInEmptyParentheses: false
 SpacesBeforeTrailingComments: 40
 SpacesInAngles:  false
 SpacesInCStyleCastParentheses: false
+SpacesInConditionalStatement: false
 SpacesInContainerLiterals: false
 SpacesInParentheses: false
 SpacesInSquareBrackets: false
-Standard:        Cpp11
+Standard:        Latest
 StatementMacros: []
 TabWidth:        8
 TypenameMacros: [

@@ -3532,11 +3532,16 @@ static int _config_generate_wiki(char * filename)
 	snprintf(fn, sizeof(fn), "%s/%s", ast_config_AST_CONFIG_DIR, filename);
 	pbx_log(LOG_NOTICE, "Creating new wiki file '%s'\n", fn);
 
+	int fd = open (fn, O_CREAT | O_EXCL | O_RDWR, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
+	if (fd == -1 || errno == EEXIST) {
+		pbx_log (LOG_WARNING, "Error creating new wiki file: %s\n", strerror (errno));
+		return -1;
+	}
 	FILE * f = NULL;
-
-	if(!(f = fopen(fn, "w"))) {
-		pbx_log(LOG_ERROR, "Error creating new config file \n");
-		return 1;
+	if (!(f = fdopen (fd, "w+"))) {
+		pbx_log (LOG_WARNING, "Error creating new wiki file: %s\n", strerror (errno));
+		close (fd);
+		return -2;
 	}
 
 	char date[256] = "";
@@ -3628,7 +3633,8 @@ static int _config_generate_wiki(char * filename)
 		fprintf(f, "</table><br>\n");
 	}
 	fclose(f);
-	pbx_log(LOG_NOTICE, "Created new config file '%s'\n", fn);
+	close (fd);
+	pbx_log (LOG_NOTICE, "Created new wiki file '%s'\n", fn);
 
 	return 0;
 };
@@ -3663,11 +3669,16 @@ int sccp_config_generate(char *filename, int configType)
 	snprintf(fn, sizeof(fn), "%s/%s", ast_config_AST_CONFIG_DIR, filename);
 	pbx_log(LOG_NOTICE, "Creating new config file '%s'\n", fn);
 
+	int fd = open (fn, O_CREAT | O_EXCL | O_RDWR, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
+	if (fd == -1 || errno == EEXIST) {
+		pbx_log (LOG_WARNING, "Error creating new config file: %s\n", strerror (errno));
+		return -1;
+	}
 	FILE * f = NULL;
-
-	if (!(f = fopen(fn, "w"))) {
-		pbx_log(LOG_ERROR, "Error creating new config file \n");
-		return 1;
+	if (!(f = fdopen (fd, "w+"))) {
+		pbx_log (LOG_WARNING, "Error creating new config file: %s\n", strerror (errno));
+		close (fd);
+		return -2;
 	}
 
 	char date[256] = "";
@@ -3806,7 +3817,8 @@ int sccp_config_generate(char *filename, int configType)
 		sccp_log((DEBUGCAT_CONFIG)) ("\n");
 	}
 	fclose(f);
-	pbx_log(LOG_NOTICE, "Created new wiki file '%s'\n", fn);
+	close (fd);
+	pbx_log (LOG_NOTICE, "Created new config file '%s'\n", fn);
 
 	return 0;
 };

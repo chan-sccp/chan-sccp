@@ -32,72 +32,85 @@ char *pbx_getformatname_multiple(char *buf, size_t size, struct ast_format_cap *
 #define OLDCONST												// new function used with const
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
-#define CLI_AMI_OUTPUT(fd, s, ...) 										\
-	if (NULL != s) {											\
-		astman_append(s, __VA_ARGS__);									\
-		local_line_total++;										\
-	} else {												\
-		ast_cli(fd, __VA_ARGS__);									\
-	}
+#	define CLI_AMI_OUTPUT(fd, s, ...)                        \
+		({                                                \
+			if (NULL != (s)) {                        \
+				astman_append ((s), __VA_ARGS__); \
+				local_line_total++;               \
+			} else {                                  \
+				ast_cli ((fd), __VA_ARGS__);      \
+			}                                         \
+		})
 
-#define CLI_AMI_CAMEL_PARAM(param, camelParam)									\
-	char *current = param;											\
-	char *ptr = camelParam;											\
-	int CapsNext = 0;											\
-	while (*current) {											\
-		if ((*current >= 48 && *current <= 57 /*num*/) || (*current >= 65 && *current <= 90 /*A-Z*/) || (*current >= 97 && *current <= 122 /*a-z*/)) {	\
-			if (CapsNext) 	*ptr++ = toupper(*current++);						\
-			else 		*ptr++ = *current++;							\
-			CapsNext = 0;										\
-		} else {											\
-			CapsNext = 1;										\
-			current++;										\
-		}												\
-	}													\
-	*ptr='\0';												
+#	define CLI_AMI_CAMEL_PARAM(param, camelParam)                                                                                                                         \
+		({                                                                                                                                                             \
+			char * current = (param);                                                                                                                              \
+			char * ptr = (camelParam);                                                                                                                             \
+			int CapsNext = 0;                                                                                                                                      \
+			while (*current) {                                                                                                                                     \
+				if ((*current >= 48 && *current <= 57 /*num*/) || (*current >= 65 && *current <= 90 /*A-Z*/) || (*current >= 97 && *current <= 122 /*a-z*/)) { \
+					if (CapsNext)                                                                                                                          \
+						*ptr++ = toupper (*current++);                                                                                                 \
+					else                                                                                                                                   \
+						*ptr++ = *current++;                                                                                                           \
+					CapsNext = 0;                                                                                                                          \
+				} else {                                                                                                                                       \
+					CapsNext = 1;                                                                                                                          \
+					current++;                                                                                                                             \
+				}                                                                                                                                              \
+			}                                                                                                                                                      \
+			*ptr = '\0';                                                                                                                                           \
+		})
 
-#define CLI_AMI_OUTPUT_PARAM(param, width, fmt, ...) 								\
-	if (NULL != s) {											\
-		char *camelParam = pbx_strdupa(param);								\
-		CLI_AMI_CAMEL_PARAM(param, camelParam);								\
-		astman_append(s, "%s: " fmt "\r\n", camelParam, __VA_ARGS__);					\
-		local_line_total++;										\
-	} else {												\
-		ast_cli(fd, "%-*.*s %s " fmt "\n", width, width, param, ":", __VA_ARGS__);			\
-	}
+#	define CLI_AMI_OUTPUT_PARAM(param, width, fmt, ...)                                                        \
+		({                                                                                                  \
+			if (NULL != (s)) {                                                                          \
+				char camelParam[width + 1];                                                         \
+				CLI_AMI_CAMEL_PARAM ((param), (camelParam));                                        \
+				astman_append ((s), "%s: " fmt "\r\n", (camelParam), __VA_ARGS__);                  \
+				local_line_total++;                                                                 \
+			} else {                                                                                    \
+				ast_cli ((fd), "%-*.*s %s " fmt "\n", (width), (width), (param), ":", __VA_ARGS__); \
+			}                                                                                           \
+		})
 
-#define CLI_AMI_OUTPUT_BOOL(param, width, value) 								\
-	if (NULL != s) {											\
-		char *camelParam = pbx_strdupa(param);								\
-		CLI_AMI_CAMEL_PARAM(param, camelParam);								\
-		astman_append(s, "%s: %s\r\n", camelParam, ((value) ? "on" : "off"));				\
-		local_line_total++;										\
-	} else {												\
-		ast_cli(fd, "%-*.*s %s %s\n", width, width, param, ":", ((value) ? "on" : "off")); 		\
-	}
+#	define CLI_AMI_OUTPUT_BOOL(param, width, value)                                                                    \
+		({                                                                                                          \
+			if (NULL != (s)) {                                                                                  \
+				char camelParam[width + 1];                                                                 \
+				CLI_AMI_CAMEL_PARAM ((param), (camelParam));                                                \
+				astman_append ((s), "%s: %s\r\n", (camelParam), ((value) ? "on" : "off"));                  \
+				local_line_total++;                                                                         \
+			} else {                                                                                            \
+				ast_cli ((fd), "%-*.*s %s %s\n", (width), (width), (param), ":", ((value) ? "on" : "off")); \
+			}                                                                                                   \
+		})
 
-#define CLI_AMI_OUTPUT_YES_NO(param, width, value) 								\
-	if (NULL != s) {											\
-		char *camelParam = pbx_strdupa(param);								\
-		CLI_AMI_CAMEL_PARAM(param, camelParam);								\
-		astman_append(s, "%s: %s\r\n", camelParam, ((value) ? "yes" : "no"));				\
-		local_line_total++;										\
-	} else {												\
-		ast_cli(fd, "%-*.*s %s %s\n", width, width, param, ":", ((value) ? "yes" : "no")); 		\
-	}
+#	define CLI_AMI_OUTPUT_YES_NO(param, width, value)                                                                  \
+		({                                                                                                          \
+			if (NULL != (s)) {                                                                                  \
+				char camelParam[width + 1];                                                                 \
+				CLI_AMI_CAMEL_PARAM ((param), (camelParam));                                                \
+				astman_append ((s), "%s: %s\r\n", (camelParam), ((value) ? "yes" : "no"));                  \
+				local_line_total++;                                                                         \
+			} else {                                                                                            \
+				ast_cli ((fd), "%-*.*s %s %s\n", (width), (width), (param), ":", ((value) ? "yes" : "no")); \
+			}                                                                                                   \
+		})
 
-#	define _CLI_AMI_RETURN_ERROR(fd, s, m, line, fmt, ...)                     \
-		/*pbx_log(LOG_WARNING, "SCCP CLI ERROR: " fmt, __VA_ARGS__);*/      \
-		if(NULL != s) {                                                     \
-			char tmp_##line[101];                                       \
-			snprintf(tmp_##line, sizeof(tmp_##line), fmt, __VA_ARGS__); \
-			astman_send_error(s, m, tmp_##line);                        \
-			local_line_total++;                                         \
-		} else {                                                            \
-			ast_cli(fd, "SCCP CLI ERROR: " fmt, __VA_ARGS__);           \
-		}                                                                   \
-		return RESULT_FAILURE;
-#	define CLI_AMI_RETURN_ERROR(fd, s, m, fmt, ...) _CLI_AMI_RETURN_ERROR(fd, s, m, __LINE__, fmt, __VA_ARGS__)
+#	define _CLI_AMI_RETURN_ERROR(fd, s, m, line, fmt, ...)                                 \
+		({                                                                              \
+			if (NULL != (s)) {                                                      \
+				char tmp_##line[101];                                           \
+				snprintf (tmp_##line, sizeof (tmp_##line), (fmt), __VA_ARGS__); \
+				astman_send_error ((s), (m), tmp_##line);                       \
+				local_line_total++;                                             \
+			} else {                                                                \
+				ast_cli ((fd), "SCCP CLI ERROR: " fmt, __VA_ARGS__);            \
+			}                                                                       \
+			return RESULT_FAILURE;                                                  \
+		})
+#	define CLI_AMI_RETURN_ERROR(fd, s, m, fmt, ...) _CLI_AMI_RETURN_ERROR ((fd), (s), (m), __LINE__, fmt, __VA_ARGS__)
 
 // CLI_ENTRY
 //   param1=registration_name
