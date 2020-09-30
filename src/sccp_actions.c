@@ -3429,17 +3429,17 @@ void handle_openReceiveChannelAck(constSessionPtr s, devicePtr d, constMessagePt
 				break;
 			case SKINNY_MEDIASTATUS_DeviceOnHook:
 				sccp_log((DEBUGCAT_RTP))(VERBOSE_PREFIX_3 "%s: (OpenReceiveChannelAck) Device already hungup. Giving up.\n", d->id);
-				resultingChannelState = sccp_channel_closeAllMediaTransmitAndReceive(channel) | SCCP_RTP_STATUS_ERROR;
+				resultingChannelState = sccp_channel_closeAllMediaTransmitAndReceive(channel, FALSE) | SCCP_RTP_STATUS_ERROR;
 				break;
 			case SKINNY_MEDIASTATUS_OutOfChannels:
 			case SKINNY_MEDIASTATUS_OutOfSockets:
 				pbx_log(LOG_NOTICE, "%s: Please Reset this Device. It ran out of Channels and/or Sockets\n", d->id);
-				resultingChannelState = sccp_channel_closeAllMediaTransmitAndReceive(channel) | SCCP_RTP_STATUS_ERROR;
+				resultingChannelState = sccp_channel_closeAllMediaTransmitAndReceive(channel, FALSE) | SCCP_RTP_STATUS_ERROR;
 				sccp_channel_endcall(channel);
 				break;
 			default:
 				pbx_log(LOG_ERROR, "%s: Device returned: '%s' (%d) !. Giving up.\n", d->id, skinny_mediastatus2str(mediastatus), mediastatus);
-				resultingChannelState = sccp_channel_closeAllMediaTransmitAndReceive(channel) | SCCP_RTP_STATUS_ERROR;
+				resultingChannelState = sccp_channel_closeAllMediaTransmitAndReceive(channel, FALSE) | SCCP_RTP_STATUS_ERROR;
 				sccp_channel_endcall(channel);
 				break;
 		}
@@ -3492,17 +3492,17 @@ void handle_startMediaTransmissionAck(constSessionPtr s, devicePtr d, constMessa
 				break;
 			case SKINNY_MEDIASTATUS_DeviceOnHook:
 				sccp_log((DEBUGCAT_RTP))(VERBOSE_PREFIX_3 "%s: (startMediaTransmissionAck) Device already hungup. Giving up.\n", d->id);
-				resultingChannelState = sccp_channel_closeAllMediaTransmitAndReceive(channel) | SCCP_RTP_STATUS_ERROR;
+				resultingChannelState = sccp_channel_closeAllMediaTransmitAndReceive(channel, FALSE) | SCCP_RTP_STATUS_ERROR;
 				break;
 			case SKINNY_MEDIASTATUS_OutOfChannels:
 			case SKINNY_MEDIASTATUS_OutOfSockets:
 				pbx_log(LOG_NOTICE, "%s: Please Reset this Device. It ran out of Channels and/or Sockets\n", d->id);
-				resultingChannelState = sccp_channel_closeAllMediaTransmitAndReceive(channel) | SCCP_RTP_STATUS_ERROR;
+				resultingChannelState = sccp_channel_closeAllMediaTransmitAndReceive(channel, FALSE) | SCCP_RTP_STATUS_ERROR;
 				sccp_channel_endcall(channel);
 				break;
 			default:
 				pbx_log(LOG_ERROR, "%s: Device returned: '%s' (%d) !. Giving up.\n", d->id, skinny_mediastatus2str(mediastatus), mediastatus);
-				resultingChannelState = sccp_channel_closeAllMediaTransmitAndReceive(channel) | SCCP_RTP_STATUS_ERROR;
+				resultingChannelState = sccp_channel_closeAllMediaTransmitAndReceive(channel, FALSE) | SCCP_RTP_STATUS_ERROR;
 				sccp_channel_endcall(channel);
 				break;
 		}

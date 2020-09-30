@@ -856,19 +856,6 @@ void sccp_channel_openReceiveChannel(constChannelPtr channel)
 	d->protocol->sendOpenReceiveChannel(d, channel);                                        // extra channel retain, released when receive channel is closed
 }
 
-static void sccp_channel_synchronousOpenReceiveChannel(constChannelPtr channel)
-{
-	AUTO_RELEASE(sccp_device_t, d, sccp_channel_getDevice(channel));
-	if (!d) {
-		pbx_log (LOG_ERROR, "%s: (%s) Could not retrieve device from channel\n", channel->designator, __func__);
-		return;
-	}
-	sccp_channel_openReceiveChannel(channel);
-	if ((sccp_rtp_getState(&channel->rtp.audio, SCCP_RTP_RECEPTION) & SCCP_RTP_STATUS_ACTIVE) != SCCP_RTP_STATUS_ACTIVE) {
-		sccp_session_waitForPendingRequests(d->session);
-	}
-}
-
 int sccp_channel_receiveChannelOpen(sccp_device_t *d, sccp_channel_t *c)
 {
 	pbx_assert(d != NULL && c != NULL);
@@ -1409,7 +1396,7 @@ void sccp_channel_updateMultiMediaTransmission(constChannelPtr channel)
 }
 #endif
 
-sccp_rtp_status_t sccp_channel_closeAllMediaTransmitAndReceive(constChannelPtr channel)
+sccp_rtp_status_t sccp_channel_closeAllMediaTransmitAndReceive(constChannelPtr channel, boolean_t KeepPortOpen)
 {
 	//! \todo This is what we should check, need to cover all calling paths though
 	// pbx_assert(channel != NULL && d != NULL);
@@ -1421,19 +1408,19 @@ sccp_rtp_status_t sccp_channel_closeAllMediaTransmitAndReceive(constChannelPtr c
 
 	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_channel_closeAllMediaTransmitAndReceive) Stop All Media Reception and Transmission on device %s\n", channel->designator, channel->currentDeviceId);
 	if(sccp_rtp_getState(audio, SCCP_RTP_RECEPTION)) {
-		sccp_channel_closeReceiveChannel(channel, FALSE);
+		sccp_channel_closeReceiveChannel(channel, KeepPortOpen);
 	}
 	if(sccp_rtp_getState(video, SCCP_RTP_RECEPTION)) {
-		sccp_channel_closeMultiMediaReceiveChannel(channel, FALSE);
+		sccp_channel_closeMultiMediaReceiveChannel(channel, KeepPortOpen);
 	}
 	if(sccp_rtp_getState(audio, SCCP_RTP_TRANSMISSION)) {
-		sccp_channel_stopMediaTransmission(channel, FALSE);
+		sccp_channel_stopMediaTransmission(channel, KeepPortOpen);
 	}
 	if(sccp_rtp_getState(video, SCCP_RTP_TRANSMISSION)) {
-		sccp_channel_stopMultiMediaTransmission(channel, FALSE);
+		sccp_channel_stopMultiMediaTransmission(channel, KeepPortOpen);
 	}
 	res = SCCP_RTP_STATUS_INACTIVE;
-	if (channel->rtp.audio.instance || channel->rtp.video.instance) {
+	if (!KeepPortOpen && (channel->rtp.audio.instance || channel->rtp.video.instance)) {
 		sccp_rtp_stop(channel);
 	}
 	return res;
@@ -2093,6 +2080,9 @@ static int channel_resume_locked(devicePtr d, linePtr l, channelPtr channel, boo
 	sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Resume the channel %s\n", d->id, channel->designator);
 	sccp_channel_setDevice(channel, d, TRUE);
 
+	if (!sccp_rtp_getState(&channel->rtp.audio, SCCP_RTP_RECEPTION)) {
+		sccp_channel_openReceiveChannel(channel);
+	}
 #if ASTERISK_VERSION_GROUP >= 111
 	// update callgroup / pickupgroup
 	ast_channel_callgroup_set(channel->owner, l->callgroup);
@@ -2105,7 +2095,9 @@ static int channel_resume_locked(devicePtr d, linePtr l, channelPtr channel, boo
 	channel->owner->pickupgroup = l->pickupgroup;
 #endif
 #endif														// ASTERISK_VERSION_GROUP >= 111
-	sccp_channel_synchronousOpenReceiveChannel (channel);
+	if ((sccp_rtp_getState(&channel->rtp.audio, SCCP_RTP_RECEPTION) & SCCP_RTP_STATUS_ACTIVE) != SCCP_RTP_STATUS_ACTIVE) {
+		sccp_session_waitForPendingRequests(d->session);
+	}
 #ifdef CS_SCCP_CONFERENCE
 	if (channel->conference) {
 		sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Resume Conference on the channel %s\n", d->id, channel->designator);
@@ -2294,7 +2286,7 @@ void sccp_channel_clean(channelPtr channel)
 	if (d) {
 		/* make sure all rtp stuff is closed and destroyed */
 		if (channel->rtp.audio.instance || channel->rtp.video.instance) {
-			sccp_channel_closeAllMediaTransmitAndReceive(channel);
+			sccp_channel_closeAllMediaTransmitAndReceive(channel, FALSE);
 		}
 
 		/* deactive the active call if needed */
@@ -2368,7 +2360,7 @@ int __sccp_channel_destroy(const void * data)
 	sccp_channel_lock(channel);
 
 	if (channel->rtp.audio.instance || channel->rtp.video.instance) {
-		sccp_channel_closeAllMediaTransmitAndReceive(channel);
+		sccp_channel_closeAllMediaTransmitAndReceive(channel, FALSE);
 		sccp_rtp_stop(channel);
 		sccp_rtp_destroy(channel);
 	}
@@ -2596,7 +2588,7 @@ void sccp_channel_transfer_cancel(devicePtr d, channelPtr c)
 	if (transferee && transferee != c) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (sccp_channel_transfer_cancel) Denied Receipt of Transferee %d %s by the Receiving Party. Cancelling Transfer and Putting transferee channel on Hold.\n", d->id, transferee->callid, transferee->line->name);
 		transferee->channelStateReason = SCCP_CHANNELSTATEREASON_NORMAL;
-		sccp_channel_closeAllMediaTransmitAndReceive(c);
+		sccp_channel_closeAllMediaTransmitAndReceive(c, FALSE);
 		sccp_dev_setActiveLine(d, NULL);
 		sccp_indicate(d, transferee, SCCP_CHANNELSTATE_HOLD);
 		sccp_channel_setDevice(transferee, NULL, FALSE);

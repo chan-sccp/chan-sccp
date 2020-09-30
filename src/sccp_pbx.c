@@ -565,7 +565,7 @@ channelPtr sccp_pbx_hangup(constChannelPtr channel)
 	}
 #endif														// CS_SCCP_CONFERENCE
 	if (c->rtp.audio.instance || c->rtp.video.instance) {
-		sccp_channel_closeAllMediaTransmitAndReceive(c);
+		sccp_channel_closeAllMediaTransmitAndReceive(c, FALSE);
 	}
 
 	// removing scheduled dialing
