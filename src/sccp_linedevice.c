@@ -63,12 +63,7 @@ static void regcontext_exten(constLineDevicePtr ld, int onoff)
 	char * ext = "";
 
 	char cntxt[SCCP_MAX_CONTEXT];
-	sccp_copy_string (cntxt, GLOB (regcontext), sizeof (cntxt));
-	;
 	char * context = cntxt;
-
-	// char extension[SCCP_MAX_CONTEXT]="";
-	// char name[SCCP_MAX_CONTEXT]="";
 
 	struct pbx_context * con = NULL;
 	struct pbx_find_info q = { .stacklen = 0 };
@@ -93,7 +88,7 @@ static void regcontext_exten(constLineDevicePtr ld, int onoff)
 				continue;
 			}
 		} else {
-			sccp_copy_string (cntxt, GLOB (regcontext), sizeof (cntxt));
+			sccp_copy_string(cntxt, GLOB(regcontext), sizeof(cntxt));
 			context = cntxt;
 		}
 		con = pbx_context_find_or_create(NULL, NULL, context, "SCCP"); /* make sure the context exists */
