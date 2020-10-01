@@ -2028,22 +2028,44 @@ int sccp_channel_hold(channelPtr channel)
 	return TRUE;
 }
 
+struct resume_args {
+	sccp_device_t * d;
+	sccp_line_t * l;
+	sccp_channel_t * c;
+	boolean_t swap_channels;
+};
+
+static void free_resume_args(struct resume_args * resume)
+{
+	sccp_device_release(&resume->d);
+	sccp_line_release(&resume->l);
+	sccp_channel_release(&resume->c);
+}
 /*!
  * \brief Actual Resume Implementation
  *
  * This will run while channel and pbx_channel are locked and we hold a reference, so that it cannot escape us
  *
+ * We are running this action in a threadpool worker thread so we can use sccp_session_waitForPendingRequests to wait for openReceiveChannel to be processed.
+ * This is important when using directrtp, because we need the ip-address + port during bridging.
+ *
  * \callgraph
  * \callergraph
  *
  */
-static int channel_resume_locked(devicePtr d, linePtr l, channelPtr channel, boolean_t swap_channels)
+static void * channel_resume_locked(void * args)
 {
+	struct resume_args resume = *(struct resume_args *)args;
+	devicePtr d = resume.d;
+	linePtr l = resume.l;
+	channelPtr channel = resume.c;
+	boolean_t swap_channels = resume.swap_channels;
+
 	uint16_t instance = 0;
 
 	/* look if we have a call to put on hold */
 	if (swap_channels) {
-		AUTO_RELEASE(sccp_channel_t, sccp_active_channel , sccp_device_getActiveChannel(d));
+		AUTO_RELEASE(sccp_channel_t, sccp_active_channel, sccp_device_getActiveChannel(d));
 
 		/* there is an active call, if offhook channelstate then hangup else put it on hold */
 		if (sccp_active_channel && sccp_active_channel != channel) {
@@ -2052,7 +2074,8 @@ static int channel_resume_locked(devicePtr d, linePtr l, channelPtr channel, boo
 				sccp_channel_endcall(sccp_active_channel);
 			} else if (!(sccp_channel_hold(sccp_active_channel))) {				// hold failed, give up
 				pbx_log(LOG_WARNING, "%s: swap_channels failed to put channel on hold. exiting\n", sccp_active_channel->designator);
-				return FALSE;
+				free_resume_args(&resume);
+				return NULL;
 			}
 		}
 	}
@@ -2060,7 +2083,8 @@ static int channel_resume_locked(devicePtr d, linePtr l, channelPtr channel, boo
 	if (channel->state == SCCP_CHANNELSTATE_CONNECTED || channel->state == SCCP_CHANNELSTATE_CONNECTEDCONFERENCE || channel->state == SCCP_CHANNELSTATE_PROCEED) {
 		if (!(sccp_channel_hold(channel))) {
 			pbx_log(LOG_WARNING, "%s: channel still connected before resuming, put on hold failed. exiting\n", channel->designator);
-			return FALSE;
+			free_resume_args(&resume);
+			return NULL;
 		}
 	}
 
@@ -2070,7 +2094,8 @@ static int channel_resume_locked(devicePtr d, linePtr l, channelPtr channel, boo
 		/* something wrong in the code let's notify it for a fix */
 		pbx_log(LOG_ERROR, "%s can't resume the channel %s. Not on hold\n", d->id, channel->designator);
 		sccp_dev_displayprompt(d, instance, channel->callid, SKINNY_DISP_NO_ACTIVE_CALL_TO_PUT_ON_HOLD, SCCP_DISPLAYSTATUS_TIMEOUT);
-		return FALSE;
+		free_resume_args(&resume);
+		return NULL;
 	}
 
 	if (d->transferChannels.transferee != channel) {
@@ -2176,7 +2201,8 @@ static int channel_resume_locked(devicePtr d, linePtr l, channelPtr channel, boo
 	/* */
 
 	sccp_log_and((DEBUGCAT_CHANNEL + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "C partyID: %u state: %d\n", channel->passthrupartyid, channel->state);
-	return TRUE;
+	free_resume_args(&resume);
+	return NULL;
 }
 
 /*!
@@ -2210,8 +2236,21 @@ int sccp_channel_resume(constDevicePtr device, channelPtr channel, boolean_t swa
 		return FALSE;
 	}
 
+	struct resume_args * resume = sccp_calloc(sizeof *resume, 1);
+	if (!resume) {
+		return FALSE;
+	}
+	resume->d = sccp_device_retain(d);
+	resume->l = sccp_line_retain(l);
+	resume->c = sccp_channel_retain(c);
+	resume->swap_channels = swap_channels;
+
 	if((pbx_channel = sccp_channel_lock_full(channel, FALSE))) {
-		instance = channel_resume_locked(d, l, channel, swap_channels);
+		if (!sccp_threadpool_add_work(GLOB(general_threadpool), channel_resume_locked, resume)) {
+			pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, "SCCP");
+			free_resume_args(resume);
+		}
+
 		pbx_channel_unref(pbx_channel);                                         // reffed by sccp_channel_lock_full
 		pbx_channel_unlock(pbx_channel);                                        // locked by sccp_channel_lock_full
 	} else {
