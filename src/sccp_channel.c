@@ -2028,19 +2028,6 @@ int sccp_channel_hold(channelPtr channel)
 	return TRUE;
 }
 
-struct resume_args {
-	sccp_device_t * d;
-	sccp_line_t * l;
-	sccp_channel_t * c;
-	boolean_t swap_channels;
-};
-
-static void free_resume_args(struct resume_args * resume)
-{
-	sccp_device_release(&resume->d);
-	sccp_line_release(&resume->l);
-	sccp_channel_release(&resume->c);
-}
 /*!
  * \brief Actual Resume Implementation
  *
@@ -2053,14 +2040,8 @@ static void free_resume_args(struct resume_args * resume)
  * \callergraph
  *
  */
-static void * channel_resume_locked(void * args)
+static int __channel_resume_locked(devicePtr d, linePtr l, channelPtr channel, boolean_t swap_channels)
 {
-	struct resume_args resume = *(struct resume_args *)args;
-	devicePtr d = resume.d;
-	linePtr l = resume.l;
-	channelPtr channel = resume.c;
-	boolean_t swap_channels = resume.swap_channels;
-
 	uint16_t instance = 0;
 
 	/* look if we have a call to put on hold */
@@ -2074,8 +2055,7 @@ static void * channel_resume_locked(void * args)
 				sccp_channel_endcall(sccp_active_channel);
 			} else if (!(sccp_channel_hold(sccp_active_channel))) {				// hold failed, give up
 				pbx_log(LOG_WARNING, "%s: swap_channels failed to put channel on hold. exiting\n", sccp_active_channel->designator);
-				free_resume_args(&resume);
-				return NULL;
+				return FALSE;
 			}
 		}
 	}
@@ -2083,8 +2063,7 @@ static void * channel_resume_locked(void * args)
 	if (channel->state == SCCP_CHANNELSTATE_CONNECTED || channel->state == SCCP_CHANNELSTATE_CONNECTEDCONFERENCE || channel->state == SCCP_CHANNELSTATE_PROCEED) {
 		if (!(sccp_channel_hold(channel))) {
 			pbx_log(LOG_WARNING, "%s: channel still connected before resuming, put on hold failed. exiting\n", channel->designator);
-			free_resume_args(&resume);
-			return NULL;
+			return FALSE;
 		}
 	}
 
@@ -2094,8 +2073,7 @@ static void * channel_resume_locked(void * args)
 		/* something wrong in the code let's notify it for a fix */
 		pbx_log(LOG_ERROR, "%s can't resume the channel %s. Not on hold\n", d->id, channel->designator);
 		sccp_dev_displayprompt(d, instance, channel->callid, SKINNY_DISP_NO_ACTIVE_CALL_TO_PUT_ON_HOLD, SCCP_DISPLAYSTATUS_TIMEOUT);
-		free_resume_args(&resume);
-		return NULL;
+		return FALSE;
 	}
 
 	if (d->transferChannels.transferee != channel) {
@@ -2201,6 +2179,57 @@ static void * channel_resume_locked(void * args)
 	/* */
 
 	sccp_log_and((DEBUGCAT_CHANNEL + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "C partyID: %u state: %d\n", channel->passthrupartyid, channel->state);
+	return TRUE;
+}
+
+struct resume_args {
+	sccp_device_t * d;
+	sccp_line_t * l;
+	sccp_channel_t * c;
+	boolean_t swap_channels;
+};
+
+static void free_resume_args(struct resume_args * resume)
+{
+	sccp_device_release(&resume->d);
+	sccp_line_release(&resume->l);
+	sccp_channel_release(&resume->c);
+}
+
+/*!
+ * \brief Resume a channel that is on hold.
+ * \param device device who resumes the channel
+ * \param channel channel
+ * \param swap_channels Swap Channels as Boolean
+ *
+ * We are running this action in a threadpool worker thread so we can use sccp_session_waitForPendingRequests to wait for openReceiveChannel to be processed.
+ * This is important when using directrtp, because we need the ip-address + port during bridging.
+ *
+ * \callgraph
+ * \callergraph
+ *
+ */
+static void * __channel_resume_wrapper(void * args)
+{
+	struct resume_args resume = *(struct resume_args *)args;
+	devicePtr d = resume.d;
+	linePtr l = resume.l;
+	channelPtr c = resume.c;
+	boolean_t swap_channels = resume.swap_channels;
+	PBX_CHANNEL_TYPE * pbx_channel = c->owner;
+
+	if ((pbx_channel = sccp_channel_lock_full(c, FALSE))) {
+		__channel_resume_locked(d, l, c, swap_channels);
+
+		pbx_channel_unref(pbx_channel);                                         // reffed by sccp_channel_lock_full
+		pbx_channel_unlock(pbx_channel);                                        // locked by sccp_channel_lock_full
+	} else {
+		pbx_log(LOG_WARNING, "%s: weird error. We could not get a reference to the pbx_channel, skipping resume.\n", c->designator);
+	}
+#ifdef CS_AST_CONTROL_SRCUPDATE
+	iPbx.queue_control(channel->owner, AST_CONTROL_SRCUPDATE);                                        // notify changes e.g codec
+#endif
+	sccp_channel_unlock(c);                                        // locked by sccp_channel_lock_full
 	free_resume_args(&resume);
 	return NULL;
 }
@@ -2218,21 +2247,8 @@ static void * channel_resume_locked(void * args)
  */
 int sccp_channel_resume(constDevicePtr device, channelPtr channel, boolean_t swap_channels)
 {
-	uint16_t instance = 0;
-	PBX_CHANNEL_TYPE * pbx_channel = NULL;
-	if(!channel || !channel->owner || !channel->line) {
+	if (!channel || !channel->owner || !channel->line) {
 		pbx_log(LOG_WARNING, "SCCP: weird error. No channel provided to resume\n");
-		return FALSE;
-	}
-	AUTO_RELEASE(sccp_channel_t, c, sccp_channel_retain(channel));
-	if(!c) {
-		pbx_log(LOG_WARNING, "SCCP: weird error. The channel could not be retained.\n");
-		return FALSE;
-	}
-	AUTO_RELEASE(sccp_device_t, d, sccp_device_retain(device));
-	AUTO_RELEASE(sccp_line_t, l, sccp_line_retain(c->line));
-	if(!d || !l) {
-		pbx_log(LOG_WARNING, "%s: weird error. The channel has no line or device\n", c->designator);
 		return FALSE;
 	}
 
@@ -2240,13 +2256,19 @@ int sccp_channel_resume(constDevicePtr device, channelPtr channel, boolean_t swa
 	if (!resume) {
 		return FALSE;
 	}
-	resume->d = sccp_device_retain(d);
-	resume->l = sccp_line_retain(l);
-	resume->c = sccp_channel_retain(c);
+	resume->d = sccp_device_retain(device);
+	resume->c = sccp_channel_retain(channel);
+	resume->l = sccp_line_retain(channel->line);
 	resume->swap_channels = swap_channels;
+	PBX_CHANNEL_TYPE * pbx_channel = channel->owner;
 
+	if (!resume->d || !resume->l || !resume->c) {
+		pbx_log(LOG_WARNING, "SCCP: weird error. resume failed.\n");
+		free_resume_args(resume);
+		return FALSE;
+	}
 	if((pbx_channel = sccp_channel_lock_full(channel, FALSE))) {
-		if (!sccp_threadpool_add_work(GLOB(general_threadpool), channel_resume_locked, resume)) {
+		if (!sccp_threadpool_add_work(GLOB(general_threadpool), __channel_resume_wrapper, resume)) {
 			pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, "SCCP");
 			free_resume_args(resume);
 		}
@@ -2254,13 +2276,10 @@ int sccp_channel_resume(constDevicePtr device, channelPtr channel, boolean_t swa
 		pbx_channel_unref(pbx_channel);                                         // reffed by sccp_channel_lock_full
 		pbx_channel_unlock(pbx_channel);                                        // locked by sccp_channel_lock_full
 	} else {
-		pbx_log(LOG_WARNING, "%s: weird error. We could not get a reference to the pbx_channel, skipping resume.\n", c->designator);
+		pbx_log(LOG_WARNING, "%s: weird error. We could not get a reference to the pbx_channel, skipping resume.\n", channel->designator);
 	}
-#ifdef CS_AST_CONTROL_SRCUPDATE
-	iPbx.queue_control (channel->owner, AST_CONTROL_SRCUPDATE);                                        // notify changes e.g codec
-#endif
 	sccp_channel_unlock(channel);                                        // locked by sccp_channel_lock_full
-	return instance;
+	return TRUE;
 }
 
 void sccp_channel_addCleanupJob(channelPtr c, void *(*function_p) (void *), void *arg_p)
