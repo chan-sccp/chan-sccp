@@ -2081,18 +2081,18 @@ static enum ast_bridge_result sccp_astwrap_rtpBridge(PBX_CHANNEL_TYPE * c0, PBX_
 #endif
 #endif
 
-static void set_instance_dtmf (constChannelPtr c, sccp_rtp_t * rtp)
+static void set_instance_dtmf(constChannelPtr c, PBX_RTP_TYPE * instance)
 {
-	if (c && c->rtp.audio.instance) {
+	if (c && instance) {
 		if (c->rtp.audio.directMedia) {
-			ast_rtp_instance_dtmf_mode_set (rtp->instance, AST_RTP_DTMF_MODE_NONE);
+			ast_rtp_instance_dtmf_mode_set(instance, AST_RTP_DTMF_MODE_NONE);
 		} else {
-			ast_rtp_instance_set_prop (rtp->instance, AST_RTP_PROPERTY_DTMF, 1);
+			ast_rtp_instance_set_prop(instance, AST_RTP_PROPERTY_DTMF, 1);
 			if (c->dtmfmode == SCCP_DTMFMODE_SKINNY) {
-				ast_rtp_instance_set_prop (rtp->instance, AST_RTP_PROPERTY_DTMF_COMPENSATE, 1);
-				ast_rtp_instance_dtmf_mode_set (rtp->instance, AST_RTP_DTMF_MODE_INBAND);
+				ast_rtp_instance_set_prop(instance, AST_RTP_PROPERTY_DTMF_COMPENSATE, 1);
+				ast_rtp_instance_dtmf_mode_set(instance, AST_RTP_DTMF_MODE_INBAND);
 			} else {
-				ast_rtp_instance_dtmf_mode_set (rtp->instance, AST_RTP_DTMF_MODE_RFC2833);
+				ast_rtp_instance_dtmf_mode_set(instance, AST_RTP_DTMF_MODE_RFC2833);
 			}
 		}
 	}
@@ -2132,6 +2132,7 @@ static enum ast_rtp_glue_result sccp_astwrap_get_rtp_info(PBX_CHANNEL_TYPE * ast
 #ifdef HAVE_PBX_RTP_ENGINE_H
 		ao2_ref (*rtp, +1);
 #endif
+		set_instance_dtmf(c, *rtp);
 		if (ast_test_flag (GLOB (global_jbconf), AST_JB_FORCED)) {
 			sccp_log ((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (get_rtp_info) JitterBuffer is Forced. AST_RTP_GET_FAILED\n", c->currentDeviceId);
 			res = AST_RTP_GLUE_RESULT_LOCAL;
@@ -2146,7 +2147,6 @@ static enum ast_rtp_glue_result sccp_astwrap_get_rtp_info(PBX_CHANNEL_TYPE * ast
 	} while (0);
 
 	c->rtp.audio.directMedia = res == AST_RTP_GLUE_RESULT_REMOTE ? TRUE : FALSE;
-	set_instance_dtmf (c, audioRTP);
 
 	sccp_log((DEBUGCAT_RTP | DEBUGCAT_HIGH)) (VERBOSE_PREFIX_1 "%s: (get_rtp_info) Channel %s Returning res: %s\n", c->currentDeviceId, pbx_channel_name(ast), ((res == 2) ? "indirect-rtp" : ((res == 1) ? "direct-rtp" : "forbid")));
 	return res;
@@ -2524,7 +2524,7 @@ static boolean_t sccp_astwrap_createRtpInstance(constDevicePtr d, constChannelPt
 		ast_channel_set_fd(c->owner, fd_offset + 1, ast_rtp_instance_fd(instance, 1));		// RTCP
 	}
 
-	set_instance_dtmf (c, rtp);
+	set_instance_dtmf(c, rtp->instance);
 	ast_rtp_instance_set_qos(instance, tos, cos, "SCCP RTP");
 	if (rtp->type == SCCP_RTP_AUDIO) {
 		sccp_log(DEBUGCAT_CODEC)(VERBOSE_PREFIX_2 "%s: update rtpmap: format:%s, payload:%d, mime:%s, rate:%d\n",
