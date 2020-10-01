@@ -490,7 +490,8 @@ sccp_rtp_info_t sccp_rtp_getAudioPeerInfo(constChannelPtr c, sccp_rtp_t **rtp)
 
 	result = SCCP_RTP_INFO_AVAILABLE;
 	// \todo add apply_ha(d->ha, &sin) check here instead
-	if (device->directrtp && device->nat <= SCCP_NAT_AUTO_OFF && !c->conference) {
+	// if (device->directrtp && device->nat <= SCCP_NAT_AUTO_OFF && !c->conference) {
+	if (c->rtp.audio.directMedia && device->nat <= SCCP_NAT_AUTO_OFF && !c->conference) {
 		result |= SCCP_RTP_INFO_ALLOW_DIRECTRTP;
 	}
 	return (sccp_rtp_info_t) result;
@@ -513,7 +514,8 @@ sccp_rtp_info_t sccp_rtp_getVideoPeerInfo(constChannelPtr c, sccp_rtp_t ** rtp)
 	*rtp = &(((sccp_channel_t *) c)->rtp.video);
 
 	result = SCCP_RTP_INFO_AVAILABLE;
-	if (device->directrtp && device->nat <= SCCP_NAT_AUTO_OFF && !c->conference) {
+	// if (device->directrtp && device->nat <= SCCP_NAT_AUTO_OFF && !c->conference) {
+	if (c->rtp.video.directMedia && device->nat <= SCCP_NAT_AUTO_OFF && !c->conference) {
 		result |= SCCP_RTP_INFO_ALLOW_DIRECTRTP;
 	}
 	return (sccp_rtp_info_t)result;

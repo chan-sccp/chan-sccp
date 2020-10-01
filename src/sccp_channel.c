@@ -1808,6 +1808,8 @@ static void channel_answer_completion(constChannelPtr channel)
 							    c->rtp.audio.directMedia ? "DirectRtp" : "IndirectRtp");
 				if (!c->rtp.audio.directMedia && !sccp_rtp_getState (&c->rtp.audio, SCCP_RTP_TRANSMISSION)) {
 					sccp_channel_startMediaTransmission (c);
+					//} else {
+					//	iPbx.queue_control(pbx_channel, AST_CONTROL_UPDATE_RTP_PEER);
 				}
 				if (pbx_channel_state (pbx_channel) != AST_STATE_UP) {
 					iPbx.queue_control(pbx_channel, AST_CONTROL_ANSWER);
