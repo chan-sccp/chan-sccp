@@ -630,7 +630,7 @@ static void sccp_protocol_sendOpenReceiveChannelV3(constDevicePtr device, constC
 	msg->data.OpenReceiveChannel.v3.lel_dtmfType = htolel(10);;
 
 	/* Source Ip Address */
-	struct sockaddr_storage sas;
+	/*struct sockaddr_storage sas;
 
 	memcpy(&sas, &channel->rtp.audio.phone_remote, sizeof(struct sockaddr_storage));
 	sccp_netsock_ipv4_mapped(&sas, &sas);
@@ -639,7 +639,7 @@ static void sccp_protocol_sendOpenReceiveChannelV3(constDevicePtr device, constC
 
 	memcpy(&msg->data.OpenReceiveChannel.v3.bel_remoteIpAddr, &in->sin_addr, 4);
 	msg->data.OpenReceiveChannel.v3.lel_remotePortNumber = htolel(sccp_netsock_getPort(&sas));
-
+	*/
 	sccp_dev_send(device, msg);
 }
 
@@ -668,24 +668,24 @@ static void sccp_protocol_sendOpenReceiveChannelV17(constDevicePtr device, const
 	msg->data.OpenReceiveChannel.v17.lel_dtmfType = htolel(10);;
 
 	/* Source Ip Address */
-	struct sockaddr_storage sas;
+	/*	struct sockaddr_storage sas;
 
-	//memcpy(&sas, &device->session->sin, sizeof(struct sockaddr_storage));
-	memcpy(&sas, &channel->rtp.audio.phone_remote, sizeof(struct sockaddr_storage));
-	sccp_netsock_ipv4_mapped(&sas, &sas);
+		//memcpy(&sas, &device->session->sin, sizeof(struct sockaddr_storage));
+		memcpy(&sas, &channel->rtp.audio.phone_remote, sizeof(struct sockaddr_storage));
+		sccp_netsock_ipv4_mapped(&sas, &sas);
 
-	if (sas.ss_family == AF_INET6) {
-		struct sockaddr_in6 *in6 = (struct sockaddr_in6 *) &sas;
+		if (sas.ss_family == AF_INET6) {
+			struct sockaddr_in6 *in6 = (struct sockaddr_in6 *) &sas;
 
-		memcpy(&msg->data.OpenReceiveChannel.v17.bel_remoteIpAddr, &in6->sin6_addr, 16);
-		msg->data.OpenReceiveChannel.v17.lel_ipv46 = htolel(1);
-		msg->data.OpenReceiveChannel.v17.lel_requestedIpAddrType = htolel(SKINNY_IPADDR_IPV6);				//for ipv6 this value have to me > 0, lel_ipv46 doesn't matter
-	} else {
-		struct sockaddr_in *in = (struct sockaddr_in *) &sas;
+			memcpy(&msg->data.OpenReceiveChannel.v17.bel_remoteIpAddr, &in6->sin6_addr, 16);
+			msg->data.OpenReceiveChannel.v17.lel_ipv46 = htolel(1);
+			msg->data.OpenReceiveChannel.v17.lel_requestedIpAddrType = htolel(SKINNY_IPADDR_IPV6);				//for ipv6 this value have to me > 0, lel_ipv46 doesn't matter
+		} else {
+			struct sockaddr_in *in = (struct sockaddr_in *) &sas;
 
-		memcpy(&msg->data.OpenReceiveChannel.v17.bel_remoteIpAddr, &in->sin_addr, 4);
-	}
-	msg->data.OpenReceiveChannel.v17.lel_remotePortNumber = htolel(sccp_netsock_getPort(&sas));
+			memcpy(&msg->data.OpenReceiveChannel.v17.bel_remoteIpAddr, &in->sin_addr, 4);
+		}
+		msg->data.OpenReceiveChannel.v17.lel_remotePortNumber = htolel(sccp_netsock_getPort(&sas));*/
 	sccp_dev_send(device, msg);
 }
 
@@ -714,24 +714,24 @@ static void sccp_protocol_sendOpenReceiveChannelv22(constDevicePtr device, const
 	msg->data.OpenReceiveChannel.v22.lel_dtmfType = htolel(10);;
 
 	/* Source Ip Address */
-	struct sockaddr_storage sas;
+	/*	struct sockaddr_storage sas;
 
-	//memcpy(&sas, &device->session->sin, sizeof(struct sockaddr_storage));
-	memcpy(&sas, &channel->rtp.audio.phone_remote, sizeof(struct sockaddr_storage));
-	sccp_netsock_ipv4_mapped(&sas, &sas);
+		//memcpy(&sas, &device->session->sin, sizeof(struct sockaddr_storage));
+		memcpy(&sas, &channel->rtp.audio.phone_remote, sizeof(struct sockaddr_storage));
+		sccp_netsock_ipv4_mapped(&sas, &sas);
 
-	if (sas.ss_family == AF_INET6) {
-		struct sockaddr_in6 *in6 = (struct sockaddr_in6 *) &sas;
+		if (sas.ss_family == AF_INET6) {
+			struct sockaddr_in6 *in6 = (struct sockaddr_in6 *) &sas;
 
-		memcpy(&msg->data.OpenReceiveChannel.v22.bel_remoteIpAddr, &in6->sin6_addr, 16);
-		msg->data.OpenReceiveChannel.v22.lel_ipv46 = htolel(1);						//for ipv6 this value have to me > 0, lel_ipv46 doesn't matter
-		msg->data.OpenReceiveChannel.v22.lel_requestedIpAddrType = htolel(SKINNY_IPADDR_IPV6);
-	} else {
-		struct sockaddr_in *in = (struct sockaddr_in *) &sas;
+			memcpy(&msg->data.OpenReceiveChannel.v22.bel_remoteIpAddr, &in6->sin6_addr, 16);
+			msg->data.OpenReceiveChannel.v22.lel_ipv46 = htolel(1);						//for ipv6 this value have to me > 0, lel_ipv46 doesn't matter
+			msg->data.OpenReceiveChannel.v22.lel_requestedIpAddrType = htolel(SKINNY_IPADDR_IPV6);
+		} else {
+			struct sockaddr_in *in = (struct sockaddr_in *) &sas;
 
-		memcpy(&msg->data.OpenReceiveChannel.v22.bel_remoteIpAddr, &in->sin_addr, 4);
-	}
-	msg->data.OpenReceiveChannel.v22.lel_remotePortNumber = htolel(sccp_netsock_getPort(&sas));
+			memcpy(&msg->data.OpenReceiveChannel.v22.bel_remoteIpAddr, &in->sin_addr, 4);
+		}
+		msg->data.OpenReceiveChannel.v22.lel_remotePortNumber = htolel(sccp_netsock_getPort(&sas));*/
 	sccp_dev_send(device, msg);
 }
 

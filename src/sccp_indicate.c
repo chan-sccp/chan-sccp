@@ -273,20 +273,8 @@ void __sccp_indicate (constDevicePtr maybe_device, channelPtr c, const sccp_chan
 			{
 				d->indicate->connected(d, lineInstance, c->callid, c->calltype, ci);
 				if (pbx_channel_state (c->owner) == AST_STATE_UP && (!sccp_rtp_getState (&c->rtp.audio, SCCP_RTP_RECEPTION) || !sccp_rtp_getState (&c->rtp.audio, SCCP_RTP_TRANSMISSION))) {
-					if (!c->rtp.audio.directMedia) {
-						sccp_rtp_setCallback (&c->rtp.audio, SCCP_RTP_RECEPTION, sccp_channel_startMediaTransmission);
-						if (!sccp_rtp_getState (&c->rtp.audio, SCCP_RTP_RECEPTION)) {
-							sccp_channel_openReceiveChannel (c);
-						} else if (!sccp_rtp_getState (&c->rtp.audio, SCCP_RTP_TRANSMISSION)) {
-							// this looks a little confusing, maybe we should not have two but only one rtp callback
-							sccp_rtp_runCallback (&c->rtp.audio, SCCP_RTP_RECEPTION, c);
-						} else {
-							sccp_rtp_setCallback (&c->rtp.audio, SCCP_RTP_RECEPTION, NULL);
-						}
-					} else {
-						if (sccp_rtp_getState(&c->rtp.audio, SCCP_RTP_RECEPTION)) {
-							sccp_channel_openReceiveChannel(c);
-						}
+					if (!sccp_rtp_getState(&c->rtp.audio, SCCP_RTP_RECEPTION)) {
+						sccp_channel_openReceiveChannel(c);
 					}
 				}
 				c->setTone (c, SKINNY_TONE_SILENCE, SKINNY_TONEDIRECTION_USER);
@@ -295,7 +283,7 @@ void __sccp_indicate (constDevicePtr maybe_device, channelPtr c, const sccp_chan
 			break;
 		case SCCP_CHANNELSTATE_BUSY:
 			{
-			if(!sccp_rtp_getState(&c->rtp.audio, SCCP_RTP_RECEPTION)) {
+			if (!sccp_rtp_getState(&c->rtp.audio, SCCP_RTP_RECEPTION)) {
 				c->setTone(c, SKINNY_TONE_LINEBUSYTONE, SKINNY_TONEDIRECTION_USER);
 			}
 				sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_BUSY, GLOB(digittimeout));
@@ -306,7 +294,7 @@ void __sccp_indicate (constDevicePtr maybe_device, channelPtr c, const sccp_chan
 			sccp_channel_closeAllMediaTransmitAndReceive(c, TRUE);
 			if (d->session) {
 				sccp_handle_time_date_req(d->session, d, NULL);
-				}
+			}
 				sccp_device_setLamp(d, SKINNY_STIMULUS_LINE, lineInstance, SKINNY_LAMP_WINK);
 				sccp_device_sendcallstate(d, lineInstance, c->callid, SKINNY_CALLSTATE_HOLD, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);	/* send connected, so it is not listed as missed call */
 				sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_HOLD, GLOB(digittimeout));
@@ -377,13 +365,8 @@ void __sccp_indicate (constDevicePtr maybe_device, channelPtr c, const sccp_chan
 		case SCCP_CHANNELSTATE_CONNECTEDCONFERENCE:
 			{
 				d->indicate->connected(d, lineInstance, c->callid, c->calltype, ci);
-				sccp_rtp_setCallback(&c->rtp.audio, SCCP_RTP_RECEPTION, sccp_channel_startMediaTransmission);
-				if(!sccp_rtp_getState(&c->rtp.audio, SCCP_RTP_RECEPTION)) {
+				if (!sccp_rtp_getState(&c->rtp.audio, SCCP_RTP_RECEPTION)) {
 					sccp_channel_openReceiveChannel(c);
-				} else if(!sccp_rtp_getState(&c->rtp.audio, SCCP_RTP_TRANSMISSION)) {
-					sccp_rtp_runCallback(&c->rtp.audio, SCCP_RTP_TRANSMISSION, c);
-				} else {
-					sccp_rtp_setCallback(&c->rtp.audio, SCCP_RTP_RECEPTION, NULL);
 				}
 				sccp_dev_set_keyset(d, lineInstance, c->callid, KEYMODE_CONNCONF);
 			}

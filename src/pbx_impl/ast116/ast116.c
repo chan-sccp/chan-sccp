@@ -728,31 +728,56 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 			inband_if_receivechannel = TRUE;
 			break;
 
-		case AST_CONTROL_SRCCHANGE:									/* ask our channel's remote source address to update */
-			sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "SCCP: Source Change request\n");
-			if (c->rtp.audio.instance) {
-				ast_rtp_instance_change_source(c->rtp.audio.instance);
+		case AST_CONTROL_SRCCHANGE:
+			if (c->rtp.audio.instance && (!c->rtp.audio.directMedia || sccp_rtp_getState(&c->rtp.audio, SCCP_RTP_TRANSMISSION))) {
+				struct ast_sockaddr sin_audio_remote;
+				memcpy(&sin_audio_remote, &c->rtp.audio.phone_remote, sizeof(sin_audio_remote));
+				if (!ast_rtp_instance_get_and_cmp_remote_address(c->rtp.audio.instance, &sin_audio_remote)) {
+					sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE))(VERBOSE_PREFIX_3 "SCCP: Audio source has changed, update media transmission\n");
+					sccp_channel_updateMediaTransmission(c);
+					// ast_rtp_instance_change_source(c->rtp.audio.instance);
+				}
 			}
+#if CS_SCCP_VIDEO
+			if (c->rtp.video.instance && (!c->rtp.video.directMedia || sccp_rtp_getState(&c->rtp.audio, SCCP_RTP_TRANSMISSION))) {
+				struct ast_sockaddr sin_video_remote;
+				memcpy(&sin_video_remote, &c->rtp.video.phone_remote, sizeof(sin_video_remote));
+				if (!ast_rtp_instance_get_and_cmp_remote_address(c->rtp.video.instance, &sin_video_remote)) {
+					sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE))(VERBOSE_PREFIX_3 "SCCP: Video source has changed, update multi-media transmission\n");
+					sccp_channel_updateMultiMediaTransmission(c);
+					// ast_rtp_instance_change_source(c->rtp.video.instance);
+				}
+			}
+#endif
 			break;
 
 		case AST_CONTROL_SRCUPDATE:									/* send control bit to force other side to update, their source address */
-			sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "SCCP: Source UPDATE request\n");
-			if (c->rtp.audio.instance) {
-				ast_rtp_instance_update_source(c->rtp.audio.instance);
+			// sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "SCCP: Source UPDATE request\n");
+			// if (c->rtp.audio.instance) {
+			// ast_rtp_instance_update_source(c->rtp.audio.instance);
+			// sccp_channel_updateMediaTransmission(c);
+			//}
+			break;
+
+		case AST_CONTROL_UPDATE_RTP_PEER:                                        // Absorb this since it is handled by the bridge
+			sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE))(VERBOSE_PREFIX_3 "SCCP: Update RTP Peer\n");
+			if (!c->rtp.audio.directMedia || sccp_rtp_getState(&c->rtp.audio, SCCP_RTP_RECEPTION)) {
+				sccp_channel_updateReceiveChannel(c);
 			}
 			break;
 
 		case AST_CONTROL_HOLD:										/* when the bridged channel hold/unhold the call we are notified here */
-			if (c->rtp.audio.instance) {
+			/*if (c->rtp.audio.instance) {
 				ast_rtp_instance_update_source(c->rtp.audio.instance);
-			}
+			}*/
+			sccp_channel_stopMediaTransmission(c, TRUE);
 #ifdef CS_SCCP_VIDEO
 			if (c->rtp.video.instance && d && sccp_device_isVideoSupported(d) && sccp_channel_getVideoMode(c) != SCCP_VIDEO_MODE_OFF) {
 				d->protocol->sendMultiMediaCommand(d, c, SKINNY_MISCCOMMANDTYPE_VIDEOFREEZEPICTURE);
 				if(sccp_rtp_getState(&c->rtp.video, SCCP_RTP_TRANSMISSION)) {
 					sccp_channel_stopMultiMediaTransmission(c, TRUE);
 				}
-				ast_rtp_instance_update_source(c->rtp.video.instance);
+				// ast_rtp_instance_update_source(c->rtp.video.instance);
 			}
 #endif
 			sccp_astwrap_moh_start(ast, (const char *) data, c->musicclass);
@@ -760,9 +785,9 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 			break;
 
 		case AST_CONTROL_UNHOLD:
-			if (c->rtp.audio.instance) {
+			/*if (c->rtp.audio.instance) {
 				ast_rtp_instance_update_source(c->rtp.audio.instance);
-			}
+			}*/
 #ifdef CS_SCCP_VIDEO
 			if (c->rtp.video.instance && d && sccp_device_isVideoSupported(d) && sccp_channel_getVideoMode(c) != SCCP_VIDEO_MODE_OFF) {
 				ast_rtp_instance_update_source(c->rtp.video.instance);
@@ -771,7 +796,7 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 				} else if((sccp_rtp_getState(&c->rtp.video, SCCP_RTP_RECEPTION) & SCCP_RTP_STATUS_ACTIVE) && !sccp_rtp_getState(&c->rtp.video, SCCP_RTP_TRANSMISSION)) {
 					sccp_channel_startMultiMediaTransmission(c);
 				}
-				ast_rtp_instance_update_source(c->rtp.video.instance);
+				// ast_rtp_instance_update_source(c->rtp.video.instance);
 			}
 #endif
 			sccp_astwrap_moh_stop(ast);
@@ -824,10 +849,6 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 
 		case AST_CONTROL_AOC:										// Advice of Charge
 			res = -1;										// Return -1 so that asterisk core will correctly set up hangupcauses.
-			break;
-
-		case AST_CONTROL_UPDATE_RTP_PEER: 								// Absorb this since it is handled by the bridge
-			sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "SCCP: Update RTP Peer\n");
 			break;
 
 		case AST_CONTROL_FLASH: 									// We don't currently handle AST_CONTROL_FLASH here, but it is expected, so we don't need to warn either.
@@ -2119,7 +2140,7 @@ static enum ast_rtp_glue_result sccp_astwrap_get_rtp_info(PBX_CHANNEL_TYPE * ast
 		sccp_log ((DEBUGCAT_CHANNEL | DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (get_rtp_info) Asterisk requested RTP peer for channel %s\n", c->currentDeviceId, pbx_channel_name (ast));
 		rtpInfo = sccp_rtp_getAudioPeerInfo (c, &audioRTP);
 		if (rtpInfo == SCCP_RTP_INFO_NORTP) {
-			res = AST_RTP_GLUE_RESULT_FORBID;
+			res = AST_RTP_GLUE_RESULT_LOCAL;
 			break;
 		}
 
@@ -2146,7 +2167,7 @@ static enum ast_rtp_glue_result sccp_astwrap_get_rtp_info(PBX_CHANNEL_TYPE * ast
 		}
 	} while (0);
 
-	c->rtp.audio.directMedia = res == AST_RTP_GLUE_RESULT_REMOTE ? TRUE : FALSE;
+	// c->rtp.audio.directMedia = res == AST_RTP_GLUE_RESULT_REMOTE ? TRUE : FALSE;
 
 	sccp_log((DEBUGCAT_RTP | DEBUGCAT_HIGH)) (VERBOSE_PREFIX_1 "%s: (get_rtp_info) Channel %s Returning res: %s\n", c->currentDeviceId, pbx_channel_name(ast), ((res == 2) ? "indirect-rtp" : ((res == 1) ? "direct-rtp" : "forbid")));
 	return res;
@@ -2176,7 +2197,7 @@ static enum ast_rtp_glue_result sccp_astwrap_get_vrtp_info(PBX_CHANNEL_TYPE * as
 		rtpInfo = sccp_rtp_getVideoPeerInfo (c, &videoRTP);
 #endif
 		if (rtpInfo == SCCP_RTP_INFO_NORTP) {
-			res = AST_RTP_GLUE_RESULT_FORBID;
+			res = AST_RTP_GLUE_RESULT_LOCAL;
 			break;
 		}
 
@@ -2201,7 +2222,7 @@ static enum ast_rtp_glue_result sccp_astwrap_get_vrtp_info(PBX_CHANNEL_TYPE * as
 		}
 	} while (0);
 
-	c->rtp.video.directMedia = res == AST_RTP_GLUE_RESULT_REMOTE ? TRUE : FALSE;
+	// c->rtp.video.directMedia = res == AST_RTP_GLUE_RESULT_REMOTE ? TRUE : FALSE;
 	sccp_log((DEBUGCAT_RTP | DEBUGCAT_HIGH)) (VERBOSE_PREFIX_1 "%s: (get_vrtp_info) Channel %s Returning res: %s\n", c->currentDeviceId, pbx_channel_name(ast), ((res == 2) ? "indirect-rtp" : ((res == 1) ? "direct-rtp" : "forbid")));
 	return res;
 }
@@ -2219,10 +2240,14 @@ static int sccp_astwrap_update_rtp_peer(PBX_CHANNEL_TYPE * ast, PBX_RTP_TYPE * r
 			result = -1;
 			break;
 		}
-
+		if (c->state == SCCP_CHANNELSTATE_HOLD || !ast_channel_hold_state(ast)) {
+			sccp_log((DEBUGCAT_RTP))(VERBOSE_PREFIX_1 "%s: (update_rtp_peer) On Hold -> No Update\n", c->currentDeviceId);
+			result = 0;
+			break;
+		}
 		if (!codecs || ast_format_cap_count(codecs) <= 0) {
 			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (update_rtp_peer) NO Codecs\n", c->currentDeviceId);
-			result = -1;
+			result = 0;
 			break;
 		}
 		sccp_log ((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (update_rtp_peer) type:%s, stage: %s, remote codecs capabilty: %s, nat_active: %d\n", c->currentDeviceId, rtp ? "rtp" : (vrtp ? "vrtp" : "unsupported"),
@@ -2231,11 +2256,6 @@ static int sccp_astwrap_update_rtp_peer(PBX_CHANNEL_TYPE * ast, PBX_RTP_TYPE * r
 		if (!c->line) {
 			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (update_rtp_peer) NO LINE\n", c->currentDeviceId);
 			result = -1;
-			break;
-		}
-		if (c->state == SCCP_CHANNELSTATE_HOLD) {
-			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (update_rtp_peer) On Hold -> No Update\n", c->currentDeviceId);
-			result = 0;
 			break;
 		}
 		AUTO_RELEASE(sccp_device_t, d , sccp_channel_getDevice(c));
