@@ -2302,7 +2302,10 @@ void sccp_channel_clean(channelPtr channel)
 	if (d) {
 		/* make sure all rtp stuff is closed and destroyed */
 		if (channel->rtp.audio.instance || channel->rtp.video.instance) {
-			sccp_channel_closeAllMediaTransmitAndReceive(channel, FALSE);
+			if (sccp_rtp_getState(&channel->rtp.audio, SCCP_RTP_RECEPTION) || sccp_rtp_getState(&channel->rtp.audio, SCCP_RTP_TRANSMISSION) || sccp_rtp_getState(&channel->rtp.video, SCCP_RTP_RECEPTION)
+			    || sccp_rtp_getState(&channel->rtp.video, SCCP_RTP_TRANSMISSION)) {
+				sccp_channel_closeAllMediaTransmitAndReceive(channel, FALSE);
+			}
 		}
 
 		/* deactive the active call if needed */
@@ -2376,7 +2379,10 @@ int __sccp_channel_destroy(const void * data)
 	sccp_channel_lock(channel);
 
 	if (channel->rtp.audio.instance || channel->rtp.video.instance) {
-		sccp_channel_closeAllMediaTransmitAndReceive(channel, FALSE);
+		if (sccp_rtp_getState(&channel->rtp.audio, SCCP_RTP_RECEPTION) || sccp_rtp_getState(&channel->rtp.audio, SCCP_RTP_TRANSMISSION) || sccp_rtp_getState(&channel->rtp.video, SCCP_RTP_RECEPTION)
+		    || sccp_rtp_getState(&channel->rtp.video, SCCP_RTP_TRANSMISSION)) {
+			sccp_channel_closeAllMediaTransmitAndReceive(channel, FALSE);
+		}
 		sccp_rtp_stop(channel);
 		sccp_rtp_destroy(channel);
 	}

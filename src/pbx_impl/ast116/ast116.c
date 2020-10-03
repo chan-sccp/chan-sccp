@@ -729,6 +729,7 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 			break;
 
 		case AST_CONTROL_SRCCHANGE:
+			// if (c->rtp.audio.instance && (!sccp_rtp_getState(&c->rtp.audio, SCCP_RTP_TRANSMISSION))) {
 			if (c->rtp.audio.instance && (!c->rtp.audio.directMedia || sccp_rtp_getState(&c->rtp.audio, SCCP_RTP_TRANSMISSION))) {
 				struct ast_sockaddr sin_audio_remote;
 				memcpy(&sin_audio_remote, &c->rtp.audio.phone_remote, sizeof(sin_audio_remote));
@@ -738,6 +739,7 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 				}
 			}
 #if CS_SCCP_VIDEO
+			// if (c->rtp.video.instance && (!sccp_rtp_getState(&c->rtp.audio, SCCP_RTP_TRANSMISSION))) {
 			if (c->rtp.video.instance && (!c->rtp.video.directMedia || sccp_rtp_getState(&c->rtp.audio, SCCP_RTP_TRANSMISSION))) {
 				struct ast_sockaddr sin_video_remote;
 				memcpy(&sin_video_remote, &c->rtp.video.phone_remote, sizeof(sin_video_remote));
@@ -1576,6 +1578,7 @@ static sccp_parkresult_t sccp_astwrap_park(constChannelPtr hostChannel)
 					pbx_log (LOG_WARNING, "%s: Remote channel is missing, giving up (connected to application?)\n", hostChannel->designator);
 					break;
 				}
+				sccp_channel_stopMediaTransmission(hostChannel, TRUE);
 				pbx_builtin_setvar_helper (other_chan, "_PARKED_BY_CHANNEL", ast_channel_name (parker_chan));
 				pbx_builtin_setvar_helper (other_chan, "_PARKED_BY_UNIQUEID", ast_channel_uniqueid (parker_chan));
 
@@ -2238,7 +2241,7 @@ static int sccp_astwrap_update_rtp_peer(PBX_CHANNEL_TYPE * ast, PBX_RTP_TYPE * r
 		}
 		if (!codecs || ast_format_cap_count(codecs) <= 0) {
 			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (update_rtp_peer) NO Codecs\n", c->currentDeviceId);
-			result = 0;
+			result = -1;
 			break;
 		}
 		sccp_log ((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (update_rtp_peer) type:%s, stage: %s, remote codecs capabilty: %s, nat_active: %d\n", c->currentDeviceId, rtp ? "rtp" : (vrtp ? "vrtp" : "unsupported"),

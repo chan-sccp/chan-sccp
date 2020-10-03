@@ -3758,7 +3758,7 @@ static int sccp_set_object(int fd, int argc, char *argv[])
 }
 
 static char set_object_usage[] = "Usage: sccp set channel|device|variable|fallback|debug settings ...\n"
-				 " - sccp set channel <channelId> hold <on/off>.\n"
+				 " - sccp set channel <channelId> hold <on/off> | park.\n"
 				 " - sccp set device <deviceId> [ringtone <ringtone>|backgroundImage <url> [thumbnail-url].\n"
 				 " - sccp set variable <variable>].\n"
 				 " - sccp set fallback [true|false|odd|even|script path].\n"
