@@ -2037,9 +2037,8 @@ int sccp_channel_hold(channelPtr channel)
  *
  * \callgraph
  * \callergraph
- *
  */
-static void channel_resume_locked_remainder(constChannelPtr c);
+static void channel_resume_remainder(constChannelPtr c);
 static int channel_resume_locked(devicePtr d, linePtr l, channelPtr channel, boolean_t swap_channels)
 {
 	uint16_t instance = 0;
@@ -2105,8 +2104,7 @@ static int channel_resume_locked(devicePtr d, linePtr l, channelPtr channel, boo
 #endif
 
 	channel->state = SCCP_CHANNELSTATE_HOLD;
-	sccp_rtp_setCallback(&channel->rtp.audio, SCCP_RTP_RECEPTION, channel_resume_locked_remainder);
-
+	sccp_rtp_setCallback(&channel->rtp.audio, SCCP_RTP_RECEPTION, channel_resume_remainder);
 #ifdef CS_SCCP_CONFERENCE
 	if (channel->conference) {
 		sccp_indicate(d, channel, SCCP_CHANNELSTATE_CONNECTEDCONFERENCE);				// this will also reopen the RTP stream
@@ -2118,7 +2116,15 @@ static int channel_resume_locked(devicePtr d, linePtr l, channelPtr channel, boo
 	return TRUE;
 }
 
-static void channel_resume_locked_remainder(constChannelPtr c)
+/*!
+ * \brief Remainder of the Resume Implementation
+ *
+ * This part will run after the channel and pbx_channel have been unlocked and the channel resume state has already been assigned.
+ *
+ * \callgraph
+ * \callergraph
+ */
+static void channel_resume_remainder(constChannelPtr c)
 {
 	AUTO_RELEASE(sccp_channel_t, channel, sccp_channel_retain(c));
 	if (!c) {
@@ -2132,8 +2138,9 @@ static void channel_resume_locked_remainder(constChannelPtr c)
 		iPbx.queue_control(channel->owner, AST_CONTROL_UNHOLD);
 	}
 
-	// iPbx.queue_control(channel->owner, AST_CONTROL_SRCUPDATE);						// notify changes e.g codec
-
+	if (!sccp_rtp_getState(&channel->rtp.audio, SCCP_RTP_TRANSMISSION)) {
+		sccp_channel_startMediaTransmission(channel);
+	}
 #ifdef CS_SCCP_VIDEO
 	if(channel->rtp.video.instance && sccp_channel_getVideoMode(channel) != SCCP_VIDEO_MODE_OFF && sccp_device_isVideoSupported(d)) {
 		if(!sccp_rtp_getState(&channel->rtp.video, SCCP_RTP_RECEPTION)) {
@@ -2143,9 +2150,6 @@ static void channel_resume_locked_remainder(constChannelPtr c)
 		}
 	}
 #endif
-	if (!sccp_rtp_getState(&channel->rtp.audio, SCCP_RTP_TRANSMISSION)) {
-		sccp_channel_startMediaTransmission(channel);
-	}
 
 #ifdef CS_MANAGER_EVENTS
 	if (GLOB(callevents)) {

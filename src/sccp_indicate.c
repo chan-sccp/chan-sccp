@@ -275,6 +275,8 @@ void __sccp_indicate (constDevicePtr maybe_device, channelPtr c, const sccp_chan
 				if (pbx_channel_state (c->owner) == AST_STATE_UP && (!sccp_rtp_getState (&c->rtp.audio, SCCP_RTP_RECEPTION) || !sccp_rtp_getState (&c->rtp.audio, SCCP_RTP_TRANSMISSION))) {
 					if (!sccp_rtp_getState(&c->rtp.audio, SCCP_RTP_RECEPTION)) {
 						sccp_channel_openReceiveChannel(c);
+					} else {
+						sccp_rtp_runCallback(&c->rtp.audio, SCCP_RTP_RECEPTION, c);
 					}
 				}
 				c->setTone (c, SKINNY_TONE_SILENCE, SKINNY_TONEDIRECTION_USER);
@@ -367,6 +369,8 @@ void __sccp_indicate (constDevicePtr maybe_device, channelPtr c, const sccp_chan
 				d->indicate->connected(d, lineInstance, c->callid, c->calltype, ci);
 				if (!sccp_rtp_getState(&c->rtp.audio, SCCP_RTP_RECEPTION)) {
 					sccp_channel_openReceiveChannel(c);
+				} else {
+					sccp_rtp_runCallback(&c->rtp.audio, SCCP_RTP_RECEPTION, c);
 				}
 				sccp_dev_set_keyset(d, lineInstance, c->callid, KEYMODE_CONNCONF);
 			}
