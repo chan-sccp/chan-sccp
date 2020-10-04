@@ -153,6 +153,7 @@ void sccp_astwrap_sendRedirectedUpdate(const sccp_channel_t * channel, const cha
 int sccp_astgenwrap_channel_read(PBX_CHANNEL_TYPE * ast, NEWCONST char *funcname, char *preparse, char *buf, size_t buflen);
 int sccp_astgenwrap_channel_write(PBX_CHANNEL_TYPE * ast, const char *funcname, char *args, const char *value);
 int sccp_parse_alertinfo(PBX_CHANNEL_TYPE *pbx_channel, skinny_ringtype_t *ringermode);
+int sccp_parse_auto_answer(PBX_CHANNEL_TYPE * pbx_channel, sccp_autoanswer_t * autoanswer_type);
 int sccp_parse_dial_options(char *options, sccp_autoanswer_t *autoanswer_type, uint8_t *autoanswer_cause, skinny_ringtype_t *ringermode);
 boolean_t sccp_astgenwrap_featureMonitor(const sccp_channel_t * channel);
 

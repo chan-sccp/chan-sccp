@@ -1208,7 +1208,8 @@ static PBX_CHANNEL_TYPE *sccp_astwrap_request(const char *type, struct ast_forma
 	if (autoanswer_cause) {
 		*cause = autoanswer_cause;
 	}
-	
+	sccp_parse_auto_answer((PBX_CHANNEL_TYPE *)requestor, &autoanswer_type);
+
 	/** getting remote capabilities */
 	char cap_buf[512];
 

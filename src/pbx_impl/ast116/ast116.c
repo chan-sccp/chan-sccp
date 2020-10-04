@@ -1777,6 +1777,7 @@ static PBX_CHANNEL_TYPE *sccp_astwrap_request(const char *type, struct ast_forma
 	if (autoanswer_cause) {
 		*cause = autoanswer_cause;
 	}
+	sccp_parse_auto_answer((PBX_CHANNEL_TYPE *)requestor, &autoanswer_type);
 
 	/** get requested format */
 	if ( (audio_codec = pbx_codec2skinny_codec(ast_format_compatibility_format2bitfield(ast_format_cap_get_best_by_type(cap, AST_MEDIA_TYPE_AUDIO)))) == SKINNY_CODEC_NONE) {

@@ -1050,6 +1050,23 @@ int sccp_parse_alertinfo(PBX_CHANNEL_TYPE *pbx_channel, skinny_ringtype_t *ringe
 	return res;
 }
 
+int sccp_parse_auto_answer(PBX_CHANNEL_TYPE * pbx_channel, sccp_autoanswer_t * autoanswer_type)
+{
+	int res = 0;
+	const char * auto_answer = pbx_builtin_getvar_helper(pbx_channel, "AUTO_ANSWER");
+	if (auto_answer && !sccp_strlen_zero(auto_answer)) {
+		sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: Found AUTO_ANSWER=%s\n", pbx_channel_name(pbx_channel), auto_answer);
+		if (sccp_strcaseequals(auto_answer, "1way") || sccp_strcaseequals(auto_answer, "1w")) {
+			*autoanswer_type = SCCP_AUTOANSWER_1W;
+		} else if (sccp_strcaseequals(auto_answer, "2way") || sccp_strcaseequals(auto_answer, "2w")) {
+			*autoanswer_type = SCCP_AUTOANSWER_2W;
+		} else {
+			res = -1;
+		}
+	}
+	return res;
+}
+
 /*!
  * parse the DIAL options and store results by ref
  */
