@@ -729,8 +729,8 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 			break;
 
 		case AST_CONTROL_SRCCHANGE:
-			// if (c->rtp.audio.instance && (!sccp_rtp_getState(&c->rtp.audio, SCCP_RTP_TRANSMISSION))) {
-			if (c->rtp.audio.instance && (!c->rtp.audio.directMedia || sccp_rtp_getState(&c->rtp.audio, SCCP_RTP_TRANSMISSION))) {
+			if (c->rtp.audio.instance && (!sccp_rtp_getState(&c->rtp.audio, SCCP_RTP_TRANSMISSION))) {
+				// if (c->rtp.audio.instance && (!c->rtp.audio.directMedia || sccp_rtp_getState(&c->rtp.audio, SCCP_RTP_TRANSMISSION))) {
 				struct ast_sockaddr sin_audio_remote;
 				memcpy(&sin_audio_remote, &c->rtp.audio.phone_remote, sizeof(sin_audio_remote));
 				if (!ast_rtp_instance_get_and_cmp_remote_address(c->rtp.audio.instance, &sin_audio_remote)) {
@@ -739,8 +739,8 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 				}
 			}
 #if CS_SCCP_VIDEO
-			// if (c->rtp.video.instance && (!sccp_rtp_getState(&c->rtp.audio, SCCP_RTP_TRANSMISSION))) {
-			if (c->rtp.video.instance && (!c->rtp.video.directMedia || sccp_rtp_getState(&c->rtp.audio, SCCP_RTP_TRANSMISSION))) {
+			if (c->rtp.video.instance && (!sccp_rtp_getState(&c->rtp.audio, SCCP_RTP_TRANSMISSION))) {
+				// if (c->rtp.video.instance && (!c->rtp.video.directMedia || sccp_rtp_getState(&c->rtp.audio, SCCP_RTP_TRANSMISSION))) {
 				struct ast_sockaddr sin_video_remote;
 				memcpy(&sin_video_remote, &c->rtp.video.phone_remote, sizeof(sin_video_remote));
 				if (!ast_rtp_instance_get_and_cmp_remote_address(c->rtp.video.instance, &sin_video_remote)) {
