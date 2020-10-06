@@ -1776,7 +1776,7 @@ Optional Packages:
                           (experimental)
   --with-hash-size        to provide room for higher number of phones (>100),
                           specify a prime number, bigger then number of phones
-                          times 4 (default=536)
+                          times 4 (default=563)
   --with-astmoddir=PATH   Location of the Asterisk Module Directory
 
 Some influential environment variables:
@@ -32454,19 +32454,19 @@ $as_echo "--enable-experimental-xml: ${ac_cv_experimental_xml}" >&6; }
 if test "${with_hash_size+set}" = set; then :
   withval=$with_hash_size; ac_cv_set_hashsize=$withval
 else
-  ac_cv_set_hashsize=536
+  ac_cv_set_hashsize=563
 fi
 
 	case ${ac_cv_set_hashsize} in #(
   ''|'yes'|'no'|*!0-9*) :
 
-			ac_cv_set_hashsize=536
+			ac_cv_set_hashsize=563
 			as_fn_error $? "'When using --with-hash-size, you need to supply a (prime) value, only needed when you have move than 100 phones'" "$LINENO" 5
 			 ;; #(
   *) :
 
-	    		if test 0${ac_cv_set_hashsize} -lt 536; then :
-  ac_cv_set_hashsize=536
+	    		if test 0${ac_cv_set_hashsize} -lt 563; then :
+  ac_cv_set_hashsize=563
 fi
 
 	 ;; #(
