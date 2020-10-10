@@ -1176,8 +1176,8 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 		AUTO_RELEASE(sccp_line_t, l, sccp_line_find_byname(buttonconfig->button.line.name, FALSE));                                                                              \
 		char subscriptionIdBuf[21] = "";                                                                                                                                         \
 		if(buttonconfig->button.line.subscriptionId) {                                                                                                                           \
-			snprintf(subscriptionIdBuf, 21, "(%s)%s:%s", buttonconfig->button.line.subscriptionId->replaceCid ? "=" : "+", buttonconfig->button.line.subscriptionId->number, \
-				 buttonconfig->button.line.subscriptionId->name);                                                                                                        \
+			snprintf(subscriptionIdBuf, 21, "(%s)%s:%s", buttonconfig->button.line.subscriptionId->replaceCid ? "=" : "+", buttonconfig->button.line.subscriptionId->cid_num, \
+				 buttonconfig->button.line.subscriptionId->cid_name);                                                                                                        \
 		}                                                                                                                                                                        \
 		if(l) {                                                                                                                                                                  \
 			AUTO_RELEASE(sccp_linedevice_t, ld, sccp_linedevice_find(d, l));                                                                                                 \
@@ -1395,7 +1395,7 @@ static int sccp_show_lines(int fd, sccp_cli_totals_t *totals, struct mansession 
 				SCCP_LIST_UNLOCK(&l->channels);
 				if (!s) {
 					pbx_cli(fd, "| %-13s %-3s%-6s %-30s %-16s %-16s %-4s %-4d %-10s %-10s %-26.26s %-10s |\n", !found_linedevice ? l->name : " +--", ld->subscriptionId.replaceCid ? "(=)" : "(+)",
-						ld->subscriptionId.number, sccp_strlen_zero(ld->subscriptionId.label) ? (l->label ? l->label : "--") : ld->subscriptionId.label, l->description ? l->description : "--", d->id,
+						ld->subscriptionId.cid_num, sccp_strlen_zero(ld->subscriptionId.label) ? (l->label ? l->label : "--") : ld->subscriptionId.label, l->description ? l->description : "--", d->id,
 						(l->voicemailStatistic.newmsgs) ? "ON" : "OFF", SCCP_RWLIST_GETSIZE(&l->channels), (state != SCCP_CHANNELSTATE_SENTINEL) ? sccp_channelstate2str(state) : "--",
 						(calltype != SKINNY_CALLTYPE_SENTINEL) ? skinny_calltype2str(calltype) : "--", cid_name, cap_buf);
 				} else {
@@ -1404,7 +1404,7 @@ static int sccp_show_lines(int fd, sccp_cli_totals_t *totals, struct mansession 
 					astman_append(s, "ChannelObjectType: Line\r\n");
 					astman_append(s, "ActionId: %s\r\n", actionid);
 					astman_append(s, "Exten: %s\r\n", l->name);
-					astman_append(s, "SubscriptionNumber: %s\r\n", ld->subscriptionId.number);
+					astman_append(s, "SubscriptionNumber: %s\r\n", ld->subscriptionId.cid_num);
 					astman_append(s, "Label: %s\r\n", sccp_strlen_zero(ld->subscriptionId.label) ? l->label : ld->subscriptionId.label);
 					astman_append(s, "Description: %s\r\n", l->description ? l->description : "<not set>");
 					astman_append(s, "Device: %s\r\n", d->id);
@@ -1453,8 +1453,8 @@ static int sccp_show_lines(int fd, sccp_cli_totals_t *totals, struct mansession 
 			for (v = l->variables; v; v = v->next) {
 				pbx_cli(fd, "| %-13s %-9s %-30s = %-101.101s |\n", "", "Variable:", v->name, v->value);
 			}
-			if (!sccp_strlen_zero(l->defaultSubscriptionId.number) || !sccp_strlen_zero(l->defaultSubscriptionId.name)) {
-				pbx_cli(fd, "| %-13s %-9s %-30s %-103.103s |\n", "", "SubscrId:", l->defaultSubscriptionId.number, l->defaultSubscriptionId.name);
+			if (!sccp_strlen_zero(l->defaultSubscriptionId.cid_num) || !sccp_strlen_zero(l->defaultSubscriptionId.cid_name)) {
+				pbx_cli(fd, "| %-13s %-9s %-30s %-103.103s |\n", "", "SubscrId:", l->defaultSubscriptionId.cid_num, l->defaultSubscriptionId.cid_name);
 			}
 		}
 	}

@@ -356,9 +356,9 @@ void sccp_util_featureStorageBackend(const sccp_event_t * const event)
  * \callgraph
  * \callergraph
  */
-int sccp_parseComposedId(const char *labelString, unsigned int maxLength, sccp_subscription_id_t *subscriptionId, char extension[SCCP_MAX_EXTENSION])
+int sccp_parseComposedId(const char *buttonString, unsigned int maxLength, sccp_subscription_id_t *subscriptionId, char extension[SCCP_MAX_EXTENSION])
 {
-	pbx_assert(NULL != labelString && NULL != subscriptionId && NULL != extension);
+	pbx_assert(NULL != buttonString && NULL != subscriptionId && NULL != extension);
 	int res = 0;
 	const char *stringIterator = 0;
 	uint32_t i = 0;
@@ -366,7 +366,7 @@ int sccp_parseComposedId(const char *labelString, unsigned int maxLength, sccp_s
 	enum {EXTENSION, ID, CIDNAME, LABEL, AUX} state = EXTENSION;
 	memset(subscriptionId, 0, sizeof(sccp_subscription_id_t));
 
-	for (stringIterator = labelString; stringIterator < labelString + maxLength && !endDetected; stringIterator++) {
+	for (stringIterator = buttonString; stringIterator < buttonString + maxLength && !endDetected; stringIterator++) {
 		switch (state) {
 			case EXTENSION:										// parsing of main id
 				pbx_assert(i < SCCP_MAX_EXTENSION);
@@ -408,10 +408,10 @@ int sccp_parseComposedId(const char *labelString, unsigned int maxLength, sccp_s
                                 // ! starts the options / AUX
                                 // default makes this the default line to dial out on
 
-				pbx_assert(i < sizeof(subscriptionId->number));
+				pbx_assert(i < sizeof(subscriptionId->cid_num));
 				switch (*stringIterator) {
 					case '\0':
-						subscriptionId->number[i] = '\0';
+						subscriptionId->cid_num[i] = '\0';
 						endDetected = TRUE;
 						res++;
 						break;
@@ -426,52 +426,52 @@ int sccp_parseComposedId(const char *labelString, unsigned int maxLength, sccp_s
 						}
 						break;
 					case ':':
-						subscriptionId->number[i] = '\0';				// assign cidnum
+						subscriptionId->cid_num[i] = '\0';				// assign cidnum
 						i = 0;
 						state = CIDNAME;
 						res++;
 						break;
 					case '#':
-						subscriptionId->name[i] = '\0';
+						subscriptionId->cid_name[i] = '\0';
 						i = 0;
 						state = LABEL;
 						res++;
 						break;
 					case '!':
-						subscriptionId->number[i] = '\0';
+						subscriptionId->cid_num[i] = '\0';
 						i = 0;
 						state = AUX;
 						res++;
 						break;
 					default:
-						subscriptionId->number[i] = *stringIterator;
+						subscriptionId->cid_num[i] = *stringIterator;
 						i++;
 						break;
 				}
 				break;
 
 			case CIDNAME:										// parsing of sub id name
-				pbx_assert(i < sizeof(subscriptionId->name));
+				pbx_assert(i < sizeof(subscriptionId->cid_name));
 				switch (*stringIterator) {
 					case '\0':
-						subscriptionId->name[i] = '\0';
+						subscriptionId->cid_name[i] = '\0';
 						endDetected = TRUE;
 						res++;
 						break;
 					case '#':
-						subscriptionId->name[i] = '\0';
+						subscriptionId->cid_name[i] = '\0';
 						i = 0;
 						state = LABEL;
 						res++;
 						break;
 					case '!':
-						subscriptionId->name[i] = '\0';
+						subscriptionId->cid_name[i] = '\0';
 						i = 0;
 						state = AUX ;
 						res++;
 						break;
 					default:
-						subscriptionId->name[i] = *stringIterator;
+						subscriptionId->cid_name[i] = *stringIterator;
 						i++;
 						break;
 				}
@@ -543,9 +543,9 @@ boolean_t __PURE__ sccp_util_matchSubscriptionId(constChannelPtr channel, const 
 	filterPhones = FALSE;											/* set the default to call all phones */
 
 	/* First condition: Non-trivial subscriptionId specified for matching in call. */
-	if (sccp_strlen(channel->subscriptionId.number) != 0) {
+	if (sccp_strlen(channel->subscriptionId.cid_num) != 0) {
 		/* Second condition: SubscriptionId does not match default subscriptionId of line. */
-		if (0 != strncasecmp(channel->subscriptionId.number, channel->line->defaultSubscriptionId.number, sccp_strlen(channel->subscriptionId.number))) {
+		if (0 != strncasecmp(channel->subscriptionId.cid_num, channel->line->defaultSubscriptionId.cid_num, sccp_strlen(channel->subscriptionId.cid_num))) {
 			filterPhones = TRUE;
 		}
 	}
@@ -554,14 +554,14 @@ boolean_t __PURE__ sccp_util_matchSubscriptionId(constChannelPtr channel, const 
 		/* Accept phone for calling if all phones shall be called. */
 		result = TRUE;
 	} else if (0 != sccp_strlen(subscriptionIdNum) &&								/* We already know that we won't search for a trivial subscriptionId. */
-		   (0 != strncasecmp(channel->subscriptionId.number, subscriptionIdNum, sccp_strlen(channel->subscriptionId.number)))) {	/* Do the match! */
+		   (0 != strncasecmp(channel->subscriptionId.cid_num, subscriptionIdNum, sccp_strlen(channel->subscriptionId.cid_num)))) {	/* Do the match! */
 		result = FALSE;
 	}
 #if 0
-	pbx_log(LOG_NOTICE, "sccp_channel->subscriptionId.number=%s, length=%d\n", channel->subscriptionId.number, sccp_strlen(channel->subscriptionId.number));
+	pbx_log(LOG_NOTICE, "sccp_channel->subscriptionId.cid_num=%s, length=%d\n", channel->subscriptionId.cid_num, sccp_strlen(channel->subscriptionId.cid_num));
 	pbx_log(LOG_NOTICE, "subscriptionIdNum=%s, length=%d\n", subscriptionIdNum ? subscriptionIdNum : "NULL", subscriptionIdNum ? sccp_strlen(subscriptionIdNum) : -1);
 
-	pbx_log(LOG_NOTICE, "sccp_util_matchSubscriptionId: sccp_channel->subscriptionId.number=%s, SubscriptionId=%s\n", (channel->subscriptionId.number) ? channel->subscriptionId.number : "NULL", (subscriptionIdNum) ? subscriptionIdNum : "NULL");
+	pbx_log(LOG_NOTICE, "sccp_util_matchSubscriptionId: sccp_channel->subscriptionId.cid_num=%s, SubscriptionId=%s\n", (channel->subscriptionId.cid_num) ? channel->subscriptionId.cid_num : "NULL", (subscriptionIdNum) ? subscriptionIdNum : "NULL");
 	pbx_log(LOG_NOTICE, "sccp_util_matchSubscriptionId: result: %d\n", result);
 #endif
 	return result;

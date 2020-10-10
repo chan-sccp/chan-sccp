@@ -100,9 +100,9 @@ static void regcontext_exten(constLineDevicePtr ld, int onoff)
 				}
 
 				/* register extension + subscriptionId */
-				/* if (subscriptionId && subscriptionId->number && !sccp_strlen_zero(subscriptionId->number) && !sccp_strlen_zero(subscriptionId->name)) {
-				   snprintf(extension, sizeof(extension), "%s@%s", ext, subscriptionId->number);
-				   snprintf(name, sizeof(name), "%s%s", l->name, subscriptionId->name);
+				/* if (subscriptionId && subscriptionId->cid_num && !sccp_strlen_zero(subscriptionId->cid_num) && !sccp_strlen_zero(subscriptionId->cid_name)) {
+				   snprintf(extension, sizeof(extension), "%s@%s", ext, subscriptionId->cid_num);
+				   snprintf(name, sizeof(name), "%s%s", l->name, subscriptionId->cid_name);
 				   if (!pbx_exists_extension(NULL, context, extension, 2, NULL) && pbx_add_extension(context, 0, extension, 2, NULL, NULL, "Noop", pbx_strdup(name), sccp_free_ptr, "SCCP")) {
 				   sccp_log((DEBUGCAT_LINE + DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "Registered RegContext: %s, Extension: %s, Line: %s\n", context, extension, name);
 				   }
@@ -118,8 +118,8 @@ static void regcontext_exten(constLineDevicePtr ld, int onoff)
 				}
 
 				/* unregister extension + subscriptionId */
-				/* if (subscriptionId && subscriptionId->number && !sccp_strlen_zero(subscriptionId->number) && !sccp_strlen_zero(subscriptionId->name)) {
-				   snprintf(extension, sizeof(extension), "%s@%s", ext, subscriptionId->number);
+				/* if (subscriptionId && subscriptionId->cid_num && !sccp_strlen_zero(subscriptionId->cid_num) && !sccp_strlen_zero(subscriptionId->cid_name)) {
+				   snprintf(extension, sizeof(extension), "%s@%s", ext, subscriptionId->cid_num);
 				   // if (pbx_exists_extension(NULL, context, extension, 2, NULL)) {
 				   if (pbx_find_extension(NULL, NULL, &q, context, extension, 2, NULL, "", E_MATCH)) {
 				   ast_context_remove_extension(context, extension, 2, NULL);

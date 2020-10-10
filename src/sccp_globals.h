@@ -24,9 +24,10 @@ typedef struct sccp_servercontext sccp_servercontext_t;
  * \todo at the moment subscriptionId is being copied from lines to channel and linedevices
  */
 struct subscriptionId {
-	char number[SCCP_MAX_EXTENSION];									/*!< will be added to cid */
-	char name[SCCP_MAX_EXTENSION];										/*!< will be added to cidName */
-	char label[SCCP_MAX_LABEL];										/*!< will be added to cidName */
+	char id[SCCP_MAX_EXTENSION];										/*!< subscriptionId */
+	char cid_num[SCCP_MAX_EXTENSION];									/*!< will replace/add to cid_num */
+	char cid_name[SCCP_MAX_EXTENSION];									/*!< will replace/add to cid_name */
+	char label[SCCP_MAX_LABEL];										/*!< button label replacement */
 	char aux[SCCP_MAX_AUX];											/*!< auxiliary parameter. Allows for phone-specific behaviour on a line. */
 	boolean_t replaceCid;											/*!< Should cidnumber be replaced instead of appended to, controled by the '=' subscription flag */
 };

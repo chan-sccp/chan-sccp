@@ -336,7 +336,7 @@ void sccp_manager_eventListener(const sccp_event_t * event)
 			ld = event->deviceAttached.ld;                                                    // already retained in the event
 			manager_event(EVENT_FLAG_CALL, "PeerStatus",
 				      "ChannelType: SCCP\r\nChannelObjectType: DeviceLine\r\nPeerStatus: %s\r\nSCCPDevice: %s\r\nSCCPLine: %s\r\nSCCPLineName: %s\r\nSubscriptionId: %s\r\nSubscriptionName: %s\r\n", "ATTACHED",
-				      DEV_ID_LOG(device), ld && ld->line ? ld->line->name : "(null)", (ld && ld->line && ld->line->label) ? ld->line->label : "(null)", ld->subscriptionId.number, ld->subscriptionId.name);
+				      DEV_ID_LOG(device), ld && ld->line ? ld->line->name : "(null)", (ld && ld->line && ld->line->label) ? ld->line->label : "(null)", ld->subscriptionId.cid_num, ld->subscriptionId.cid_name);
 			break;
 
 		case SCCP_EVENT_DEVICE_DETACHED:
@@ -344,7 +344,7 @@ void sccp_manager_eventListener(const sccp_event_t * event)
 			ld = event->deviceAttached.ld;                                                    // already retained in the event
 			manager_event(EVENT_FLAG_CALL, "PeerStatus",
 				      "ChannelType: SCCP\r\nChannelObjectType: DeviceLine\r\nPeerStatus: %s\r\nSCCPDevice: %s\r\nSCCPLine: %s\r\nSCCPLineName: %s\r\nSubscriptionId: %s\r\nSubscriptionName: %s\r\n", "DETACHED",
-				      DEV_ID_LOG(device), ld && ld->line ? ld->line->name : "(null)", (ld && ld->line && ld->line->label) ? ld->line->label : "(null)", ld->subscriptionId.number, ld->subscriptionId.name);
+				      DEV_ID_LOG(device), ld && ld->line ? ld->line->name : "(null)", (ld && ld->line && ld->line->label) ? ld->line->label : "(null)", ld->subscriptionId.cid_num, ld->subscriptionId.cid_name);
 			break;
 
 		case SCCP_EVENT_FEATURE_CHANGED:
