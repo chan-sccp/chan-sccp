@@ -51,11 +51,8 @@ sccp_channel_request_status_t sccp_requestChannel(const char * lineName, sccp_au
 	}
 
 	char mainId[SCCP_MAX_EXTENSION];
-	sccp_subscription_id_t subscriptionId;
-	if(!sccp_parseComposedId(lineName, 80, &subscriptionId, mainId)) {
-		sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "Could not parse lineName:%s !\n", lineName);
-		return SCCP_REQUEST_STATUS_LINEUNKNOWN;
-	};
+	char *subId = NULL;
+	scanf(lineName, "%[^@]@%s", &mainId, &subId);
 
 	AUTO_RELEASE(sccp_line_t, l, sccp_line_find_byname(mainId, FALSE));
 	if (!l) {
@@ -63,7 +60,7 @@ sccp_channel_request_status_t sccp_requestChannel(const char * lineName, sccp_au
 		return SCCP_REQUEST_STATUS_LINEUNKNOWN;
 	}
 	sccp_log_and((DEBUGCAT_CORE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_1 "[SCCP] in file %s, line %d (%s)\n", __FILE__, __LINE__, __PRETTY_FUNCTION__);
-	if (SCCP_RWLIST_GETSIZE(&l->devices) == 0) {
+	if (SCCP_LIST_GETSIZE(&l->devices) == 0) {
 		sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "SCCP/%s isn't currently registered anywhere.\n", l->name);
 		return SCCP_REQUEST_STATUS_LINEUNAVAIL;
 	}
@@ -78,21 +75,18 @@ sccp_channel_request_status_t sccp_requestChannel(const char * lineName, sccp_au
 	}
 
 	/* set subscriberId for individual device addressing */
-	if (!sccp_strlen_zero(subscriptionId.cid_num)) {
-		sccp_copy_string(my_sccp_channel->subscriptionId.cid_num, subscriptionId.cid_num, sizeof(my_sccp_channel->subscriptionId.cid_num));
-		if (!sccp_strlen_zero(subscriptionId.cid_name)) {
-			sccp_copy_string(my_sccp_channel->subscriptionId.cid_name, subscriptionId.cid_name, sizeof(my_sccp_channel->subscriptionId.cid_name));
-		} else {
-			//pbx_log(LOG_NOTICE, "%s: calling subscriber id=%s\n", l->id, my_sccp_channel->subscriptionId.cid_num);
+	if (subId) {
+		sccp_linedevice_t *ld;
+		SCCP_LIST_LOCK(&l->devices);
+		SCCP_LIST_TRAVERSE(&l->devices, ld, list) {
+			if (sccp_strcaseequals(ld->subscriptionId.id, subId)) {
+				memcpy(&my_sccp_channel->subscriptionId, &ld->subscriptionId, sizeof(sccp_subscription_id_t));
+			}
 		}
+		SCCP_LIST_UNLOCK(&l->devices);
 	} else {
-		sccp_copy_string(my_sccp_channel->subscriptionId.cid_num, l->defaultSubscriptionId.cid_num, sizeof(my_sccp_channel->subscriptionId.cid_num));
-		sccp_copy_string(my_sccp_channel->subscriptionId.cid_name, l->defaultSubscriptionId.cid_name, sizeof(my_sccp_channel->subscriptionId.cid_name));
-		//pbx_log(LOG_NOTICE, "%s: calling all subscribers\n", l->id);
+		memcpy(&my_sccp_channel->subscriptionId, &l->defaultSubscriptionId, sizeof(sccp_subscription_id_t));
 	}
-
-	//memset(&channel->preferences.audio, 0, sizeof(channel->preferences.audio));
-	//memset(&channel->preferences.video, 0, sizeof(channel->preferences.video));
 
 	my_sccp_channel->autoanswer_type = autoanswer_type;
 	my_sccp_channel->autoanswer_cause = autoanswer_cause;
