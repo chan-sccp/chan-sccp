@@ -66,7 +66,7 @@ SCCP_API void SCCP_CALL sccp_safe_sleep(int ms);
 SCCP_INLINE const char * SCCP_CALL featureType2str(sccp_feature_type_t value);
 SCCP_INLINE const char * SCCP_CALL debugcat_keys(void);
 SCCP_API const char * SCCP_CALL skinny_ringermode2str(uint8_t type);
-SCCP_API int SCCP_CALL sccp_parseComposedId(const char *buttonString, unsigned int maxLength, sccp_subscription_id_t *subscriptionId, char extension[SCCP_MAX_EXTENSION]);
+SCCP_API int SCCP_CALL sccp_parseComposedId(const char *buttonString, unsigned int maxLength, sccp_subscription_t *subscriptionId, char extension[SCCP_MAX_EXTENSION]);
 
 #ifndef HAVE_PBX_STRINGS_H
 SCCP_API char * SCCP_CALL pbx_skip_blanks(char *str);

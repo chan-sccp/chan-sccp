@@ -192,7 +192,7 @@ const char * const sccp_linedevice_get_cfwd_string(constLineDevicePtr ld, char *
  * \param subscriptionId Subscription ID for addressing individual devices on the line
  *
  */
-void sccp_linedevice_create(constDevicePtr d, constLinePtr l, uint8_t lineInstance, sccp_subscription_id_t * subscriptionId)
+void sccp_linedevice_create(constDevicePtr d, constLinePtr l, uint8_t lineInstance, sccp_subscription_t * subscriptionId)
 {
 	AUTO_RELEASE(sccp_line_t, line, sccp_line_retain(l));
 	AUTO_RELEASE(sccp_device_t, device, sccp_device_retain(d));

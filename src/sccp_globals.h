@@ -23,8 +23,8 @@ typedef struct sccp_servercontext sccp_servercontext_t;
  * \todo current size if 176 bits, could/should be reduced by using charptr instead
  * \todo at the moment subscriptionId is being copied from lines to channel and linedevices
  */
-struct subscriptionId {
-	char id[SCCP_MAX_EXTENSION];										/*!< subscriptionId */
+struct subscription {
+	char id[SCCP_MAX_EXTENSION];										/*!< subscriptionId (has to be unique)*/
 	char cid_num[SCCP_MAX_EXTENSION];									/*!< will replace/add to cid_num */
 	char cid_name[SCCP_MAX_EXTENSION];									/*!< will replace/add to cid_name */
 	char label[SCCP_MAX_LABEL];										/*!< button label replacement */

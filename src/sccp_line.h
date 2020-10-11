@@ -84,7 +84,7 @@ struct sccp_line {
 	char *musicclass;											/*!< musicclass assigned when getting moh */
 	char *parkinglot;											/*!< parkinglot to use */
 
-	sccp_subscription_id_t defaultSubscriptionId;								/*!< default subscription id for shared lines */
+	sccp_subscription_t defaultSubscriptionId;								/*!< default subscription id for shared lines */
 	boolean_t echocancel;											/*!< echocancel phone support */
 	boolean_t silencesuppression;										/*!< Silence Suppression Phone Support */
 	boolean_t meetme;											/*!< Meetme on/off */

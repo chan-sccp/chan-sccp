@@ -51,7 +51,7 @@ typedef struct sccp_msg sccp_msg_t;                                             
 #define constRtpPtr        const sccp_rtp_t * const
 #define constMessagePtr const sccp_msg_t * const
 #ifdef CS_DEVSTATE_FEATURE
-typedef struct sccp_devstate_specifier sccp_devstate_specifier_t;                                        //!< SCCP Custom DeviceState Specifier Structure
+typedef struct sccp_devstate_specifier sccp_devstate_specifier_t;                                             //!< SCCP Custom DeviceState Specifier Structure
 #endif
 typedef struct sccp_feature_configuration sccp_featureConfiguration_t;                                        //!< SCCP Feature Configuration Structure
 typedef struct sccp_selectedchannel sccp_selectedchannel_t;                                                   //!< SCCP Selected Channel Structure
@@ -62,7 +62,7 @@ typedef struct sccp_callinfo sccp_callinfo_t;                                   
 typedef struct sccp_call_statistics sccp_call_statistics_t;                                                   //!< SCCP Call Statistic Structure
 typedef struct softKeySetConfiguration sccp_softKeySetConfiguration_t;                                        //!< SoftKeySet configuration
 typedef struct sccp_mailbox sccp_mailbox_t;                                                                   //!< SCCP Mailbox Type Definition
-typedef struct subscriptionId sccp_subscription_id_t;                                                         //!< SCCP SubscriptionId Structure
+typedef struct subscription sccp_subscription_t;                                                              //!< SCCP SubscriptionId Structure
 typedef struct sccp_conference sccp_conference_t;                                                             //!< SCCP Conference Structure
 typedef struct sccp_private_channel_data sccp_private_channel_data_t;                                         //!< SCCP Private Channel Data Structure
 typedef struct sccp_private_device_data sccp_private_device_data_t;                                           //!< SCCP Private Device Data Structure

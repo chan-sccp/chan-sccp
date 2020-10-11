@@ -40,7 +40,7 @@ pbx_mutex_t subscriptions_lock;
 #define subscription_unlock()		({pbx_mutex_unlock(&subscriptions_lock);})		// discard const
 
 //typedef struct pbx_event_sub pbx_event_subscription_t;
-typedef struct subscription {
+typedef struct {
 	sccp_mailbox_t *mailbox;
 	constLinePtr line;
 #if MWI_USE_EVENT

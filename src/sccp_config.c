@@ -2106,7 +2106,7 @@ sccp_value_changed_t sccp_config_checkButton(sccp_buttonconfig_list_t *buttoncon
 			case LINE:
 			{
 				char extension[SCCP_MAX_EXTENSION];
-				sccp_subscription_id_t subscriptionId;
+				sccp_subscription_t subscriptionId;
 				int parseRes = sccp_parseComposedId(name, 80, &subscriptionId, extension);
 				if (parseRes) {
 					sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCP: ComposedId extension: %s, subscriptionId[number:%s, name:%s, label:%s, aux:%s]\n", extension, subscriptionId.cid_num, subscriptionId.cid_name, subscriptionId.label, subscriptionId.aux);
@@ -2261,7 +2261,7 @@ sccp_value_changed_t sccp_config_addButton(sccp_buttonconfig_list_t *buttonconfi
 		case LINE:
 		{
 			char extension[SCCP_MAX_EXTENSION];
-			sccp_subscription_id_t * subscriptionId = (sccp_subscription_id_t *)sccp_calloc(1, sizeof(sccp_subscription_id_t));
+			sccp_subscription_t * subscriptionId = (sccp_subscription_t *)sccp_calloc(1, sizeof(sccp_subscription_t));
 			if (!subscriptionId) {
 				pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, "SCCP");
 				return SCCP_CONFIG_CHANGE_INVALIDVALUE;

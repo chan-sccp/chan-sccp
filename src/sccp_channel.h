@@ -37,7 +37,7 @@ struct sccp_channel {
 	SCCP_LIST_ENTRY (sccp_channel_t) list;									/*!< Channel Linked List */
 	char dialedNumber[SCCP_MAX_EXTENSION];									/*!< Last Dialed Number */
 	const char * const designator;
-	sccp_subscription_id_t subscriptionId;
+	sccp_subscription_t subscriptionId;
 	boolean_t answered_elsewhere;										/*!< Answered Elsewhere */
 	boolean_t privacy;											/*!< Private */
 	boolean_t peerIsSCCP;											/*!< Indicates that channel-peer is also SCCP */

@@ -349,14 +349,14 @@ void sccp_util_featureStorageBackend(const sccp_event_t * const event)
  * \brief Parse Composed ID
  * \param labelString LabelString as string
  * \param maxLength Maximum Length as unsigned int
- * \param subscriptionId SubscriptionId as sccp_subscription_id_t (ByRef) [out]
+ * \param subscriptionId SubscriptionId as sccp_subscription_t (ByRef) [out]
  * \param extension char array [SCCP_MAX_EXTENSION] [out]
  * \return int containing number of matched subcription elements
  *
  * \callgraph
  * \callergraph
  */
-int sccp_parseComposedId(const char *buttonString, unsigned int maxLength, sccp_subscription_id_t *subscriptionId, char extension[SCCP_MAX_EXTENSION])
+int sccp_parseComposedId(const char *buttonString, unsigned int maxLength, sccp_subscription_t *subscriptionId, char extension[SCCP_MAX_EXTENSION])
 {
 	pbx_assert(NULL != buttonString && NULL != subscriptionId && NULL != extension);
 	int res = 0;
@@ -364,7 +364,7 @@ int sccp_parseComposedId(const char *buttonString, unsigned int maxLength, sccp_
 	uint32_t i = 0;
 	boolean_t endDetected = FALSE;
 	enum {EXTENSION, ID, CIDNAME, LABEL, AUX} state = EXTENSION;
-	memset(subscriptionId, 0, sizeof(sccp_subscription_id_t));
+	memset(subscriptionId, 0, sizeof(sccp_subscription_t));
 
 	for (stringIterator = buttonString; stringIterator < buttonString + maxLength && !endDetected; stringIterator++) {
 		switch (state) {
