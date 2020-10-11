@@ -84,8 +84,6 @@ sccp_channel_request_status_t sccp_requestChannel(const char * lineName, sccp_au
 			}
 		}
 		SCCP_LIST_UNLOCK(&l->devices);
-	} else {
-		memcpy(&my_sccp_channel->subscription, &l->defaultSubscription, sizeof(sccp_subscription_t));
 	}
 
 	my_sccp_channel->autoanswer_type = autoanswer_type;
@@ -314,12 +312,14 @@ int sccp_pbx_call(channelPtr c, const char * dest, int timeout)
 			c->subscribers--;
 			continue;
 		}
-		/* check if c->subscription.cid_num is matching deviceSubscriptionID */
-		/* This means that we call only those devices on a shared line
-		   which match the specified subscription id in the dial parameters. */
+
+		/* check if channes subscription matches linedevice
+		   This means that we call only those devices on a shared line
+		   which match the specified subscription id in the dial parameters.
+		*/
 		if(!sccp_util_matchSubscription(c, ld->subscription.id)) {
-			sccp_log((DEBUGCAT_PBX))(VERBOSE_PREFIX_3 "%s: device does not match subscription.cid_num c->subscription.id: '%s', deviceSubscriptionID: '%s'\n", DEV_ID_LOG(ld->device),
-						 c->subscription.id, ld->subscription.id);
+			sccp_log((DEBUGCAT_PBX))(VERBOSE_PREFIX_3 "%s: device does not match subscription.id c->subscription.id: '%s', deviceSubscriptionID: '%s'\n",
+				DEV_ID_LOG(ld->device), c->subscription.id, ld->subscription.id);
 			c->subscribers--;
 			continue;
 		}

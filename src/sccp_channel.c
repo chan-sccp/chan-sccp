@@ -296,6 +296,7 @@ channelPtr sccp_channel_allocate(constLinePtr l, constDevicePtr device)
 			}
 		}
 		channel->videomode = l->videomode;
+		memcpy(&channel->subscription, &l->defaultSubscription, sizeof(sccp_subscription_t));
 
 		/* run setters */
 		sccp_line_addChannel(l, channel);

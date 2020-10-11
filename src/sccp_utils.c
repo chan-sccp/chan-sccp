@@ -363,7 +363,7 @@ int sccp_parseComposedId(const char *buttonString, unsigned int maxLength, sccp_
 	const char *stringIterator = 0;
 	uint32_t i = 0;
 	boolean_t endDetected = FALSE;
-	enum {EXTENSION, ID, CIDNAME, LABEL, AUX} state = EXTENSION;
+	enum {EXTENSION, ID, CIDNUM, CIDNAME, LABEL, AUX} state = EXTENSION;
 	memset(subscription, 0, sizeof(sccp_subscription_t));
 
 	for (stringIterator = buttonString; stringIterator < buttonString + maxLength && !endDetected; stringIterator++) {
@@ -397,16 +397,53 @@ int sccp_parseComposedId(const char *buttonString, unsigned int maxLength, sccp_
 
 			case ID:										// parsing of sub id number
 
-                                // button = line, 98099@=98041:cid_name#label !default
+                                // button = line, 98099@1:=98041$cid_name#label !default
 
                                 // 98099 is the linename
-                                // @ starts a subscriptionid
-                                // = replace the cid of the line with the one of the button
-                                // 98041 is the replacement subscriptionid... also used the replacement cidnum
-                                // cid_name is the new cid_name to use
+                                // @ starts a subscriptionid section
+                                // : starts the callerid section
+                                // +/= add to or replace the cid
+                                // 98041 is the cid_num part
+                                // $ splits the cid_num from the cid_name part
+                                // cid_name is the cid_name part
                                 // label is the new label to use
                                 // ! starts the options / AUX
                                 // default makes this the default line to dial out on
+                                // silent is another AUX option
+
+				pbx_assert(i < sizeof(subscription->id));
+				switch (*stringIterator) {
+					case '\0':
+						subscription->id[i] = '\0';
+						endDetected = TRUE;
+						res++;
+						break;
+					case ':':
+						subscription->id[i] = '\0';
+						i = 0;
+						state = CIDNUM;
+						res++;
+						break;
+					case '#':
+						subscription->id[i] = '\0';
+						i = 0;
+						state = LABEL;
+						res++;
+						break;
+					case '!':
+						subscription->id[i] = '\0';
+						i = 0;
+						state = AUX;
+						res++;
+						break;
+					default:
+						subscription->id[i] = *stringIterator;
+						i++;
+						break;
+				}
+				break;
+
+			case CIDNUM:										// parsing of cid_num
 
 				pbx_assert(i < sizeof(subscription->cid_num));
 				switch (*stringIterator) {
@@ -425,14 +462,14 @@ int sccp_parseComposedId(const char *buttonString, unsigned int maxLength, sccp_
 							subscription->replaceCid = 1;
 						}
 						break;
-					case ':':
+					case '$':
 						subscription->cid_num[i] = '\0';				// assign cidnum
 						i = 0;
 						state = CIDNAME;
 						res++;
 						break;
 					case '#':
-						subscription->cid_name[i] = '\0';
+						subscription->cid_num[i] = '\0';
 						i = 0;
 						state = LABEL;
 						res++;
@@ -450,7 +487,7 @@ int sccp_parseComposedId(const char *buttonString, unsigned int maxLength, sccp_
 				}
 				break;
 
-			case CIDNAME:										// parsing of sub id name
+			case CIDNAME:										// parsing of cid_name
 				pbx_assert(i < sizeof(subscription->cid_name));
 				switch (*stringIterator) {
 					case '\0':
@@ -519,6 +556,9 @@ int sccp_parseComposedId(const char *buttonString, unsigned int maxLength, sccp_
 				break;
 		}
 	}
+	sccp_log(DEBUGCAT_CONFIG)(VERBOSE_PREFIX_3 "buttonString: %s, exten:%s, subId:%s, subCidNum:%s, subCidName:%s, replace:%s, Label:%s, Aux:%s\n",
+		buttonString, extension, subscription->id, subscription->cid_num, subscription->cid_name, subscription->replaceCid ? "Y" : "N", subscription->label, subscription->aux);
+	
 	return res;
 }
 

@@ -1174,10 +1174,14 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 #define CLI_AMI_TABLE_BEFORE_ITERATION                                                                                                                                                   \
 	if(buttonconfig->type == LINE) {                                                                                                                                                 \
 		AUTO_RELEASE(sccp_line_t, l, sccp_line_find_byname(buttonconfig->button.line.name, FALSE));                                                                              \
-		char subscriptionBuf[21] = "";                                                                                                                                         \
-		if(buttonconfig->button.line.subscription) {                                                                                                                           \
-			snprintf(subscriptionBuf, 21, "(%s)%s:%s", buttonconfig->button.line.subscription->replaceCid ? "=" : "+", buttonconfig->button.line.subscription->cid_num, \
-				 buttonconfig->button.line.subscription->cid_name);                                                                                                        \
+		char subscriptionBuf[21] = "";                                                                                                                                           \
+		if(buttonconfig->button.line.subscription) {                                                                                                                             \
+			snprintf(subscriptionBuf, 21, "%s:%s%s,%s",                                                                                                                      \
+				buttonconfig->button.line.subscription->id,                                                                                                              \
+				buttonconfig->button.line.subscription->replaceCid ? "=" : "+",                                                                                          \
+			        buttonconfig->button.line.subscription->cid_num,                                                                                                         \
+			        buttonconfig->button.line.subscription->cid_name                                                                                                         \
+			);                                                                                                        \
 		}                                                                                                                                                                        \
 		if(l) {                                                                                                                                                                  \
 			AUTO_RELEASE(sccp_linedevice_t, ld, sccp_linedevice_find(d, l));                                                                                                 \
@@ -1190,8 +1194,8 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 #define CLI_AMI_TABLE_FIELDS                                                                                                                                                      \
 	CLI_AMI_TABLE_FIELD(Id, "-4", d, 4, buttonconfig->index + 1)                                                                                                              \
 	CLI_AMI_TABLE_UTF8_FIELD(Name, "-23.23", s, 23, l->name)                                                                                                                  \
-	CLI_AMI_TABLE_FIELD(SubId, "-21.21", s, 21, subscriptionBuf)                                                                                                            \
-	CLI_AMI_TABLE_UTF8_FIELD(Label, "-18.18", s, 18, buttonconfig->button.line.subscription ? buttonconfig->button.line.subscription->label : (l->label ? l->label : "")) \
+	CLI_AMI_TABLE_FIELD(SubId, "-21.21", s, 21, subscriptionBuf)                                                                                                              \
+	CLI_AMI_TABLE_UTF8_FIELD(Label, "-18.18", s, 18, buttonconfig->button.line.subscription ? buttonconfig->button.line.subscription->label : (l->label ? l->label : ""))     \
 	CLI_AMI_TABLE_FIELD(CallForward, "46.46", s, 46, cfwd_str_buf)
 #include "sccp_cli_table.h"
 			local_table_total++;

@@ -2109,13 +2109,14 @@ sccp_value_changed_t sccp_config_checkButton(sccp_buttonconfig_list_t *buttoncon
 				sccp_subscription_t subscription;
 				int parseRes = sccp_parseComposedId(name, 80, &subscription, extension);
 				if (parseRes) {
-					sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCP: ComposedId extension: %s, subscription[number:%s, name:%s, label:%s, aux:%s]\n", extension, subscription.cid_num, subscription.cid_name, subscription.label, subscription.aux);
+					sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCP: ComposedId extension: %s, subscription[id:%s, cid_num:%s, cid_name:%s, label:%s, aux:%s]\n", extension, subscription.id, subscription.cid_num, subscription.cid_name, subscription.label, subscription.aux);
 					if (LINE == config->type &&
 						sccp_strequals(config->label, name) && 
 						sccp_strequals(config->button.line.name, extension) && 
 						((!config->button.line.subscription && parseRes == 1) || 
 						(config->button.line.subscription &&
 							(
+								sccp_strcaseequals(config->button.line.subscription->id, subscription.id) &&
 								sccp_strcaseequals(config->button.line.subscription->cid_num, subscription.cid_num) &&
 								sccp_strequals(config->button.line.subscription->cid_name, subscription.cid_name) && 
 								sccp_strequals(config->button.line.subscription->label, subscription.label) && 
@@ -2268,12 +2269,12 @@ sccp_value_changed_t sccp_config_addButton(sccp_buttonconfig_list_t *buttonconfi
  			}
 			if (sccp_parseComposedId(name, 80, subscription, extension)) {;
 				sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCP: Line Button Definition\n");
-				sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCP: ComposedId extension: %s, subscription[number:%s, name:%s, label:%s, aux:%s]\n", extension, subscription->cid_num, subscription->cid_name, subscription->label, subscription->aux);
+				sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCP: ComposedId extension: %s, subscription[id:%s, cid_num:%s, cid_name:%s, label:%s, aux:%s]\n", extension, subscription->id, subscription->cid_num, subscription->cid_name, subscription->label, subscription->aux);
 				config->type = LINE;
 				config->label = pbx_strdup(name);
 				config->button.line.name = pbx_strdup(extension);
 				
-				if (!sccp_strlen_zero(subscription->cid_num) || !sccp_strlen_zero(subscription->cid_name) || !sccp_strlen_zero(subscription->label) || !sccp_strlen_zero(subscription->aux)) {
+				if (!sccp_strlen_zero(subscription->id) || !sccp_strlen_zero(subscription->cid_num) || !sccp_strlen_zero(subscription->cid_name) || !sccp_strlen_zero(subscription->label) || !sccp_strlen_zero(subscription->aux)) {
 					config->button.line.subscription = subscription;
 				} else {
 					sccp_free(subscription);
