@@ -1183,8 +1183,8 @@ int sccp_feat_singleline_barge(channelPtr c, const char * const exten)
 		sccp_channel_setChannelstate(c, SCCP_CHANNELSTATE_PROCEED);
 
 		// update caller info
-		//sccp_channel_set_calledparty(c, "barged", !sccp_strlen_zero(bargedChannel->subscriptionId.cid_name) ? bargedChannel->subscriptionId.cid_name : bargedChannel->subscriptionId.cid_num);
-		sccp_channel_set_callingparty(c, "barger", !sccp_strlen_zero(c->subscriptionId.cid_name) ? c->subscriptionId.cid_name : c->subscriptionId.cid_num);
+		//sccp_channel_set_calledparty(c, "barged", !sccp_strlen_zero(bargedChannel->subscription.cid_name) ? bargedChannel->subscription.cid_name : bargedChannel->subscription.cid_num);
+		sccp_channel_set_callingparty(c, "barger", !sccp_strlen_zero(c->subscription.cid_name) ? c->subscription.cid_name : c->subscription.cid_num);
 
 		// execute softswitch
 		sccp_pbx_softswitch(c);
@@ -1281,8 +1281,8 @@ int sccp_feat_sharedline_barge(constLineDevicePtr bargingLD, channelPtr bargedCh
 			sccp_channel_setChannelstate(c, SCCP_CHANNELSTATE_PROCEED);
 
 			// update caller info
-			sccp_channel_set_calledparty(c, "barged", !sccp_strlen_zero(bargedChannel->subscriptionId.cid_name) ? bargedChannel->subscriptionId.cid_name : bargedChannel->subscriptionId.cid_num);
-			sccp_channel_set_callingparty(c, "barger", !sccp_strlen_zero(c->subscriptionId.cid_name) ? c->subscriptionId.cid_name : c->subscriptionId.cid_num);
+			sccp_channel_set_calledparty(c, "barged", !sccp_strlen_zero(bargedChannel->subscription.cid_name) ? bargedChannel->subscription.cid_name : bargedChannel->subscription.cid_num);
+			sccp_channel_set_callingparty(c, "barger", !sccp_strlen_zero(c->subscription.cid_name) ? c->subscription.cid_name : c->subscription.cid_num);
 
 			// execute softswitch
 			sccp_pbx_softswitch(c);

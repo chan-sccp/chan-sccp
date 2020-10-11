@@ -79,13 +79,13 @@ sccp_channel_request_status_t sccp_requestChannel(const char * lineName, sccp_au
 		sccp_linedevice_t *ld;
 		SCCP_LIST_LOCK(&l->devices);
 		SCCP_LIST_TRAVERSE(&l->devices, ld, list) {
-			if (sccp_strcaseequals(ld->subscriptionId.id, subId)) {
-				memcpy(&my_sccp_channel->subscriptionId, &ld->subscriptionId, sizeof(sccp_subscription_t));
+			if (sccp_strcaseequals(ld->subscription.id, subId)) {
+				memcpy(&my_sccp_channel->subscription, &ld->subscription, sizeof(sccp_subscription_t));
 			}
 		}
 		SCCP_LIST_UNLOCK(&l->devices);
 	} else {
-		memcpy(&my_sccp_channel->subscriptionId, &l->defaultSubscriptionId, sizeof(sccp_subscription_t));
+		memcpy(&my_sccp_channel->subscription, &l->defaultSubscription, sizeof(sccp_subscription_t));
 	}
 
 	my_sccp_channel->autoanswer_type = autoanswer_type;
@@ -314,12 +314,12 @@ int sccp_pbx_call(channelPtr c, const char * dest, int timeout)
 			c->subscribers--;
 			continue;
 		}
-		/* check if c->subscriptionId.cid_num is matching deviceSubscriptionID */
+		/* check if c->subscription.cid_num is matching deviceSubscriptionID */
 		/* This means that we call only those devices on a shared line
 		   which match the specified subscription id in the dial parameters. */
-		if(!sccp_util_matchSubscriptionId(c, ld->subscriptionId.id)) {
-			sccp_log((DEBUGCAT_PBX))(VERBOSE_PREFIX_3 "%s: device does not match subscriptionId.cid_num c->subscriptionId.id: '%s', deviceSubscriptionID: '%s'\n", DEV_ID_LOG(ld->device),
-						 c->subscriptionId.id, ld->subscriptionId.id);
+		if(!sccp_util_matchSubscription(c, ld->subscription.id)) {
+			sccp_log((DEBUGCAT_PBX))(VERBOSE_PREFIX_3 "%s: device does not match subscription.cid_num c->subscription.id: '%s', deviceSubscriptionID: '%s'\n", DEV_ID_LOG(ld->device),
+						 c->subscription.id, ld->subscription.id);
 			c->subscribers--;
 			continue;
 		}
@@ -822,12 +822,12 @@ boolean_t sccp_pbx_channel_allocate(constChannelPtr channel, const void * ids, c
 		}
 
 		sccp_callinfo_t *ci = sccp_channel_getCallInfo(c);
-		if(ld->subscriptionId.replaceCid) {
-			snprintf(cid_num, StationMaxDirnumSize, "%s", sccp_strlen_zero(ld->subscriptionId.cid_num) ? l->cid_num : ld->subscriptionId.cid_num);
-			snprintf(cid_name, StationMaxNameSize, "%s", sccp_strlen_zero(ld->subscriptionId.cid_name) ? l->cid_name : ld->subscriptionId.cid_name);
+		if(ld->subscription.replaceCid) {
+			snprintf(cid_num, StationMaxDirnumSize, "%s", sccp_strlen_zero(ld->subscription.cid_num) ? l->cid_num : ld->subscription.cid_num);
+			snprintf(cid_name, StationMaxNameSize, "%s", sccp_strlen_zero(ld->subscription.cid_name) ? l->cid_name : ld->subscription.cid_name);
 		} else {
-			snprintf(cid_num, StationMaxDirnumSize, "%s%s", l->cid_num, sccp_strlen_zero(ld->subscriptionId.cid_num) ? "" : ld->subscriptionId.cid_num);
-			snprintf(cid_name, StationMaxNameSize, "%s%s", l->cid_name, sccp_strlen_zero(ld->subscriptionId.cid_name) ? "" : ld->subscriptionId.cid_name);
+			snprintf(cid_num, StationMaxDirnumSize, "%s%s", l->cid_num, sccp_strlen_zero(ld->subscription.cid_num) ? "" : ld->subscription.cid_num);
+			snprintf(cid_name, StationMaxNameSize, "%s%s", l->cid_name, sccp_strlen_zero(ld->subscription.cid_name) ? "" : ld->subscription.cid_name);
 		}
 		switch (c->calltype) {
 			case SKINNY_CALLTYPE_INBOUND:

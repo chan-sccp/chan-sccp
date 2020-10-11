@@ -2106,20 +2106,20 @@ sccp_value_changed_t sccp_config_checkButton(sccp_buttonconfig_list_t *buttoncon
 			case LINE:
 			{
 				char extension[SCCP_MAX_EXTENSION];
-				sccp_subscription_t subscriptionId;
-				int parseRes = sccp_parseComposedId(name, 80, &subscriptionId, extension);
+				sccp_subscription_t subscription;
+				int parseRes = sccp_parseComposedId(name, 80, &subscription, extension);
 				if (parseRes) {
-					sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCP: ComposedId extension: %s, subscriptionId[number:%s, name:%s, label:%s, aux:%s]\n", extension, subscriptionId.cid_num, subscriptionId.cid_name, subscriptionId.label, subscriptionId.aux);
+					sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCP: ComposedId extension: %s, subscription[number:%s, name:%s, label:%s, aux:%s]\n", extension, subscription.cid_num, subscription.cid_name, subscription.label, subscription.aux);
 					if (LINE == config->type &&
 						sccp_strequals(config->label, name) && 
 						sccp_strequals(config->button.line.name, extension) && 
-						((!config->button.line.subscriptionId && parseRes == 1) || 
-						(config->button.line.subscriptionId &&
+						((!config->button.line.subscription && parseRes == 1) || 
+						(config->button.line.subscription &&
 							(
-								sccp_strcaseequals(config->button.line.subscriptionId->cid_num, subscriptionId.cid_num) &&
-								sccp_strequals(config->button.line.subscriptionId->cid_name, subscriptionId.cid_name) && 
-								sccp_strequals(config->button.line.subscriptionId->label, subscriptionId.label) && 
-								sccp_strequals(config->button.line.subscriptionId->aux, subscriptionId.aux)
+								sccp_strcaseequals(config->button.line.subscription->cid_num, subscription.cid_num) &&
+								sccp_strequals(config->button.line.subscription->cid_name, subscription.cid_name) && 
+								sccp_strequals(config->button.line.subscription->label, subscription.label) && 
+								sccp_strequals(config->button.line.subscription->aux, subscription.aux)
 							)
 						))
 					) {
@@ -2261,26 +2261,26 @@ sccp_value_changed_t sccp_config_addButton(sccp_buttonconfig_list_t *buttonconfi
 		case LINE:
 		{
 			char extension[SCCP_MAX_EXTENSION];
-			sccp_subscription_t * subscriptionId = (sccp_subscription_t *)sccp_calloc(1, sizeof(sccp_subscription_t));
-			if (!subscriptionId) {
+			sccp_subscription_t * subscription = (sccp_subscription_t *)sccp_calloc(1, sizeof(sccp_subscription_t));
+			if (!subscription) {
 				pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, "SCCP");
 				return SCCP_CONFIG_CHANGE_INVALIDVALUE;
  			}
-			if (sccp_parseComposedId(name, 80, subscriptionId, extension)) {;
+			if (sccp_parseComposedId(name, 80, subscription, extension)) {;
 				sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCP: Line Button Definition\n");
-				sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCP: ComposedId extension: %s, subscriptionId[number:%s, name:%s, label:%s, aux:%s]\n", extension, subscriptionId->cid_num, subscriptionId->cid_name, subscriptionId->label, subscriptionId->aux);
+				sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCP: ComposedId extension: %s, subscription[number:%s, name:%s, label:%s, aux:%s]\n", extension, subscription->cid_num, subscription->cid_name, subscription->label, subscription->aux);
 				config->type = LINE;
 				config->label = pbx_strdup(name);
 				config->button.line.name = pbx_strdup(extension);
 				
-				if (!sccp_strlen_zero(subscriptionId->cid_num) || !sccp_strlen_zero(subscriptionId->cid_name) || !sccp_strlen_zero(subscriptionId->label) || !sccp_strlen_zero(subscriptionId->aux)) {
-					config->button.line.subscriptionId = subscriptionId;
+				if (!sccp_strlen_zero(subscription->cid_num) || !sccp_strlen_zero(subscription->cid_name) || !sccp_strlen_zero(subscription->label) || !sccp_strlen_zero(subscription->aux)) {
+					config->button.line.subscription = subscription;
 				} else {
-					sccp_free(subscriptionId);
+					sccp_free(subscription);
 				}
 			} else {
 				pbx_log(LOG_WARNING, "SCCP: button definition:'%s' could not be parsed\n", name);
-				sccp_free(subscriptionId);
+				sccp_free(subscription);
 				return SCCP_CONFIG_CHANGE_INVALIDVALUE;
 			}
 			if (options) {

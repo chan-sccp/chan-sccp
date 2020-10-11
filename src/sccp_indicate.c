@@ -192,8 +192,8 @@ void __sccp_indicate (constDevicePtr maybe_device, channelPtr c, const sccp_chan
 						remoteDevice = ownlinedevice->device;
 
 						if (d && remoteDevice && remoteDevice == d) {
-							sccp_log((DEBUGCAT_INDICATE + DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "%s: Found matching ld. Aux parameter = %s\n", d->id, ownlinedevice->subscriptionId.aux);
-							if (0 == strncmp(ownlinedevice->subscriptionId.aux, "silent", 6)) {
+							sccp_log((DEBUGCAT_INDICATE + DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "%s: Found matching ld. Aux parameter = %s\n", d->id, ownlinedevice->subscription.aux);
+							if (0 == strncmp(ownlinedevice->subscription.aux, "silent", 6)) {
 								sccp_dev_set_ringer(d, SKINNY_RINGTYPE_SILENT, SKINNY_RINGDURATION_NORMAL, lineInstance, c->callid);
 								sccp_log((DEBUGCAT_INDICATE + DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "%s: Forcing silent ring for specific device.\n", d->id);
 							} else {

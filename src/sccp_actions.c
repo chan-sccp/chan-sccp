@@ -1061,7 +1061,7 @@ static btnlist *sccp_make_button_template(devicePtr d)
 						/*! retains new line in btn[i].ptr, finally released in sccp_dev_clean */
 						if ((btn[i].ptr = sccp_line_find_byname(buttonconfig->button.line.name, TRUE))) {
 							buttonconfig->instance = btn[i].instance = lineInstance++;
-							sccp_linedevice_create(d, btn[i].ptr, btn[i].instance, buttonconfig->button.line.subscriptionId);
+							sccp_linedevice_create(d, btn[i].ptr, btn[i].instance, buttonconfig->button.line.subscription);
 							if (FALSE == defaultLineSet && !d->defaultLineInstance) {
 								d->defaultLineInstance = buttonconfig->instance;
 								defaultLineSet = TRUE;
@@ -1277,7 +1277,7 @@ static btnlist *sccp_make_button_template(devicePtr d)
 		btn[i].type = SKINNY_BUTTONTYPE_LINE;
 		btn[i].ptr = sccp_line_retain(GLOB(hotline)->line);
 		buttonconfig->instance = btn[i].instance = d->defaultLineInstance = SCCP_FIRST_LINEINSTANCE;
-		sccp_linedevice_create(d, btn[i].ptr, btn[i].instance, buttonconfig->button.line.subscriptionId);
+		sccp_linedevice_create(d, btn[i].ptr, btn[i].instance, buttonconfig->button.line.subscription);
 	}
 
 	// all non defined buttons are set to UNUSED
@@ -1548,11 +1548,11 @@ void handle_line_number(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 		SCCP_LIST_LOCK(&d->buttonconfig);
 		SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
 			if (config->type == LINE && config->instance == lineNumber) {
-				if (config->button.line.subscriptionId && !sccp_strlen_zero(config->button.line.subscriptionId->label)) {
-					if (config->button.line.subscriptionId->replaceCid) {
-						snprintf(displayName, SCCP_MAX_LABEL, "%s", config->button.line.subscriptionId->label);
+				if (config->button.line.subscription && !sccp_strlen_zero(config->button.line.subscription->label)) {
+					if (config->button.line.subscription->replaceCid) {
+						snprintf(displayName, SCCP_MAX_LABEL, "%s", config->button.line.subscription->label);
 					} else {
-						snprintf(displayName, SCCP_MAX_LABEL, "%s%s", l->label, config->button.line.subscriptionId->label);
+						snprintf(displayName, SCCP_MAX_LABEL, "%s%s", l->label, config->button.line.subscription->label);
 					}
 				} else {
 					snprintf(displayName, SCCP_MAX_LABEL, "%s", l->label);

@@ -2349,8 +2349,8 @@ static void sccp_buttonconfig_destroy(sccp_buttonconfig_t *buttonconfig)
 			if (buttonconfig->button.line.name) {
 				sccp_free(buttonconfig->button.line.name);
 			}
-			if (buttonconfig->button.line.subscriptionId) {
-				sccp_free(buttonconfig->button.line.subscriptionId);
+			if (buttonconfig->button.line.subscription) {
+				sccp_free(buttonconfig->button.line.subscription);
 			}
 			if (buttonconfig->button.line.options) {
 				sccp_free(buttonconfig->button.line.options);

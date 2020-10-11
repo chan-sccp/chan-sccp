@@ -38,7 +38,7 @@ struct sccp_buttonconfig {
 		 */
 		struct /* sccp_line */ {
 			char *name;										/*!< Button Name */
-			sccp_subscription_t *subscriptionId;
+			sccp_subscription_t *subscription;
 			char *options;
 		} line;												/*!< SCCP Button Line Structure */
 

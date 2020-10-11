@@ -2158,16 +2158,16 @@ static int channel_resume_locked(devicePtr d, linePtr l, channelPtr channel, boo
 		if(ld) {
 			char tmpNumber[StationMaxDirnumSize] = {0};
 			char tmpName[StationMaxNameSize] = {0};
-			if(!sccp_strlen_zero(ld->subscriptionId.cid_num)) {
-				snprintf(tmpNumber, StationMaxDirnumSize, "%s%s", channel->line->cid_num, ld->subscriptionId.cid_num);
+			if(!sccp_strlen_zero(ld->subscription.cid_num)) {
+				snprintf(tmpNumber, StationMaxDirnumSize, "%s%s", channel->line->cid_num, ld->subscription.cid_num);
 			} else {
-				snprintf(tmpNumber, StationMaxDirnumSize, "%s%s", channel->line->cid_num, channel->line->defaultSubscriptionId.cid_num);
+				snprintf(tmpNumber, StationMaxDirnumSize, "%s%s", channel->line->cid_num, channel->line->defaultSubscription.cid_num);
 			}
 
-			if(!sccp_strlen_zero(ld->subscriptionId.cid_name)) {
-				snprintf(tmpName, StationMaxNameSize, "%s%s", channel->line->cid_name, ld->subscriptionId.cid_name);
+			if(!sccp_strlen_zero(ld->subscription.cid_name)) {
+				snprintf(tmpName, StationMaxNameSize, "%s%s", channel->line->cid_name, ld->subscription.cid_name);
 			} else {
-				snprintf(tmpName, StationMaxNameSize, "%s%s", channel->line->cid_name, channel->line->defaultSubscriptionId.cid_name);
+				snprintf(tmpName, StationMaxNameSize, "%s%s", channel->line->cid_name, channel->line->defaultSubscription.cid_name);
 			}
 			if(channel->calltype == SKINNY_CALLTYPE_OUTBOUND) {
 				iCallInfo.SetCallingParty(channel->privateData->callInfo, tmpNumber, tmpName, NULL);
@@ -3338,7 +3338,7 @@ channelPtr sccp_channel_find_bystate_on_device(constDevicePtr device, sccp_chann
 			if (l) {
 				sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_BUTTONTEMPLATE + DEBUGCAT_CHANNEL + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: line: '%s'\n", d->id, l->name);
 				SCCP_LIST_LOCK(&l->channels);
-				c = SCCP_LIST_FIND(&l->channels, sccp_channel_t, tmpc, list, (tmpc->state == state && sccp_util_matchSubscriptionId(tmpc, d->lineButtons.instance[instance]->subscriptionId.cid_num)), TRUE, __FILE__, __LINE__, __PRETTY_FUNCTION__);
+				c = SCCP_LIST_FIND(&l->channels, sccp_channel_t, tmpc, list, (tmpc->state == state && sccp_util_matchSubscription(tmpc, d->lineButtons.instance[instance]->subscription.cid_num)), TRUE, __FILE__, __LINE__, __PRETTY_FUNCTION__);
 				SCCP_LIST_UNLOCK(&l->channels);
 				if (c) {
 					break;

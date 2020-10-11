@@ -1174,10 +1174,10 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 #define CLI_AMI_TABLE_BEFORE_ITERATION                                                                                                                                                   \
 	if(buttonconfig->type == LINE) {                                                                                                                                                 \
 		AUTO_RELEASE(sccp_line_t, l, sccp_line_find_byname(buttonconfig->button.line.name, FALSE));                                                                              \
-		char subscriptionIdBuf[21] = "";                                                                                                                                         \
-		if(buttonconfig->button.line.subscriptionId) {                                                                                                                           \
-			snprintf(subscriptionIdBuf, 21, "(%s)%s:%s", buttonconfig->button.line.subscriptionId->replaceCid ? "=" : "+", buttonconfig->button.line.subscriptionId->cid_num, \
-				 buttonconfig->button.line.subscriptionId->cid_name);                                                                                                        \
+		char subscriptionBuf[21] = "";                                                                                                                                         \
+		if(buttonconfig->button.line.subscription) {                                                                                                                           \
+			snprintf(subscriptionBuf, 21, "(%s)%s:%s", buttonconfig->button.line.subscription->replaceCid ? "=" : "+", buttonconfig->button.line.subscription->cid_num, \
+				 buttonconfig->button.line.subscription->cid_name);                                                                                                        \
 		}                                                                                                                                                                        \
 		if(l) {                                                                                                                                                                  \
 			AUTO_RELEASE(sccp_linedevice_t, ld, sccp_linedevice_find(d, l));                                                                                                 \
@@ -1190,8 +1190,8 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 #define CLI_AMI_TABLE_FIELDS                                                                                                                                                      \
 	CLI_AMI_TABLE_FIELD(Id, "-4", d, 4, buttonconfig->index + 1)                                                                                                              \
 	CLI_AMI_TABLE_UTF8_FIELD(Name, "-23.23", s, 23, l->name)                                                                                                                  \
-	CLI_AMI_TABLE_FIELD(SubId, "-21.21", s, 21, subscriptionIdBuf)                                                                                                            \
-	CLI_AMI_TABLE_UTF8_FIELD(Label, "-18.18", s, 18, buttonconfig->button.line.subscriptionId ? buttonconfig->button.line.subscriptionId->label : (l->label ? l->label : "")) \
+	CLI_AMI_TABLE_FIELD(SubId, "-21.21", s, 21, subscriptionBuf)                                                                                                            \
+	CLI_AMI_TABLE_UTF8_FIELD(Label, "-18.18", s, 18, buttonconfig->button.line.subscription ? buttonconfig->button.line.subscription->label : (l->label ? l->label : "")) \
 	CLI_AMI_TABLE_FIELD(CallForward, "46.46", s, 46, cfwd_str_buf)
 #include "sccp_cli_table.h"
 			local_table_total++;
@@ -1394,8 +1394,8 @@ static int sccp_show_lines(int fd, sccp_cli_totals_t *totals, struct mansession 
 				}
 				SCCP_LIST_UNLOCK(&l->channels);
 				if (!s) {
-					pbx_cli(fd, "| %-13s %-3s%-6s %-30s %-16s %-16s %-4s %-4d %-10s %-10s %-26.26s %-10s |\n", !found_linedevice ? l->name : " +--", ld->subscriptionId.replaceCid ? "(=)" : "(+)",
-						ld->subscriptionId.cid_num, sccp_strlen_zero(ld->subscriptionId.label) ? (l->label ? l->label : "--") : ld->subscriptionId.label, l->description ? l->description : "--", d->id,
+					pbx_cli(fd, "| %-13s %-3s%-6s %-30s %-16s %-16s %-4s %-4d %-10s %-10s %-26.26s %-10s |\n", !found_linedevice ? l->name : " +--", ld->subscription.replaceCid ? "(=)" : "(+)",
+						ld->subscription.cid_num, sccp_strlen_zero(ld->subscription.label) ? (l->label ? l->label : "--") : ld->subscription.label, l->description ? l->description : "--", d->id,
 						(l->voicemailStatistic.newmsgs) ? "ON" : "OFF", SCCP_RWLIST_GETSIZE(&l->channels), (state != SCCP_CHANNELSTATE_SENTINEL) ? sccp_channelstate2str(state) : "--",
 						(calltype != SKINNY_CALLTYPE_SENTINEL) ? skinny_calltype2str(calltype) : "--", cid_name, cap_buf);
 				} else {
@@ -1404,8 +1404,8 @@ static int sccp_show_lines(int fd, sccp_cli_totals_t *totals, struct mansession 
 					astman_append(s, "ChannelObjectType: Line\r\n");
 					astman_append(s, "ActionId: %s\r\n", actionid);
 					astman_append(s, "Exten: %s\r\n", l->name);
-					astman_append(s, "SubscriptionNumber: %s\r\n", ld->subscriptionId.cid_num);
-					astman_append(s, "Label: %s\r\n", sccp_strlen_zero(ld->subscriptionId.label) ? l->label : ld->subscriptionId.label);
+					astman_append(s, "SubscriptionNumber: %s\r\n", ld->subscription.cid_num);
+					astman_append(s, "Label: %s\r\n", sccp_strlen_zero(ld->subscription.label) ? l->label : ld->subscription.label);
 					astman_append(s, "Description: %s\r\n", l->description ? l->description : "<not set>");
 					astman_append(s, "Device: %s\r\n", d->id);
 					astman_append(s, "MWI: %s\r\n", (l->voicemailStatistic.newmsgs) ? "ON" : "OFF");
@@ -1453,8 +1453,8 @@ static int sccp_show_lines(int fd, sccp_cli_totals_t *totals, struct mansession 
 			for (v = l->variables; v; v = v->next) {
 				pbx_cli(fd, "| %-13s %-9s %-30s = %-101.101s |\n", "", "Variable:", v->name, v->value);
 			}
-			if (!sccp_strlen_zero(l->defaultSubscriptionId.cid_num) || !sccp_strlen_zero(l->defaultSubscriptionId.cid_name)) {
-				pbx_cli(fd, "| %-13s %-9s %-30s %-103.103s |\n", "", "SubscrId:", l->defaultSubscriptionId.cid_num, l->defaultSubscriptionId.cid_name);
+			if (!sccp_strlen_zero(l->defaultSubscription.cid_num) || !sccp_strlen_zero(l->defaultSubscription.cid_name)) {
+				pbx_cli(fd, "| %-13s %-9s %-30s %-103.103s |\n", "", "SubscrId:", l->defaultSubscription.cid_num, l->defaultSubscription.cid_name);
 			}
 		}
 	}

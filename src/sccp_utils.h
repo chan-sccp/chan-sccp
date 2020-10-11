@@ -66,7 +66,7 @@ SCCP_API void SCCP_CALL sccp_safe_sleep(int ms);
 SCCP_INLINE const char * SCCP_CALL featureType2str(sccp_feature_type_t value);
 SCCP_INLINE const char * SCCP_CALL debugcat_keys(void);
 SCCP_API const char * SCCP_CALL skinny_ringermode2str(uint8_t type);
-SCCP_API int SCCP_CALL sccp_parseComposedId(const char *buttonString, unsigned int maxLength, sccp_subscription_t *subscriptionId, char extension[SCCP_MAX_EXTENSION]);
+SCCP_API int SCCP_CALL sccp_parseComposedId(const char *buttonString, unsigned int maxLength, sccp_subscription_t *subscription, char extension[SCCP_MAX_EXTENSION]);
 
 #ifndef HAVE_PBX_STRINGS_H
 SCCP_API char * SCCP_CALL pbx_skip_blanks(char *str);
@@ -81,7 +81,7 @@ SCCP_API unsigned SCCP_CALL int sccp_app_separate_args(char *buf, char delim, ch
 
 SCCP_API void SCCP_CALL sccp_util_featureStorageBackend(const sccp_event_t * const event);
 SCCP_API sccp_feature_type_t SCCP_CALL sccp_featureStr2featureID(const char *str);
-SCCP_API boolean_t __PURE__ SCCP_CALL sccp_util_matchSubscriptionId(constChannelPtr channel, const char * subscriptionIdNum);
+SCCP_API boolean_t __PURE__ SCCP_CALL sccp_util_matchSubscription(constChannelPtr channel, const char * subscription);
 SCCP_INLINE SCCP_CALL boolean_t sccp_netsock_equals(const struct sockaddr_storage * const s0, const struct sockaddr_storage *const s1);
 SCCP_INLINE SCCP_CALL size_t sccp_strlen(const char *data);
 SCCP_INLINE SCCP_CALL boolean_t sccp_strlen_zero(const char *data);

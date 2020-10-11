@@ -33,12 +33,12 @@ struct sccp_linedevice {
 
 	sccp_cfwd_information_t cfwd[SCCP_CFWD_SENTINEL];                                        //!< cfwd information
 
-	sccp_subscription_t subscriptionId;                                        //!< for addressing individual devices on shared line
+	sccp_subscription_t subscription;                                        //!< for addressing individual devices on shared line
 	char label[SCCP_MAX_LABEL];                                                   //!<
 	uint8_t lineInstance;                                                         //!< line instance of this->line on this->device
 }; /*!< SCCP Line-Device Structure */
 
-SCCP_API void SCCP_CALL sccp_linedevice_create(constDevicePtr d, constLinePtr line, uint8_t lineInstance, sccp_subscription_t * subscriptionId);
+SCCP_API void SCCP_CALL sccp_linedevice_create(constDevicePtr d, constLinePtr line, uint8_t lineInstance, sccp_subscription_t * subscription);
 SCCP_API void SCCP_CALL sccp_linedevice_remove(constDevicePtr device, linePtr l);
 SCCP_API void SCCP_CALL sccp_linedevice_cfwd(lineDevicePtr ld, sccp_cfwd_t type, char * number);
 SCCP_API const char * const SCCP_CALL sccp_linedevice_get_cfwd_string(constLineDevicePtr ld, char * const buffer, size_t size);

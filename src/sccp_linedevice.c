@@ -51,7 +51,7 @@ static int __sccp_lineDevice_destroy(const void * ptr)
 /*!
  * \brief Register Extension to Asterisk regextension
  * \param l SCCP Line
- * \param subscriptionId subscriptionId
+ * \param subscription subscription
  * \param onoff On/Off as int
  * \note used for DUNDi Discovery
  */
@@ -72,7 +72,7 @@ static void regcontext_exten(constLineDevicePtr ld, int onoff)
 		return;
 	}
 	sccp_line_t * l = ld->line;
-	// struct subscriptionId *subscriptionId = &(ld->subscriptionId);
+	// struct subscription *subscription = &(ld->subscription);
 
 	sccp_copy_string(multi, S_OR(l->regexten, l->name), sizeof(multi));
 	stringp = multi;
@@ -99,10 +99,10 @@ static void regcontext_exten(constLineDevicePtr ld, int onoff)
 					sccp_log((DEBUGCAT_LINE + DEBUGCAT_CONFIG))(VERBOSE_PREFIX_1 "Registered RegContext: %s, Extension: %s, Line: %s\n", context, ext, l->name);
 				}
 
-				/* register extension + subscriptionId */
-				/* if (subscriptionId && subscriptionId->cid_num && !sccp_strlen_zero(subscriptionId->cid_num) && !sccp_strlen_zero(subscriptionId->cid_name)) {
-				   snprintf(extension, sizeof(extension), "%s@%s", ext, subscriptionId->cid_num);
-				   snprintf(name, sizeof(name), "%s%s", l->name, subscriptionId->cid_name);
+				/* register extension + subscription */
+				/* if (subscription && subscription->cid_num && !sccp_strlen_zero(subscription->cid_num) && !sccp_strlen_zero(subscription->cid_name)) {
+				   snprintf(extension, sizeof(extension), "%s@%s", ext, subscription->cid_num);
+				   snprintf(name, sizeof(name), "%s%s", l->name, subscription->cid_name);
 				   if (!pbx_exists_extension(NULL, context, extension, 2, NULL) && pbx_add_extension(context, 0, extension, 2, NULL, NULL, "Noop", pbx_strdup(name), sccp_free_ptr, "SCCP")) {
 				   sccp_log((DEBUGCAT_LINE + DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "Registered RegContext: %s, Extension: %s, Line: %s\n", context, extension, name);
 				   }
@@ -117,9 +117,9 @@ static void regcontext_exten(constLineDevicePtr ld, int onoff)
 					}
 				}
 
-				/* unregister extension + subscriptionId */
-				/* if (subscriptionId && subscriptionId->cid_num && !sccp_strlen_zero(subscriptionId->cid_num) && !sccp_strlen_zero(subscriptionId->cid_name)) {
-				   snprintf(extension, sizeof(extension), "%s@%s", ext, subscriptionId->cid_num);
+				/* unregister extension + subscription */
+				/* if (subscription && subscription->cid_num && !sccp_strlen_zero(subscription->cid_num) && !sccp_strlen_zero(subscription->cid_name)) {
+				   snprintf(extension, sizeof(extension), "%s@%s", ext, subscription->cid_num);
 				   // if (pbx_exists_extension(NULL, context, extension, 2, NULL)) {
 				   if (pbx_find_extension(NULL, NULL, &q, context, extension, 2, NULL, "", E_MATCH)) {
 				   ast_context_remove_extension(context, extension, 2, NULL);
@@ -189,10 +189,10 @@ const char * const sccp_linedevice_get_cfwd_string(constLineDevicePtr ld, char *
  * \param line SCCP Line
  * \param d SCCP Device
  * \param lineInstance lineInstance as uint8_t
- * \param subscriptionId Subscription ID for addressing individual devices on the line
+ * \param subscription Subscription ID for addressing individual devices on the line
  *
  */
-void sccp_linedevice_create(constDevicePtr d, constLinePtr l, uint8_t lineInstance, sccp_subscription_t * subscriptionId)
+void sccp_linedevice_create(constDevicePtr d, constLinePtr l, uint8_t lineInstance, sccp_subscription_t * subscription)
 {
 	AUTO_RELEASE(sccp_line_t, line, sccp_line_retain(l));
 	AUTO_RELEASE(sccp_device_t, device, sccp_device_retain(d));
@@ -229,8 +229,8 @@ void sccp_linedevice_create(constDevicePtr d, constLinePtr l, uint8_t lineInstan
 	*(sccp_device_t **)&(ld->device) = sccp_device_retain(device);                                        // const cast to emplace device
 	*(sccp_line_t **)&(ld->line) = sccp_line_retain(line);                                                // const cast to emplace line
 	ld->lineInstance = lineInstance;
-	if(NULL != subscriptionId) {
-		memcpy(&ld->subscriptionId, subscriptionId, sizeof(ld->subscriptionId));
+	if(NULL != subscription) {
+		memcpy(&ld->subscription, subscription, sizeof(ld->subscription));
 	}
 
 	SCCP_LIST_LOCK(&line->devices);
