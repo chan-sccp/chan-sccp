@@ -105,6 +105,7 @@ SCCP_API char * SCCP_CALL sccp_trimwhitespace(char *str);
 SCCP_INLINE int SCCP_CALL sccp_atoi(const char * const buf, size_t buflen);
 SCCP_INLINE int SCCP_CALL sccp_utf8_columnwidth(int width, const char *const ms);
 SCCP_API int SCCP_CALL sccp_random(void);
+SCCP_API PBX_VARIABLE_TYPE * SCCP_CALL sccp_split_comma2variables(const char *inputstr, size_t inputLen);
 SCCP_API const char * SCCP_CALL sccp_retrieve_str_variable_byKey(PBX_VARIABLE_TYPE *params, const char *key);
 SCCP_API int SCCP_CALL sccp_retrieve_int_variable_byKey(PBX_VARIABLE_TYPE *params, const char *key);
 SCCP_API boolean_t SCCP_CALL sccp_append_variable(PBX_VARIABLE_TYPE *params, const char *key, const char *value);

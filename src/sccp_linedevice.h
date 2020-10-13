@@ -31,11 +31,12 @@ struct sccp_linedevice {
 	linePtr line;                                                                   //!< SCCP Line
 	SCCP_LIST_ENTRY(sccp_linedevice_t) list;                                        //!< Device Linked List Entry
 
-	sccp_cfwd_information_t cfwd[SCCP_CFWD_SENTINEL];                                        //!< cfwd information
+	sccp_cfwd_information_t cfwd[SCCP_CFWD_SENTINEL];                               //!< cfwd information
 
-	sccp_subscription_t subscription;                                        //!< for addressing individual devices on shared line
-	char label[SCCP_MAX_LABEL];                                                   //!<
-	uint8_t lineInstance;                                                         //!< line instance of this->line on this->device
+	//! TODO convert subscription to pointer, pointing at the line button subscription
+	sccp_subscription_t subscription;                                               //!< for addressing individual devices on shared line
+	char label[SCCP_MAX_LABEL];                                                     //!<
+	uint8_t lineInstance;                                                           //!< line instance of this->line on this->device
 }; /*!< SCCP Line-Device Structure */
 
 SCCP_API void SCCP_CALL sccp_linedevice_create(constDevicePtr d, constLinePtr line, uint8_t lineInstance, sccp_subscription_t * subscription);

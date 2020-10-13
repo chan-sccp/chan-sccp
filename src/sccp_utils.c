@@ -1601,6 +1601,43 @@ int sccp_random(void)
 	return (int)pbx_random();
 }
 
+/*
+ * splt comma separated string to PBX_VARIABLES
+ * caller is responsible for freeing PBX_VARIABLE
+ */
+PBX_VARIABLE_TYPE *sccp_split_comma2variables(const char *inputstr, size_t inputLen)
+{
+	PBX_VARIABLE_TYPE *root = NULL;
+	PBX_VARIABLE_TYPE *param = NULL;
+	char delims[]=",";
+	char buf[inputLen + 1];
+	sccp_copy_string(buf, inputstr, sizeof(buf));
+	char *tokenrest;
+	char *token = strtok_r(buf, delims, &tokenrest);
+	while (token != NULL) {
+		char *name = token;
+		if ((name = strsep(&token, "="))) {
+			char *value = token;
+			PBX_VARIABLE_TYPE *new_param = pbx_variable_new(name, value, "");
+			if (!new_param) {
+				pbx_log(LOG_ERROR, "SCCP: (sccp_config) Error while creating new var structure\n");
+				if (root) {
+					pbx_variables_destroy(root);
+				}
+				return NULL;
+			}
+			if (!root) {
+				root = param = new_param;
+			} else {
+				param->next = new_param;
+				param = param->next;
+			}
+		}
+		token = strtok_r(NULL, delims, &tokenrest);
+	}
+	return root;
+}
+
 const char * sccp_retrieve_str_variable_byKey(PBX_VARIABLE_TYPE *params, const char *key)
 {
 	PBX_VARIABLE_TYPE * param = NULL;

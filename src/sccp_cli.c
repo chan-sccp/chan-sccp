@@ -1176,12 +1176,12 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 		AUTO_RELEASE(sccp_line_t, l, sccp_line_find_byname(buttonconfig->button.line.name, FALSE));                                                                              \
 		char subscriptionBuf[21] = "";                                                                                                                                           \
 		if(buttonconfig->button.line.subscription) {                                                                                                                             \
-			snprintf(subscriptionBuf, 21, "%s:%s%s,%s",                                                                                                                      \
+			snprintf(subscriptionBuf, 21, "%s:%c%s$%s",                                                                                                                      \
 				buttonconfig->button.line.subscription->id,                                                                                                              \
-				buttonconfig->button.line.subscription->replaceCid ? "=" : "+",                                                                                          \
+				buttonconfig->button.line.subscription->replaceCid ? '=' : '+',                                                                                          \
 			        buttonconfig->button.line.subscription->cid_num,                                                                                                         \
-			        buttonconfig->button.line.subscription->cid_name                                                                                                         \
-			);                                                                                                        \
+			        buttonconfig->button.line.subscription->cid_name                                                                                                        \
+			);                                                                                                                                                               \
 		}                                                                                                                                                                        \
 		if(l) {                                                                                                                                                                  \
 			AUTO_RELEASE(sccp_linedevice_t, ld, sccp_linedevice_find(d, l));                                                                                                 \
@@ -1371,23 +1371,25 @@ static int sccp_show_lines(int fd, sccp_cli_totals_t *totals, struct mansession 
 			AUTO_RELEASE(sccp_device_t, d, sccp_device_retain(ld->device));
 			if (d) {
 				memset(&cap_buf, 0, sizeof(cap_buf));
-				char cid_name[StationMaxNameSize] = { 0 };
+				char cid_num[SCCP_MAX_EXTENSION] = { 0 };
+				char cid_name[SCCP_MAX_EXTENSION] = { 0 };
 				skinny_calltype_t calltype = SKINNY_CALLTYPE_SENTINEL;
 				sccp_channelstate_t state = SCCP_CHANNELSTATE_SENTINEL;
 				
 				SCCP_LIST_LOCK(&l->channels);
 				SCCP_LIST_TRAVERSE(&l->channels, channel, list) {
-					//if (channel && (channel->state != SCCP_CHANNELSTATE_CONNECTED || sccp_strequals(channel->currentDeviceId, d->id))) {
 					if (channel && (channel->state == SCCP_CHANNELSTATE_HOLD || sccp_strequals(channel->currentDeviceId, d->id))) {
 						if (channel->owner) {
 							pbx_getformatname_multiple(cap_buf, sizeof(cap_buf), pbx_channel_nativeformats(channel->owner));
 						}
 						if (channel->calltype == SKINNY_CALLTYPE_OUTBOUND) {
 							iCallInfo.Getter(sccp_channel_getCallInfo(channel), 
+								SCCP_CALLINFO_CALLEDPARTY_NUMBER, &cid_num,
 								SCCP_CALLINFO_CALLEDPARTY_NAME, &cid_name,
 								SCCP_CALLINFO_KEY_SENTINEL);
 						} else {
 							iCallInfo.Getter(sccp_channel_getCallInfo(channel), 
+								SCCP_CALLINFO_CALLINGPARTY_NUMBER, &cid_num,
 								SCCP_CALLINFO_CALLINGPARTY_NAME, &cid_name,
 								SCCP_CALLINFO_KEY_SENTINEL);
 						}
@@ -1398,17 +1400,27 @@ static int sccp_show_lines(int fd, sccp_cli_totals_t *totals, struct mansession 
 				}
 				SCCP_LIST_UNLOCK(&l->channels);
 				if (!s) {
-					pbx_cli(fd, "| %-13s %-3s%-6s %-30s %-16s %-16s %-4s %-4d %-10s %-10s %-26.26s %-10s |\n", !found_linedevice ? l->name : " +--", ld->subscription.replaceCid ? "(=)" : "(+)",
-						ld->subscription.cid_num, sccp_strlen_zero(ld->subscription.label) ? (l->label ? l->label : "--") : ld->subscription.label, l->description ? l->description : "--", d->id,
-						(l->voicemailStatistic.newmsgs) ? "ON" : "OFF", SCCP_RWLIST_GETSIZE(&l->channels), (state != SCCP_CHANNELSTATE_SENTINEL) ? sccp_channelstate2str(state) : "--",
-						(calltype != SKINNY_CALLTYPE_SENTINEL) ? skinny_calltype2str(calltype) : "--", cid_name, cap_buf);
+					pbx_cli(fd, "| %-13s %-1s%-6s %-30s %-16s %-16s %-4s %-4d %-10s %-10s %-10s %-26.26s %-10s |\n",
+						!found_linedevice ? l->name : " +--",
+						ld->subscription.replaceCid ? "=" : "+",
+						ld->subscription.id,
+						sccp_strlen_zero(ld->subscription.label) ? (l->label ? l->label : "--") : ld->subscription.label,
+						l->description ? l->description : "--",
+						d->id,
+						(l->voicemailStatistic.newmsgs) ? "ON" : "OFF",
+						SCCP_RWLIST_GETSIZE(&l->channels),
+						(state != SCCP_CHANNELSTATE_SENTINEL) ? sccp_channelstate2str(state) : "--",
+						(calltype != SKINNY_CALLTYPE_SENTINEL) ? skinny_calltype2str(calltype) : "--",
+						cid_num,
+						cid_name,
+						cap_buf);
 				} else {
 					astman_append(s, "Event: SCCPLineEntry\r\n");
 					astman_append(s, "ChannelType: SCCP\r\n");
 					astman_append(s, "ChannelObjectType: Line\r\n");
 					astman_append(s, "ActionId: %s\r\n", actionid);
 					astman_append(s, "Exten: %s\r\n", l->name);
-					astman_append(s, "SubscriptionNumber: %s\r\n", ld->subscription.cid_num);
+					astman_append(s, "SubscriptionNumber: %s\r\n", ld->subscription.id);
 					astman_append(s, "Label: %s\r\n", sccp_strlen_zero(ld->subscription.label) ? l->label : ld->subscription.label);
 					astman_append(s, "Description: %s\r\n", l->description ? l->description : "<not set>");
 					astman_append(s, "Device: %s\r\n", d->id);
@@ -1416,6 +1428,7 @@ static int sccp_show_lines(int fd, sccp_cli_totals_t *totals, struct mansession 
 					astman_append(s, "ActiveChannels: %d\r\n", SCCP_LIST_GETSIZE(&l->channels));
 					astman_append(s, "ChannelState: %s\r\n", (state != SCCP_CHANNELSTATE_SENTINEL) ? sccp_channelstate2str(state) : "--");
 					astman_append(s, "CallType: %s\r\n", (calltype != SKINNY_CALLTYPE_SENTINEL) ? skinny_calltype2str(calltype) : "--");
+					astman_append(s, "PartyNumber: %s\r\n", cid_num);
 					astman_append(s, "PartyName: %s\r\n", cid_name);
 					astman_append(s, "Capabilities: %s\r\n", cap_buf);
 					astman_append(s, "\r\n");

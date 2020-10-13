@@ -1549,6 +1549,7 @@ void handle_line_number(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 		SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
 			if (config->type == LINE && config->instance == lineNumber) {
 				if (config->button.line.subscription && !sccp_strlen_zero(config->button.line.subscription->label)) {
+					//! TODO should we be re-using replaceCid to determine if the label should be appended or copied ?
 					if (config->button.line.subscription->replaceCid) {
 						snprintf(displayName, SCCP_MAX_LABEL, "%s", config->button.line.subscription->label);
 					} else {

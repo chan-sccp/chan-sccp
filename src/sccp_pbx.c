@@ -50,9 +50,13 @@ sccp_channel_request_status_t sccp_requestChannel(const char * lineName, sccp_au
 		return SCCP_REQUEST_STATUS_ERROR;
 	}
 
-	char mainId[SCCP_MAX_EXTENSION];
-	char *subId = NULL;
-	scanf(lineName, "%[^@]@%s", &mainId, &subId);
+	char mainId[SCCP_MAX_EXTENSION] = {0}; // 80
+	char subId[SCCP_MAX_EXTENSION] = {0};
+
+	if (sscanf(lineName, "%79[^@]@%79s", mainId, subId) == 0) {
+		pbx_log(LOG_ERROR, "SCCP: lineName:'%s' could not be parse\n", lineName);
+		return SCCP_REQUEST_STATUS_ERROR;
+	}
 
 	AUTO_RELEASE(sccp_line_t, l, sccp_line_find_byname(mainId, FALSE));
 	if (!l) {
@@ -75,7 +79,7 @@ sccp_channel_request_status_t sccp_requestChannel(const char * lineName, sccp_au
 	}
 
 	/* set subscriberId for individual device addressing */
-	if (subId) {
+	if (!sccp_strlen_zero(subId)) {
 		sccp_linedevice_t *ld;
 		SCCP_LIST_LOCK(&l->devices);
 		SCCP_LIST_TRAVERSE(&l->devices, ld, list) {

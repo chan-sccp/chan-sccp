@@ -30,6 +30,8 @@ struct subscription {
 	char label[SCCP_MAX_LABEL];										/*!< button label replacement */
 	char aux[SCCP_MAX_AUX];											/*!< auxiliary parameter. Allows for phone-specific behaviour on a line. */
 	boolean_t replaceCid;											/*!< Should cidnumber be replaced instead of appended to, controled by the '=' subscription flag */
+	boolean_t isDefault;
+	boolean_t isSilent;
 };
 
 /*!
