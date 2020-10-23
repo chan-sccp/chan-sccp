@@ -1025,8 +1025,11 @@ error_exit:
 int sccp_pbx_sched_dial(const void * data)
 {
 	AUTO_RELEASE(sccp_channel_t, channel, sccp_channel_retain(data));
+
 	if(channel) {
 		if ((ATOMIC_FETCH(&channel->scheduler.deny, &channel->scheduler.lock) == 0) && channel->scheduler.hangup_id == -1) {
+			pbx_log (LOG_NOTICE, "%s !!! digittimeout_id:%d, owner:%p, channelPbx:%p (softswitch executed twice), dialed_number:%s!!!\n", channel->designator, channel->scheduler.digittimeout_id, channel->owner,
+				 iPbx.getChannelPbx (channel), channel->dialedNumber);
 			channel->scheduler.digittimeout_id = -3;	/* prevent further digittimeout scheduling */
 			if (channel->owner && !iPbx.getChannelPbx(channel) && !sccp_strlen_zero(channel->dialedNumber)) {
 				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: Timeout for call '%s'. Going to dial '%s'\n", channel->designator, channel->dialedNumber);
