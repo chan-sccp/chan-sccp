@@ -1487,9 +1487,8 @@ gcc_inline void sccp_channel_stop_schedule_digittimout(constChannelPtr channel)
 {
 	AUTO_RELEASE(sccp_channel_t, c , sccp_channel_retain(channel));
 
-	pbx_log (LOG_NOTICE, "%s !!! digittimeout_id:%d, sched_wait:%d !!!\n", channel->designator, channel->scheduler.digittimeout_id, iPbx.sched_wait (c->scheduler.digittimeout_id));
 	if (c && c->scheduler.digittimeout_id > -1) {
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: stop schedule digittimeout %d\n", c->designator, c->scheduler.digittimeout_id);
+		//sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: stop schedule digittimeout %d\n", c->designator, c->scheduler.digittimeout_id);
 		iPbx.sched_del_ref(&c->scheduler.digittimeout_id, c);
 	}
 }
@@ -1569,7 +1568,7 @@ gcc_inline void sccp_channel_stop_schedule_cfwd_noanswer(constChannelPtr channel
 	AUTO_RELEASE(sccp_channel_t, c, sccp_channel_retain(channel));
 
 	if (c && c->scheduler.cfwd_noanswer_id > -1) {
-		sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: stop schedule cfwd_noanswer_id %d\n", c->designator, c->scheduler.cfwd_noanswer_id);
+		//sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: stop schedule cfwd_noanswer_id %d\n", c->designator, c->scheduler.cfwd_noanswer_id);
 		iPbx.sched_del_ref(&c->scheduler.cfwd_noanswer_id, c);
 	}
 }
