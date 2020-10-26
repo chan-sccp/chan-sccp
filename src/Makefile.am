@@ -13,6 +13,9 @@ EXTRA_DIST 		= sccp_enum.in sccp_config_entries.hh
 BUILT_SOURCES           = revision.h sccp_enum.h sccp_enum.c
 CLEANFILES              = revision.h sccp_enum.h sccp_enum.c stamp-g1
 .PHONY:			force
+
+force:
+
 # generated files
 revision.gen:
 	@echo "  REV      revision.h";

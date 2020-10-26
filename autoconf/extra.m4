@@ -253,7 +253,7 @@ dnl	])
 	AC_CHECK_FUNCS([gethostbyname inet_ntoa mkdir]) 
 	AC_HEADER_STDC    
 	AC_HEADER_STDBOOL 
-	AC_CHECK_HEADERS([netinet/in.h fcntl.h sys/signal.h stdio.h errno.h ctype.h assert.h sys/sysinfo.h])
+	AC_CHECK_HEADERS([netinet/in.h fcntl.h signal.h sys/signal.h stdio.h errno.h ctype.h assert.h sys/sysinfo.h])
 	AC_STRUCT_TM
 	AC_STRUCT_TIMEZONE
 	CS_WITH_LIBSSL

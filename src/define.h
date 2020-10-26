@@ -17,8 +17,6 @@
 
 #pragma once
 #include "config.h"
-#include <pthread.h>
-
 /*!
  * \note most of these should be moved to autoconf/asterisk.m4 and be defined in config.h
  */

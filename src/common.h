@@ -39,6 +39,15 @@
 #if HAVE_STDBOOL_H
 #include <stdbool.h>
 #endif
+#if HAVE_SIGNAL_H
+#include <signal.h>
+#endif
+#if HAVE_PTHREAD_H
+#include <pthread.h>
+#endif
+#if HAVE_SYS_STAT_H
+#include <sys/stat.h>
+#endif
 
 #include "define.h"
 #include "forward_declarations.h"
