@@ -370,9 +370,15 @@ SCCP_API devicePtr SCCP_CALL sccp_device_create(const char * id);
 SCCP_API devicePtr SCCP_CALL sccp_device_createAnonymous(const char * name);
 SCCP_API void SCCP_CALL sccp_device_addToGlobals(constDevicePtr device);
 SCCP_API linePtr SCCP_CALL sccp_dev_getActiveLine(constDevicePtr device);
-SCCP_API void SCCP_CALL sccp_dev_setActiveLine(devicePtr device, constLinePtr l);
+//SCCP_API void SCCP_CALL sccp_dev_setActiveLine(devicePtr device, constLinePtr l);
+#define sccp_dev_setActiveLine(d, l) __sccp_dev_setActiveLine(d, l, __FILE__, __LINE__, __PRETTY_FUNCTION__)
+SCCP_API void SCCP_CALL __sccp_dev_setActiveLine(devicePtr device, constLinePtr l, const char *file, uint32_t line, const char *func);
+
 SCCP_API channelPtr SCCP_CALL sccp_device_getActiveChannel(constDevicePtr device);
-SCCP_API void SCCP_CALL sccp_device_setActiveChannel(constDevicePtr d, constChannelPtr channel);
+//SCCP_API void SCCP_CALL sccp_device_setActiveChannel(constDevicePtr d, constChannelPtr channel);
+#define sccp_device_setActiveChannel(_d,_c) __sccp_device_setActiveChannel(_d, _c, __FILE__, __LINE__, __PRETTY_FUNCTION__)
+SCCP_API void SCCP_CALL __sccp_device_setActiveChannel(constDevicePtr d, constChannelPtr channel, const char *file, uint32_t line, const char *func);
+
 SCCP_API sccp_buttonconfig_t * SCCP_CALL sccp_dev_serviceURL_find_byindex(devicePtr device, uint16_t instance);
 SCCP_API void SCCP_CALL sccp_dev_check_displayprompt(constDevicePtr d);
 SCCP_API void SCCP_CALL sccp_device_setLastNumberDialed(devicePtr device, const char * lastNumberDialed, const sccp_linedevice_t * ld);

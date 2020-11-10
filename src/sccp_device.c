@@ -2031,11 +2031,13 @@ linePtr sccp_dev_getActiveLine(constDevicePtr device)
  * \param device SCCP Device
  * \param l SCCP Line
  */
-void sccp_dev_setActiveLine(devicePtr device, constLinePtr l)
+// void sccp_dev_setActiveLine(devicePtr device, constLinePtr l)
+void __sccp_dev_setActiveLine(devicePtr device, constLinePtr l, const char *file, uint32_t line, const char *func)
 {
 	if (!device || !device->session) {
 		return;
 	}
+	//sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_1 "%s (setActiveLine) %s func called by %s:%s:%s\n", DEV_ID_LOG(device), (l) ? l->name : "<null>", line);
 	sccp_line_refreplace(&device->currentLine, l);
 
 	sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Set the active line %s\n", device->id, l ? l->name : "(NULL)");
@@ -2073,8 +2075,10 @@ channelPtr sccp_device_getActiveChannel(constDevicePtr device)
  * \param d SCCP Device
  * \param channel SCCP Channel
  */
-void sccp_device_setActiveChannel(constDevicePtr d, constChannelPtr channel)
+//void sccp_device_setActiveChannel(constDevicePtr d, constChannelPtr channel)
+void __sccp_device_setActiveChannel(constDevicePtr d, constChannelPtr channel, const char *file, uint32_t line, const char *func)
 {
+	//sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_1 "%s (setActiveChannel) %s func called by %s:%s:%s\n", DEV_ID_LOG(d), (channel) ? channel->designator : "<null>", line);
 	AUTO_RELEASE(sccp_device_t, device , sccp_device_retain(d));
 
 	if(device && device->active_channel != channel) {

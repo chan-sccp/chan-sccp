@@ -442,7 +442,7 @@ int sccp_pbx_call(channelPtr c, const char * dest, int timeout)
  */
 int sccp_pbx_cfwdnoanswer_cb(const void * data)
 {
-	AUTO_RELEASE(sccp_channel_t, c, sccp_channel_retain(data));
+	AUTO_RELEASE(sccp_channel_t, c, (channelPtr)data);			// explicitly taken in sccp_channel_schedule_cfwd_noanswer, releasing on exit
 	if(!c || !c->owner) {
 		pbx_log(LOG_WARNING, "SCCP: No channel provided.\n");
 		return -1;
@@ -454,45 +454,48 @@ int sccp_pbx_cfwdnoanswer_cb(const void * data)
 
 	AUTO_RELEASE(sccp_line_t, l, sccp_line_retain(c->line));
 	if(!l) {
-		pbx_log(LOG_WARNING, "SCCP: The channel %08X has no line. giving up.\n", (c->callid));
+		pbx_log(LOG_WARNING, "%s: The channel has no line. giving up.\n", c->designator);
 		return -2;
+	}
+
+	if (sccp_channel_isAnswering(c)) {
+		sccp_log(DEBUGCAT_CHANNEL)(VERBOSE_PREFIX_2 "%s: The channel is already being answered. canceling forward\n", c->designator);
+		return -3;
 	}
 
 	pbx_channel_lock(c->owner);
 	PBX_CHANNEL_TYPE * forwarder = pbx_channel_ref(c->owner);
 	pbx_channel_unlock(c->owner);
 
-	if(!forwarder || pbx_check_hangup(forwarder)) {
-		pbx_log(LOG_WARNING, "SCCP: The channel %08X was already hungup. giving up.\n", (c->callid));
+	if(!forwarder || c->isHangingUp || pbx_check_hangup_locked(forwarder)) {
+		pbx_log(LOG_WARNING, "%s: The channel was already hungup. giving up.\n", c->designator);
 		pbx_channel_unref(forwarder);
-		return -3;
+		return -4;
 	}
 
-	boolean_t bypassCallForward = !sccp_strlen_zero(pbx_builtin_getvar_helper(c->owner, "BYPASS_CFWD"));
+	boolean_t bypassCallForward = !sccp_strlen_zero(pbx_builtin_getvar_helper(forwarder, "BYPASS_CFWD"));
 
 	sccp_linedevice_t * ld = NULL;
 	SCCP_LIST_LOCK(&l->devices);
 	int num_devices = SCCP_LIST_GETSIZE(&l->devices);
 	SCCP_LIST_TRAVERSE(&l->devices, ld, list) {
 		/* do we have cfwd enabled? */
-		if(ld->cfwd[SCCP_CFWD_NOANSWER].enabled && !sccp_strlen_zero(ld->cfwd[SCCP_CFWD_NOANSWER].number)) {
-			if(!bypassCallForward) {
-				if(num_devices == 1) {
-					/* when single line -> use asterisk functionality directly, without creating new channel + masquerade */
-					sccp_log(DEBUGCAT_PBX)("%s: Redirecting call to callforward noanswer:%s\n", c->designator, ld->cfwd[SCCP_CFWD_NOANSWER].number);
+		if(ld->cfwd[SCCP_CFWD_NOANSWER].enabled && !sccp_strlen_zero(ld->cfwd[SCCP_CFWD_NOANSWER].number) && !bypassCallForward) {
+			if(num_devices == 1) {
+				/* when single line -> use asterisk functionality directly, without creating new channel + masquerade */
+				sccp_log(DEBUGCAT_PBX)("%s: Redirecting call to callforward noanswer:%s\n", c->designator, ld->cfwd[SCCP_CFWD_NOANSWER].number);
 #if CS_AST_CONTROL_REDIRECTING
-					iPbx.queue_control(c->owner, AST_CONTROL_REDIRECTING);
+				iPbx.queue_control(forwarder, AST_CONTROL_REDIRECTING);
 #endif
-					pbx_channel_call_forward_set(c->owner, ld->cfwd[SCCP_CFWD_NOANSWER].number);
-					sccp_device_sendcallstate(ld->device, ld->lineInstance, c->callid, SKINNY_CALLSTATE_INTERCOMONEWAY, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
-					sccp_channel_send_callinfo(ld->device, c);
-					iPbx.set_owner(c, NULL);
-					break;                                        //! \todo currently using only the first match.
-				} else {
-					/* shared line -> create a temp channel to call forward destination and tie them together */
-					pbx_log(LOG_NOTICE, "%s: handle cfwd to %s for line %s\n", ld->device->id, ld->cfwd[SCCP_CFWD_NOANSWER].number, l->name);
-					sccp_channel_forward(c, ld, ld->cfwd[SCCP_CFWD_NOANSWER].number);
-				};
+				pbx_channel_call_forward_set(forwarder, ld->cfwd[SCCP_CFWD_NOANSWER].number);
+				sccp_device_sendcallstate(ld->device, ld->lineInstance, c->callid, SKINNY_CALLSTATE_INTERCOMONEWAY, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+				sccp_channel_send_callinfo(ld->device, c);
+				iPbx.set_owner(c, NULL);
+				break;                                        //! \todo currently using only the first match.
+			} else {
+				/* shared line -> create a temp channel to call forward destination and tie them together */
+				pbx_log(LOG_NOTICE, "%s: handle cfwd to %s for line %s\n", ld->device->id, ld->cfwd[SCCP_CFWD_NOANSWER].number, l->name);
+				sccp_channel_forward(c, ld, ld->cfwd[SCCP_CFWD_NOANSWER].number);
 			}
 		}
 	}

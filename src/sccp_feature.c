@@ -191,7 +191,7 @@ static int sccp_feat_perform_pickup(constDevicePtr d, channelPtr c, PBX_CHANNEL_
 	if(!res) {                                        // directed pickup succeeded
 		sccp_log((DEBUGCAT_FEATURE))(VERBOSE_PREFIX_3 "%s: (perform_pickup) pickup succeeded on call: %s\n", DEV_ID_LOG(d), c->designator);
 		/* disconnect from masquaraded zombie channel */
-		sccp_channel_setDevice(c, NULL);
+		sccp_channel_setDevice(c, NULL, FALSE);
 		pbx_channel_set_hangupcause(original, AST_CAUSE_ANSWERED_ELSEWHERE);
 
 		/* continue with masquaraded channel */
@@ -1171,7 +1171,7 @@ int sccp_feat_singleline_barge(channelPtr c, const char * const exten)
 
 		// set channel to correct mode
 		c->isBarging = TRUE;
-		sccp_channel_setDevice(c, d);
+		sccp_channel_setDevice(c, d, TRUE);
 		sccp_indicate(d, c, SCCP_CHANNELSTATE_OFFHOOK);
 		c->channelStateReason = SCCP_CHANNELSTATEREASON_BARGE;
 		sccp_channel_setChannelstate(c, SCCP_CHANNELSTATE_PROCEED);
@@ -1268,7 +1268,7 @@ int sccp_feat_sharedline_barge(constLineDevicePtr bargingLD, channelPtr bargedCh
 
 			// set channel to correct mode
 			c->isBarging = TRUE;
-			sccp_channel_setDevice(c, d);
+			sccp_channel_setDevice(c, d, TRUE);
 			barge_info->bargedChannel = sccp_channel_retain(bargedChannel);
 			sccp_indicate(d, c, SCCP_CHANNELSTATE_OFFHOOK);
 			c->channelStateReason = SCCP_CHANNELSTATEREASON_BARGE;

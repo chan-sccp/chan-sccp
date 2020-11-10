@@ -159,6 +159,11 @@ static void makeProgress(channelPtr c)
 	}
 }
 
+boolean_t sccp_channel_isAnswering(constChannelPtr c)
+{
+	return c && c->privateData ? c->privateData->isAnswering : TRUE;
+}
+
 /*!
  * \brief Allocate SCCP Channel on Device
  * \param l SCCP Line
@@ -297,7 +302,7 @@ channelPtr sccp_channel_allocate(constLinePtr l, constDevicePtr device)
 		if (refLine->capabilities.audio[0] == SKINNY_CODEC_NONE) {
 			sccp_line_updateCapabilitiesFromDevicesToLine(refLine);			// bit of a hack, UpdateCapabilties is done (long) after device registration
 		}
-		channel->setDevice(channel, device);
+		channel->setDevice(channel, device, FALSE);
 
 		/* return new channel */
 		sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: New channel number: %d on line %s\n", l->id, channel->callid, l->name);
@@ -353,7 +358,7 @@ lineDevicePtr sccp_channel_getLineDevice(constChannelPtr channel)
  * \param channel SCCP Channel
  * \param device SCCP Device
  */
-void sccp_channel_setDevice(channelPtr channel, constDevicePtr device)
+void sccp_channel_setDevice(channelPtr channel, constDevicePtr device, boolean_t activate)
 {
 	if (!channel || !channel->privateData) {
 		return;
@@ -1568,7 +1573,7 @@ gcc_inline void sccp_channel_stop_schedule_cfwd_noanswer(constChannelPtr channel
 	AUTO_RELEASE(sccp_channel_t, c, sccp_channel_retain(channel));
 
 	if (c && c->scheduler.cfwd_noanswer_id > -1) {
-		//sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: stop schedule cfwd_noanswer_id %d\n", c->designator, c->scheduler.cfwd_noanswer_id);
+		sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: stop schedule cfwd_noanswer_id %d\n", c->designator, c->scheduler.cfwd_noanswer_id);
 		iPbx.sched_del_ref(&c->scheduler.cfwd_noanswer_id, c);
 	}
 }
@@ -1878,10 +1883,13 @@ void sccp_channel_answer(constDevicePtr device, channelPtr channel)
 		pbx_log(LOG_ERROR, "%s: (%s) Answering on unknown channel/device\n", (channel ? channel->designator : 0), __func__);
 		return;
 	}
+	sccp_log(DEBUGCAT_CHANNEL)(VERBOSE_PREFIX_1 "%s (sccp_channel_answer) processing answer.\n", channel->designator);
+
+	sccp_channel_stop_schedule_cfwd_noanswer(channel);
 	sccp_channel_end_forwarding_channel(channel);
 
 	AUTO_RELEASE(sccp_channel_t, previous_channel, sccp_device_getActiveChannel(device));
-	if(previous_channel && !sccp_channel_hold(previous_channel)) {
+	if(previous_channel && previous_channel != channel && !sccp_channel_hold(previous_channel)) {
 		pbx_log(LOG_ERROR, "%s: Putting Active Channel:%s OnHold failed -> While trying to answer incoming call:%s. Skipping answer!\n", device->id, previous_channel->designator, channel->designator);
 		return;
 	}
@@ -1889,8 +1897,8 @@ void sccp_channel_answer(constDevicePtr device, channelPtr channel)
 	PBX_CHANNEL_TYPE * pbx_channel = NULL;
 	if((pbx_channel = sccp_channel_lock_full(channel, TRUE))) {
 		if(pbx_channel_state(pbx_channel) == AST_STATE_RINGING && !pbx_check_hangup_locked(pbx_channel) && !channel->privateData->isAnswering) {
-			channel->setDevice(channel, device);
 			channel->privateData->isAnswering = TRUE;
+			channel->setDevice(channel, device, TRUE);
 			uint16_t lineInstance = sccp_device_find_index_for_line(device, channel->line->name);
 			if (channel->state != SCCP_CHANNELSTATE_OFFHOOK) {	/* 7911 need to have callstate offhook, before connected, to transmit audio */
 				sccp_device_sendcallstate(device, lineInstance, channel->callid, SKINNY_CALLSTATE_OFFHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
@@ -1999,7 +2007,7 @@ int sccp_channel_hold(channelPtr channel)
 	//sccp_rtp_stop(channel);
 	sccp_dev_setActiveLine(d, NULL);
 	sccp_indicate(d, channel, SCCP_CHANNELSTATE_HOLD);							// this will also close (but not destroy) the RTP stream
-	sccp_channel_setDevice(channel, NULL);
+	sccp_channel_setDevice(channel, NULL, FALSE);
 
 #ifdef CS_MANAGER_EVENTS
 	if (GLOB(callevents)) {
@@ -2033,7 +2041,7 @@ static int channel_resume_locked(devicePtr d, linePtr l, channelPtr channel, boo
 		AUTO_RELEASE(sccp_channel_t, sccp_active_channel , sccp_device_getActiveChannel(d));
 
 		/* there is an active call, if offhook channelstate then hangup else put it on hold */
-		if (sccp_active_channel) {
+		if (sccp_active_channel && sccp_active_channel != channel) {
 			if (sccp_active_channel->state <= SCCP_CHANNELSTATE_OFFHOOK) {
 				sccp_log(DEBUGCAT_CHANNEL)(VERBOSE_PREFIX_3 "%s: active channel is brand new and unused, hanging it up before resuming another\n", sccp_active_channel->designator);
 				sccp_channel_endcall(sccp_active_channel);
@@ -2065,7 +2073,7 @@ static int channel_resume_locked(devicePtr d, linePtr l, channelPtr channel, boo
 	}
 
 	sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Resume the channel %s\n", d->id, channel->designator);
-	sccp_channel_setDevice(channel, d);
+	sccp_channel_setDevice(channel, d, TRUE);
 
 #if ASTERISK_VERSION_GROUP >= 111
 	// update callgroup / pickupgroup
@@ -2302,7 +2310,7 @@ void sccp_channel_clean(channelPtr channel)
 	}
 	if (channel->privateData) {
 		if (channel->privateData->device) {
-			sccp_channel_setDevice(channel, NULL);
+			sccp_channel_setDevice(channel, NULL, FALSE);
 		}
 
 		if(channel->privateData->ld) {
@@ -2573,7 +2581,7 @@ void sccp_channel_transfer_cancel(devicePtr d, channelPtr c)
 		sccp_channel_closeAllMediaTransmitAndReceive(c);
 		sccp_dev_setActiveLine(d, NULL);
 		sccp_indicate(d, transferee, SCCP_CHANNELSTATE_HOLD);
-		sccp_channel_setDevice(transferee, NULL);
+		sccp_channel_setDevice(transferee, NULL, FALSE);
 #if ASTERISK_VERSION_GROUP >= 108
 		enum ast_control_transfer control_transfer_message = AST_TRANSFER_FAILED;
 		iPbx.queue_control_data(c->owner, AST_CONTROL_TRANSFER, &control_transfer_message, sizeof(control_transfer_message));
