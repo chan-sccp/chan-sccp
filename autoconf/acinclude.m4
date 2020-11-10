@@ -117,9 +117,10 @@ AC_DEFUN([CS_CHECK_PBX], [
 			AC_MSG_RESULT(not-found)
 		done
 		if test x_$found_pbx != x_yes; then
-			AC_MSG_NOTICE([Please install either the asterisk-devel package.])
+			AC_MSG_NOTICE([Either install asterisk and asterisk-devel packages using your package manager.])
+			AC_MSG_NOTICE([If you compiled asterisk manually, make sure you also run `make install-headers` so chan-sccp can find them.])
 			AC_MSG_NOTICE([Or run ./configure --with-asterisk=PATH with PATH pointing to the directory where you installed asterisk])
-			AC_MSG_ERROR([Cannot find pbx libraries - these are required.])
+			AC_MSG_ERROR([Could not find pbx headers or libraries - these are required.])
 		else
 			if test x_$found_asterisk = x_yes; then
 				AC_MSG_RESULT([Asterisk found in ${checkdir}])

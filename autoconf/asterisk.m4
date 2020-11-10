@@ -141,7 +141,8 @@ AC_DEFUN([AST_GET_VERSION], [
 				echo ""
 				echo "PBX branch version could not be determined"
 				echo "==================================="
-				echo "Either install asterisk and asterisk-devel packages"
+				echo "Either install asterisk and asterisk-devel packages using your package manager."
+				echo "If you compiled asterisk manually, make sure you also run `make install-headers` so chan-sccp can find them."
 				echo "Or specify the location where asterisk can be found, using ./configure --with-asterisk=[path]"
 				exit
 			fi
@@ -295,7 +296,8 @@ AC_DEFUN([AST_GET_VERSION], [
 		echo ""
 		echo "PBX branch version could not be determined"
 		echo "==================================="
-		echo "Either install asterisk and asterisk-devel packages"
+		echo "Either install asterisk and asterisk-devel packages using your package manager."
+		echo "If you compiled asterisk manually, make sure you also run `make install-headers` so chan-sccp can find them."
 		echo "Or specify the location where asterisk can be found, using ./configure --with-asterisk=[path]"
 		echo ""
 		echo "=================================== config.log"

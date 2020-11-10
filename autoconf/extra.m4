@@ -431,22 +431,23 @@ AC_DEFUN([CS_WITH_PBX], [
 	CS_CHECK_PBX
 
 	if test "${PBX_TYPE}" = "Asterisk"; then
-		 AC_DEFINE_UNQUOTED([PBX_TYPE],ASTERISK,[PBX Type])
-		 AC_DEFINE([HAVE_ASTERISK], 1, [Uses Asterisk as PBX])
-		 AST_GET_VERSION
-		 AST_CHECK_HEADERS
+		AC_DEFINE_UNQUOTED([PBX_TYPE],ASTERISK,[PBX Type])
+		AC_DEFINE([HAVE_ASTERISK], 1, [Uses Asterisk as PBX])
+		AST_GET_VERSION
+		AST_CHECK_HEADERS
 	elif test "${PBX_TYPE}" = "Callweaver"; then
-		 AC_DEFINE_UNQUOTED([PBX_TYPE],CALLWEAVER,[PBX Type])
-		 AC_DEFINE([HAVE_CALLWEAVER], 1, [Uses Callweaver as PBX])
-		 echo "We are working on a Callweaver version"
+		AC_DEFINE_UNQUOTED([PBX_TYPE],CALLWEAVER,[PBX Type])
+		AC_DEFINE([HAVE_CALLWEAVER], 1, [Uses Callweaver as PBX])
+		echo "We are working on a Callweaver version"
 	else
-		 echo ""
-		 echo ""
-		 echo "PBX type could not be determined"
-		 echo "================================"
-		 echo "Either install asterisk and asterisk-devel packages"
-		 echo "Or specify the location where asterisk can be found, using ./configure --with-asterisk=[path]"
-		 exit
+		echo ""
+		echo ""
+		echo "PBX type could not be determined"
+		echo "================================"
+		echo "Either install asterisk and asterisk-devel packages using your package manager."
+		echo "If you compiled asterisk manually, make sure you also run `make install-headers` so chan-sccp can find them."
+		echo "Or specify the location where asterisk can be found, using ./configure --with-asterisk=[path]"
+		exit
 	fi
 	AC_SUBST([PBX_TYPE])
 ])

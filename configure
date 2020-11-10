@@ -24647,11 +24647,13 @@ $as_echo "found" >&6; }
 $as_echo "not-found" >&6; }
 		done
 		if test x_$found_pbx != x_yes; then
-			{ $as_echo "$as_me:${as_lineno-$LINENO}: Please install either the asterisk-devel package." >&5
-$as_echo "$as_me: Please install either the asterisk-devel package." >&6;}
+			{ $as_echo "$as_me:${as_lineno-$LINENO}: Either install asterisk and asterisk-devel packages using your package manager." >&5
+$as_echo "$as_me: Either install asterisk and asterisk-devel packages using your package manager." >&6;}
+			{ $as_echo "$as_me:${as_lineno-$LINENO}: If you compiled asterisk manually, make sure you also run \`make install-headers\` so chan-sccp can find them." >&5
+$as_echo "$as_me: If you compiled asterisk manually, make sure you also run \`make install-headers\` so chan-sccp can find them." >&6;}
 			{ $as_echo "$as_me:${as_lineno-$LINENO}: Or run ./configure --with-asterisk=PATH with PATH pointing to the directory where you installed asterisk" >&5
 $as_echo "$as_me: Or run ./configure --with-asterisk=PATH with PATH pointing to the directory where you installed asterisk" >&6;}
-			as_fn_error $? "Cannot find pbx libraries - these are required." "$LINENO" 5
+			as_fn_error $? "Could not find pbx headers or libraries - these are required." "$LINENO" 5
 		else
 			if test x_$found_asterisk = x_yes; then
 				{ $as_echo "$as_me:${as_lineno-$LINENO}: result: Asterisk found in ${checkdir}" >&5
@@ -25036,7 +25038,8 @@ $as_echo "${T_MD}Asterisk Version ${ASTERISK_VER} Not Supported${T_ME}" >&6; }
 				echo ""
 				echo "PBX branch version could not be determined"
 				echo "==================================="
-				echo "Either install asterisk and asterisk-devel packages"
+				echo "Either install asterisk and asterisk-devel packages using your package manager."
+				echo "If you compiled asterisk manually, make sure you also run `make install-headers` so chan-sccp can find them."
 				echo "Or specify the location where asterisk can be found, using ./configure --with-asterisk=path"
 				exit
 			fi
@@ -25329,7 +25332,8 @@ fi
 		echo ""
 		echo "PBX branch version could not be determined"
 		echo "==================================="
-		echo "Either install asterisk and asterisk-devel packages"
+		echo "Either install asterisk and asterisk-devel packages using your package manager."
+		echo "If you compiled asterisk manually, make sure you also run `make install-headers` so chan-sccp can find them."
 		echo "Or specify the location where asterisk can be found, using ./configure --with-asterisk=path"
 		echo ""
 		echo "=================================== config.log"
@@ -29410,15 +29414,16 @@ _ACEOF
 
 $as_echo "#define HAVE_CALLWEAVER 1" >>confdefs.h
 
-		 echo "We are working on a Callweaver version"
+		echo "We are working on a Callweaver version"
 	else
-		 echo ""
-		 echo ""
-		 echo "PBX type could not be determined"
-		 echo "================================"
-		 echo "Either install asterisk and asterisk-devel packages"
-		 echo "Or specify the location where asterisk can be found, using ./configure --with-asterisk=path"
-		 exit
+		echo ""
+		echo ""
+		echo "PBX type could not be determined"
+		echo "================================"
+		echo "Either install asterisk and asterisk-devel packages using your package manager."
+		echo "If you compiled asterisk manually, make sure you also run `make install-headers` so chan-sccp can find them."
+		echo "Or specify the location where asterisk can be found, using ./configure --with-asterisk=path"
+		exit
 	fi
 
 
