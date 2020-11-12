@@ -25064,9 +25064,9 @@ else
 "
 if test "x$ac_cv_header_asterisk_ast_version_h" = xyes; then :
 
-			ac_fn_c_check_header_compile "$LINENO" "asterisk/res_stir_shaken.h" "ac_cv_header_asterisk_res_stir_shaken_h" "$HEADER_INCLUDE
+			ac_fn_c_check_header_compile "$LINENO" "asterisk/res_audiosocket.h" "ac_cv_header_asterisk_res_audiosocket_h" "$HEADER_INCLUDE
 "
-if test "x$ac_cv_header_asterisk_res_stir_shaken_h" = xyes; then :
+if test "x$ac_cv_header_asterisk_res_audiosocket_h" = xyes; then :
 
 				ASTERISK_VER_GROUP=118
 				ASTERISK_VERSION_NUMBER=11800

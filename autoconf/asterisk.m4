@@ -158,7 +158,7 @@ AC_DEFUN([AST_GET_VERSION], [
 "
 		AC_CHECK_HEADER([asterisk/ast_version.h],
 		[
-			AC_CHECK_HEADER([asterisk/res_stir_shaken.h],
+			AC_CHECK_HEADER([asterisk/res_audiosocket.h],
 			[
 				ASTERISK_VER_GROUP=118
 				ASTERISK_VERSION_NUMBER=11800
