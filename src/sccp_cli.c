@@ -2988,8 +2988,8 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 		goto EXIT;
 	}
 
-	if (!GLOB(cfg)) {
-		pbx_log(LOG_NOTICE, "GLOB(cfg) not available. Skip loading default setting.\n");
+	if (!GLOB(config_file_name) && !sccp_strequals("file", argv[2])) {
+		pbx_log(LOG_NOTICE, "GLOB(config_file_name) not available. Skip loading default setting.\n");
 		pbx_rwlock_unlock(&GLOB(lock));
 		goto EXIT;
 	}
@@ -3144,7 +3144,7 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 			}
 			goto EXIT;
 		} else if (sccp_strequals("force", argv[2]) && argc == 3) {
-			pbx_cli(fd, "Force Reading Config file '%s'\n", GLOB(config_file_name));
+			pbx_cli(fd, "Force Reading Config file '%s'\n", filename);
 			force_reload = TRUE;
 		} else if (sccp_strequals("file", argv[2])) {
 			if (argc == 4) {

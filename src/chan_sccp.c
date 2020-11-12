@@ -366,7 +366,7 @@ int sccp_reload(void)
 		goto EXIT;
 	}
 
-	sccp_config_file_status_t cfg = sccp_config_getConfig(FALSE, GLOB(config_file_name));
+	sccp_config_file_status_t cfg = sccp_config_getConfig(FALSE, NULL);
 
 	switch (cfg) {
 		case CONFIG_STATUS_FILE_NOT_CHANGED:

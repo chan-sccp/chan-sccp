@@ -2928,9 +2928,9 @@ sccp_config_file_status_t sccp_config_getConfig(boolean_t force, const char * co
 	if(filename && !sccp_strlen_zero(filename)) {
 		newfilename = (char *)filename;
 	} else if(GLOB(config_file_name) && !sccp_strlen_zero(GLOB(config_file_name))) {
-		newfilename = GLOB(config_file_name);
-		sccp_free(GLOB(config_file_name));
+		newfilename = pbx_strdupa(GLOB(config_file_name));
 	}
+
 	GLOB(cfg) = pbx_config_load(newfilename, "chan_sccp", config_flags);
 	if (GLOB(cfg) == CONFIG_STATUS_FILEMISSING) {
 		pbx_log(LOG_ERROR, "Config file '%s' not found, aborting (re)load.\n", newfilename);
@@ -2951,7 +2951,7 @@ sccp_config_file_status_t sccp_config_getConfig(boolean_t force, const char * co
 			res = CONFIG_STATUS_FILE_NOT_CHANGED;
 			goto FUNC_EXIT;
 		} else {
-			pbx_log(LOG_NOTICE, "Config file '%s' has not changed, forcing reload.\n", newfilename);
+			pbx_log(LOG_NOTICE, "Config file '%s' has not changed, force requested, forcing reload.\n", newfilename);
 		}
 	}
 	if (GLOB(cfg)) {
