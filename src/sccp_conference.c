@@ -433,6 +433,7 @@ static sccp_participant_t *sccp_conference_createParticipant(constConferencePtr 
 	if (conference->mute_on_entry) {
 		sccp_log((DEBUGCAT_CORE + DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "SCCP: Participant: %d will be muted on entry\n", participant->id);
 		participant->features.mute = 1;
+		participant->features.dtmf_passthrough = 1;
 	}
 
 	return participant;
@@ -1543,12 +1544,14 @@ void sccp_conference_toggle_mute_participant(constConferencePtr conference, part
 	sccp_log((DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "SCCPCONF/%04d: Mute Participant %d\n", conference->id, participant->id);
 	if (!participant->features.mute) {
 		participant->features.mute = 1;
+		participant->features.dtmf_passthrough = 1;
 		playback_to_channel(participant, "conf-muted", -1);
 		//if (participant->channel) {
 		//participant->channel->setMicrophone(participant->channel, FALSE);
 		//}
 	} else {
 		participant->features.mute = 0;
+		participant->features.dtmf_passthrough = 0;
 		playback_to_channel(participant, "conf-unmuted", -1);
 		//if (participant->channel) {
 		//participant->channel->setMicrophone(participant->channel, TRUE);
