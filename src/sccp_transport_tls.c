@@ -38,7 +38,7 @@ static void write_openssl_error_to_log(void)
 	size_t length = 0;
 
 	FILE * fp = open_memstream(&buffer, &length);
-	if(!fp) {
+	if (!fp) {
 		pbx_log(LOG_ERROR, "SCCP: error opening memstream for openssl_error_to_log\n");
 		return;
 	}
@@ -46,7 +46,7 @@ static void write_openssl_error_to_log(void)
 	ERR_print_errors_fp(fp);
 	fclose(fp);
 
-	if(length) {
+	if (length) {
 		pbx_log(LOG_ERROR, "%.*s\n", (int)length, buffer);
 	}
 
@@ -78,8 +78,8 @@ static SSL_CTX * create_context()
 	sccp_log(DEBUGCAT_SOCKET)(VERBOSE_PREFIX_1 "TLS Transport create context...\n");
 	// const SSL_METHOD * method = TLS_server_method();
 	const SSL_METHOD * method = SSLv23_method();
-	SSL_CTX * ctx = SSL_CTX_new(method);
-	if(!ctx) {
+	SSL_CTX *          ctx    = SSL_CTX_new(method);
+	if (!ctx) {
 		pbx_log(LOG_WARNING, "Unable to create SSL context\n");
 		write_openssl_error_to_log();
 		return NULL;
@@ -95,25 +95,25 @@ static boolean_t configure_context(SSL_CTX * ctx)
 	sccp_log(DEBUGCAT_SOCKET)(VERBOSE_PREFIX_1 "TLS Transport configure context...\n");
 
 	char * cert_file = NULL;
-	if(GLOB(cert_file)) {
+	if (GLOB(cert_file)) {
 		cert_file = ast_strdupa(GLOB(cert_file));
 	} else {
 		cert_file = ast_strdupa(PBX_CERTFILE);
 	}
 
-	if(access(cert_file, F_OK) != 0) {
+	if (access(cert_file, F_OK) != 0) {
 		sccp_log(DEBUGCAT_SOCKET)(VERBOSE_PREFIX_3 "TLS/SSL no certificate file not found\n");
 		return FALSE;
 	} else {
-		if(SSL_CTX_use_certificate_file(ctx, cert_file, SSL_FILETYPE_PEM) <= 0) {
+		if (SSL_CTX_use_certificate_file(ctx, cert_file, SSL_FILETYPE_PEM) <= 0) {
 			pbx_log(LOG_WARNING, "TLS/SSL error loading public key (certificate) from <%s>.\n", cert_file);
 			write_openssl_error_to_log();
 			return FALSE;
-		} else if(SSL_CTX_use_PrivateKey_file(ctx, cert_file, SSL_FILETYPE_PEM) <= 0) {
+		} else if (SSL_CTX_use_PrivateKey_file(ctx, cert_file, SSL_FILETYPE_PEM) <= 0) {
 			ast_log(LOG_WARNING, "TLS/SSL error loading private key from <%s>.\n", cert_file);
 			write_openssl_error_to_log();
 			return FALSE;
-		} else if(SSL_CTX_check_private_key(ctx) == 0) {
+		} else if (SSL_CTX_check_private_key(ctx) == 0) {
 			ast_log(LOG_WARNING, "TLS/SSL error matching private key and certificate in <%s>.\n", cert_file);
 			write_openssl_error_to_log();
 			return FALSE;
@@ -126,7 +126,7 @@ const sccp_transport_t * const tls_init(void)
 {
 	sccp_log(DEBUGCAT_SOCKET)(VERBOSE_PREFIX_1 "TLS Transport Initializing...\n");
 	sslctx = create_context();
-	if(sslctx && configure_context(sslctx)) {
+	if (sslctx && configure_context(sslctx)) {
 		InitializeSSL();
 		return &tlstransport;
 	}
@@ -148,40 +148,40 @@ static int tls_listen(sccp_socket_connection_t * sc, int backlog)
 static sccp_socket_connection_t * tls_accept(sccp_socket_connection_t * in_sc, struct sockaddr * addr, socklen_t * addrlen, sccp_socket_connection_t * out_sc)
 {
 	unsigned long ssl_err;
-	int newfd = 0;
-	SSL * ssl = NULL;
+	int           newfd = 0;
+	SSL *         ssl   = NULL;
 	// sccp_log(DEBUGCAT_SOCKET)(VERBOSE_PREFIX_1 "TLS Transport accept...\n");
 	do {
 		newfd = accept(in_sc->fd, addr, addrlen);
-		if(newfd < 0) {
+		if (newfd < 0) {
 			pbx_log(LOG_ERROR, "Error accepting new socket %s on fd:%d\n", strerror(errno), in_sc->fd);
 			break;
 		}
 
 		ssl = SSL_new(sslctx);
-		if(!ssl) {
+		if (!ssl) {
 			pbx_log(LOG_ERROR, "Error creating new SSL structure\n");
 			break;
 		}
 
 		SSL_set_fd(ssl, newfd);
 		ssl_err = SSL_accept(ssl);
-		if(ssl_err <= 0) {
+		if (ssl_err <= 0) {
 			pbx_log(LOG_ERROR, "SSL Error occured: %lu '%s'.\n", ssl_err, ERR_reason_error_string(ssl_err));
 			break;
 		}
-		out_sc->fd = newfd;
+		out_sc->fd  = newfd;
 		out_sc->ssl = ssl;
 		sccp_log(DEBUGCAT_SOCKET)(VERBOSE_PREFIX_1 "TLS Transport accept returning:%d...\n", newfd);
 		return out_sc;
-	} while(0);
+	} while (0);
 
 	// cleanup:
-	if(ssl) {
+	if (ssl) {
 		write_openssl_error_to_log();
 		ShutdownSSL(ssl);
 	}
-	if(newfd >= 0) {
+	if (newfd >= 0) {
 		close(newfd);
 	}
 	return NULL;
@@ -210,10 +210,10 @@ static int tls_close(sccp_socket_connection_t * sc)
 {
 	// sccp_log(DEBUGCAT_SOCKET)(VERBOSE_PREFIX_1 "TLS Transport close...\n");
 	int res = 0;
-	if(sc->fd) {
+	if (sc->fd) {
 		res = close(sc->fd);
 	}
-	if(sc->ssl) {
+	if (sc->ssl) {
 		SSL_free(sc->ssl);
 	}
 	return res;
@@ -227,26 +227,26 @@ static const sccp_transport_t * const tls_destroy(uint8_t h)
 }
 
 const sccp_transport_t tlstransport = {
-	.name = "TLS",
+	.name           = "TLS",
 	.secret_default = "",
-	.socktype = SOCK_STREAM,
-	.port_default = "2443",
+	.socktype       = SOCK_STREAM,
+	.port_default   = "2443",
 
-	.retrycountdefault = 0,
-	.retrycountmax = 0,
-	.retryintervaldefault = REQUEST_RETRY_INTERVAL * REQUEST_RETRY_COUNT,
-	.retryintervalmax = 60,
+	.retrycountdefault        = 0,
+	.retrycountmax            = 0,
+	.retryintervaldefault     = REQUEST_RETRY_INTERVAL * REQUEST_RETRY_COUNT,
+	.retryintervalmax         = 60,
 	.duplicateintervaldefault = DUPLICATE_INTERVAL,
 
-	.init = tls_init,
-	.bind = tls_bind,
-	.listen = tls_listen,
-	.accept = tls_accept,
-	.recv = tls_recv,
-	.send = tls_send,
+	.init     = tls_init,
+	.bind     = tls_bind,
+	.listen   = tls_listen,
+	.accept   = tls_accept,
+	.recv     = tls_recv,
+	.send     = tls_send,
 	.shutdown = tls_shutdown,
-	.close = tls_close,
-	.destroy = tls_destroy,
+	.close    = tls_close,
+	.destroy  = tls_destroy,
 };
 #endif /* HAVE_LIBSSL */
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

@@ -11,7 +11,6 @@
 #include "sccp_utils.h"
 #include "sccp_channel.h"
 
-
 /*
  * references: https://en.wikipedia.org/wiki/RTP_audio_video_profile
  * --DD-- We need an extra column, specifying the RFC number, needed for MultiMediaReceive/MultiMediaTransmission->lel_payload_rfc_number;
@@ -100,12 +99,12 @@ uint8_t __CONST__ sccp_codec_getArrayLen()
 {
 	return ARRAY_LEN(skinny_codecs);
 }
-gcc_inline const char *codec2str(skinny_codec_t value)
+gcc_inline const char * codec2str(skinny_codec_t value)
 {
 	_ARR2STR(skinny_codecs, codec, value, text);
 }
 
-gcc_inline const char *codec2name(skinny_codec_t value)
+gcc_inline const char * codec2name(skinny_codec_t value)
 {
 	_ARR2STR(skinny_codecs, codec, value, name);
 }
@@ -114,31 +113,31 @@ gcc_inline const char *codec2name(skinny_codec_t value)
 gcc_inline const skinny_payload_type_t codec2type(skinny_codec_t value)
 {
 	uint32_t i = 0;
-	for(i = 0; i < ARRAY_LEN(skinny_codecs); i++) {
+	for (i = 0; i < ARRAY_LEN(skinny_codecs); i++) {
 		if (skinny_codecs[i].codec == value) {
-                        return skinny_codecs[i].codec_type;
-                }
+			return skinny_codecs[i].codec_type;
+		}
 	}
 	pbx_log(LOG_ERROR, "codec2type lookup failed for skinny_codecs[%i]\n", value);
-        return SKINNY_CODEC_TYPE_UNKNOWN;
+	return SKINNY_CODEC_TYPE_UNKNOWN;
 }
 
 gcc_inline const int32_t codec2rtp_payload_type(skinny_codec_t value)
 {
 	uint32_t i = 0;
-	for(i = 0; i < ARRAY_LEN(skinny_codecs); i++) {
+	for (i = 0; i < ARRAY_LEN(skinny_codecs); i++) {
 		if (skinny_codecs[i].codec == value) {
-                        return skinny_codecs[i].rtp_payload_type;
-                }
+			return skinny_codecs[i].rtp_payload_type;
+		}
 	}
 	pbx_log(LOG_ERROR, "codec2rtp_payload_type lookup failed for skinny_codecs[%i]\n", value);
-        return SKINNY_CODEC_TYPE_UNKNOWN;
+	return SKINNY_CODEC_TYPE_UNKNOWN;
 }
 
 /*!
  * \brief Retrieve the string of format numbers and names from an array of formats
  * Buffer needs to be declared and freed afterwards
- 
+
  * \param buf   Buffer as char array
  * \param size  Size of Buffer
  * \param codecs Array of Skinny Codecs
@@ -150,17 +149,17 @@ char * sccp_codec_multiple2str(char * buf, size_t size, const skinny_codec_t * c
 		return buf;
 	}
 	memset(buf, 0, size);
-	char *endptr = buf;
-	int comma = 0;
+	char * endptr = buf;
+	int    comma  = 0;
 
 	snprintf(endptr++, size, "[");
 	endptr += strlen(endptr);
-	for(uint x = 0; x < clength; x++) {
+	for (uint x = 0; x < clength; x++) {
 		if (codecs[x] == SKINNY_CODEC_NONE || codecs[x] == SKINNY_CODEC_NONSTANDARD) {
 			break;
 		}
-		//snprintf(endptr, size, "%s%s (%d)", comma++ ? ", " : "",codec2name(codecs[x]), codecs[x]);
-		snprintf(endptr, size, "%s%s", comma++ ? ", " : "",codec2name(codecs[x]));
+		// snprintf(endptr, size, "%s%s (%d)", comma++ ? ", " : "",codec2name(codecs[x]), codecs[x]);
+		snprintf(endptr, size, "%s%s", comma++ ? ", " : "", codec2name(codecs[x]));
 		endptr += strlen(endptr);
 	}
 	if (buf == endptr) {
@@ -172,7 +171,7 @@ char * sccp_codec_multiple2str(char * buf, size_t size, const skinny_codec_t * c
 
 static void codec_pref_remove(skinny_codec_t * skinny_codec_prefs, skinny_codec_t skinny_codec)
 {
-	int x = 0;
+	int       x     = 0;
 	boolean_t found = FALSE;
 
 	for (x = 0; x < SKINNY_MAX_CAPABILITIES && skinny_codec_prefs[x] != SKINNY_CODEC_NONE; x++) {
@@ -180,7 +179,7 @@ static void codec_pref_remove(skinny_codec_t * skinny_codec_prefs, skinny_codec_
 			found = TRUE;
 		}
 		if (found) {
-			memmove(skinny_codec_prefs + x, skinny_codec_prefs + (x + 1), (SKINNY_MAX_CAPABILITIES - (x + 1)) * sizeof(skinny_codec_t));  // move left
+			memmove(skinny_codec_prefs + x, skinny_codec_prefs + (x + 1), (SKINNY_MAX_CAPABILITIES - (x + 1)) * sizeof(skinny_codec_t));                                        // move left
 		}
 	}
 }
@@ -192,12 +191,12 @@ static int codec_pref_append(skinny_codec_t * skinny_codec_pref, skinny_codec_t 
 {
 	int x = 0;
 
-	// append behaviour: remove old entry, move all other entries left, append 
+	// append behaviour: remove old entry, move all other entries left, append
 	codec_pref_remove(skinny_codec_pref, skinny_codec);
 
 	for (x = 0; x < SKINNY_MAX_CAPABILITIES; x++) {
 		if (SKINNY_CODEC_NONE == skinny_codec_pref[x]) {
-			//sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_1 "inserting codec '%s (%d)' at pos %d\n", codec2name(skinny_codec), skinny_codec, x);
+			// sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_1 "inserting codec '%s (%d)' at pos %d\n", codec2name(skinny_codec), skinny_codec, x);
 			skinny_codec_pref[x] = skinny_codec;
 			return x;
 		}
@@ -208,34 +207,34 @@ static int codec_pref_append(skinny_codec_t * skinny_codec_pref, skinny_codec_t 
 /*!
  * \brief Parse Skinny Codec Allow / Disallow Config Lines
  */
-int sccp_codec_parseAllowDisallow(skinny_codec_t * skinny_codec_prefs, const char *list, int allowing)
+int sccp_codec_parseAllowDisallow(skinny_codec_t * skinny_codec_prefs, const char * list, int allowing)
 {
 	int errors = 0;
 
 	if (!skinny_codec_prefs) {
 		return -1;
 	}
-	unsigned int x = 0;
-	boolean_t all = FALSE;
-	boolean_t found = FALSE;
-	boolean_t allow = allowing;
-	char * parse = NULL;
+	unsigned int x     = 0;
+	boolean_t    all   = FALSE;
+	boolean_t    found = FALSE;
+	boolean_t    allow = allowing;
+	char *       parse = NULL;
 
-	char * token = NULL;
+	char *         token = NULL;
 	skinny_codec_t codec = 0;
 
 	parse = pbx_strdupa(list);
 	while ((token = strsep(&parse, ","))) {
 		if (!sccp_strlen_zero(token)) {
-			if(token[0] == '!') {
+			if (token[0] == '!') {
 				// sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_1 "matched !, token=%s\n", token);
 				allow = !allowing;
 				token++;                                        // consume !
 			}
 			all = sccp_strcaseequals(token, "all") ? TRUE : FALSE;
-			if(all && !allow) {                                        // disallowing all
+			if (all && !allow) {                                        // disallowing all
 				memset(skinny_codec_prefs, 0, sizeof(skinny_codec_t) * SKINNY_MAX_CAPABILITIES);
-				//sccp_log((DEBUGCAT_CODEC)) ("SCCP: disallow=all => reset codecs\n");
+				// sccp_log((DEBUGCAT_CODEC)) ("SCCP: disallow=all => reset codecs\n");
 				allow = allowing;
 				continue;
 			}
@@ -243,11 +242,11 @@ int sccp_codec_parseAllowDisallow(skinny_codec_t * skinny_codec_prefs, const cha
 				if (all || sccp_strcaseequals(skinny_codecs[x].key, token)) {
 					codec = skinny_codecs[x].codec;
 					found = TRUE;
-					if(allow) {
-						//sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_1 "appending codec '%s'\n", codec2name(codec));
+					if (allow) {
+						// sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_1 "appending codec '%s'\n", codec2name(codec));
 						codec_pref_append(skinny_codec_prefs, codec);
 					} else {
-						//sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_1 "removing codec '%s'\n", codec2name(codec));
+						// sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_1 "removing codec '%s'\n", codec2name(codec));
 						codec_pref_remove(skinny_codec_prefs, codec);
 					}
 				}
@@ -273,7 +272,7 @@ int sccp_get_codecs_bytype(const skinny_codec_t * in_codecs, skinny_codec_t * ou
 		if (SKINNY_CODEC_NONE != in_codecs[x]) {
 			for (y = 0; y < sccp_codec_getArrayLen(); y++) {
 				if (skinny_codecs[y].codec == in_codecs[x] && skinny_codecs[y].codec_type == type) {
-					//sccp_log((DEBUGCAT_CODEC)) ("Adding codec:%s\n", skinny_codecs[y].name);
+					// sccp_log((DEBUGCAT_CODEC)) ("Adding codec:%s\n", skinny_codecs[y].name);
 					out_codecs[z++] = skinny_codecs[y].codec;
 				}
 			}
@@ -287,7 +286,7 @@ int sccp_get_codecs_bytype(const skinny_codec_t * in_codecs, skinny_codec_t * ou
  */
 boolean_t __PURE__ sccp_codec_isCompatible(skinny_codec_t codec, const skinny_codec_t capabilities[], uint8_t length)
 {
-	for(uint8_t i = 0; i < length; i++) {
+	for (uint8_t i = 0; i < length; i++) {
 		if (capabilities[i] == SKINNY_CODEC_NONE) {
 			break;
 		}
@@ -309,8 +308,8 @@ int sccp_codec_getReducedSet(const skinny_codec_t base[SKINNY_MAX_CAPABILITIES],
 	uint8_t y = 0;
 
 	uint8_t z = 0;
-	for (x = 0; x < SKINNY_MAX_CAPABILITIES && (z+1) < SKINNY_MAX_CAPABILITIES && base[x] != SKINNY_CODEC_NONE; x++) {
-		for (y = 0; y < SKINNY_MAX_CAPABILITIES && (z+1) < SKINNY_MAX_CAPABILITIES && reduceByCodecs[y] != SKINNY_CODEC_NONE; y++) {
+	for (x = 0; x < SKINNY_MAX_CAPABILITIES && (z + 1) < SKINNY_MAX_CAPABILITIES && base[x] != SKINNY_CODEC_NONE; x++) {
+		for (y = 0; y < SKINNY_MAX_CAPABILITIES && (z + 1) < SKINNY_MAX_CAPABILITIES && reduceByCodecs[y] != SKINNY_CODEC_NONE; y++) {
 			if (base[x] == reduceByCodecs[y]) {
 				result[z++] = base[x];
 			}
@@ -324,7 +323,7 @@ int sccp_codec_getReducedSet(const skinny_codec_t base[SKINNY_MAX_CAPABILITIES],
  */
 void sccp_codec_reduceSet(skinny_codec_t base[SKINNY_MAX_CAPABILITIES], const skinny_codec_t reduceByCodecs[SKINNY_MAX_CAPABILITIES])
 {
-	skinny_codec_t temp[SKINNY_MAX_CAPABILITIES] = {SKINNY_CODEC_NONE};
+	skinny_codec_t temp[SKINNY_MAX_CAPABILITIES] = { SKINNY_CODEC_NONE };
 	sccp_codec_getReducedSet(base, reduceByCodecs, temp);
 	memcpy(base, temp, sizeof(skinny_codec_t) * SKINNY_MAX_CAPABILITIES);
 }
@@ -352,7 +351,7 @@ void sccp_codec_combineSets(skinny_codec_t base[SKINNY_MAX_CAPABILITIES], const 
 		}
 		while (!found && z < SKINNY_MAX_CAPABILITIES) {
 			if (base[z] == SKINNY_CODEC_NONE) {
-				if (demarquation) {		// don't check against newly added codecs
+				if (demarquation) {                                        // don't check against newly added codecs
 					demarquation = z;
 				}
 				base[z] = addCodecs[y];
@@ -365,14 +364,14 @@ void sccp_codec_combineSets(skinny_codec_t base[SKINNY_MAX_CAPABILITIES], const 
 
 skinny_codec_t sccp_codec_findBestJoint(constChannelPtr c, const skinny_codec_t ourPreferences[], const skinny_codec_t remotePeerPreferences[], boolean_t fallback)
 {
-	skinny_codec_t res = SKINNY_CODEC_NONE;
-	skinny_codec_t leadPrefs[SKINNY_MAX_CAPABILITIES] = {SKINNY_CODEC_NONE};
-	skinny_codec_t * followPrefs = NULL;
+	skinny_codec_t   res                                = SKINNY_CODEC_NONE;
+	skinny_codec_t   leadPrefs[SKINNY_MAX_CAPABILITIES] = { SKINNY_CODEC_NONE };
+	skinny_codec_t * followPrefs                        = NULL;
 
 	/* debug */
-	//char pref_buf[256]; sccp_codec_multiple2str(pref_buf, sizeof(pref_buf) - 1, ourPreferences, SKINNY_MAX_CAPABILITIES);
-	//char remote_buf[256]; sccp_codec_multiple2str(remote_buf, sizeof(remote_buf) - 1, remotePeerPreferences, SKINNY_MAX_CAPABILITIES);
-	//sccp_log_and((DEBUGCAT_CODEC + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "ourPref:%s, remoteCap::%s, direction:%s\n", pref_buf, remote_buf, skinny_calltype2str(c->calltype));
+	// char pref_buf[256]; sccp_codec_multiple2str(pref_buf, sizeof(pref_buf) - 1, ourPreferences, SKINNY_MAX_CAPABILITIES);
+	// char remote_buf[256]; sccp_codec_multiple2str(remote_buf, sizeof(remote_buf) - 1, remotePeerPreferences, SKINNY_MAX_CAPABILITIES);
+	// sccp_log_and((DEBUGCAT_CODEC + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "ourPref:%s, remoteCap::%s, direction:%s\n", pref_buf, remote_buf, skinny_calltype2str(c->calltype));
 	/* end debug */
 
 	if (ourPreferences[0] == SKINNY_CODEC_NONE && remotePeerPreferences[0] == SKINNY_CODEC_NONE) {
@@ -382,11 +381,11 @@ skinny_codec_t sccp_codec_findBestJoint(constChannelPtr c, const skinny_codec_t 
 
 	/* direction of the call determines who leads */
 	/*if (SKINNY_CALLTYPE_INBOUND == c->calltype){
-		memcpy(leadPrefs, remotePeerPreferences, sizeof(skinny_codec_t) * SKINNY_MAX_CAPABILITIES);
-		followPrefs = (skinny_codec_t *) ourPreferences;
+	        memcpy(leadPrefs, remotePeerPreferences, sizeof(skinny_codec_t) * SKINNY_MAX_CAPABILITIES);
+	        followPrefs = (skinny_codec_t *) ourPreferences;
 	} else {*/
-		memcpy(leadPrefs, ourPreferences, sizeof(skinny_codec_t) * SKINNY_MAX_CAPABILITIES);
-		followPrefs = (skinny_codec_t *) remotePeerPreferences;
+	memcpy(leadPrefs, ourPreferences, sizeof(skinny_codec_t) * SKINNY_MAX_CAPABILITIES);
+	followPrefs = (skinny_codec_t *)remotePeerPreferences;
 	//}
 
 	sccp_codec_reduceSet(leadPrefs, followPrefs);
@@ -402,45 +401,33 @@ EXIT:
 }
 
 #if CS_TEST_FRAMEWORK
-#include <asterisk/test.h>
+#	include <asterisk/test.h>
 AST_TEST_DEFINE(chan_sccp_reduce_codec_set)
 {
 	switch (cmd) {
-	case TEST_INIT:
-		info->name = "reduceCodecSet";
-		info->category = "/channels/chan_sccp/codec/";
-		info->summary = "reduceCodecSet unit test";
-		info->description = "reduceCodecSet";
-		return AST_TEST_NOT_RUN;
-	case TEST_EXECUTE:
-		break;
+		case TEST_INIT:
+			info->name        = "reduceCodecSet";
+			info->category    = "/channels/chan_sccp/codec/";
+			info->summary     = "reduceCodecSet unit test";
+			info->description = "reduceCodecSet";
+			return AST_TEST_NOT_RUN;
+		case TEST_EXECUTE:
+			break;
 	}
-	
-	const skinny_codec_t empty[SKINNY_MAX_CAPABILITIES] = {SKINNY_CODEC_NONE};
-	const skinny_codec_t short1[SKINNY_MAX_CAPABILITIES] = {
-		SKINNY_CODEC_NONSTANDARD,SKINNY_CODEC_G711_ALAW_64K,SKINNY_CODEC_G711_ALAW_56K,
-		SKINNY_CODEC_G711_ULAW_64K,SKINNY_CODEC_G711_ULAW_56K,
-		SKINNY_CODEC_NONE
-	};
-	const skinny_codec_t short2[SKINNY_MAX_CAPABILITIES] = {
-		SKINNY_CODEC_G711_ULAW_64K,SKINNY_CODEC_G722_64K,
-		SKINNY_CODEC_G711_ULAW_56K,SKINNY_CODEC_G722_56K,
-		SKINNY_CODEC_G711_ALAW_64K,SKINNY_CODEC_G722_48K,
-		SKINNY_CODEC_G711_ALAW_56K,
-		SKINNY_CODEC_NONE
-	};
-	const skinny_codec_t long1[SKINNY_MAX_CAPABILITIES] = {
-		SKINNY_CODEC_G729_A,SKINNY_CODEC_G729,SKINNY_CODEC_G728,SKINNY_CODEC_G723_1,
-		SKINNY_CODEC_G722_48K,SKINNY_CODEC_G722_56K,SKINNY_CODEC_G722_64K,
-		SKINNY_CODEC_G711_ULAW_56K,SKINNY_CODEC_G711_ULAW_64K,
-		SKINNY_CODEC_G711_ALAW_56K,SKINNY_CODEC_G711_ALAW_64K,
-		SKINNY_CODEC_IS11172,SKINNY_CODEC_IS13818,SKINNY_CODEC_G729_B,SKINNY_CODEC_G729_AB,
-		SKINNY_CODEC_GSM_FULLRATE,SKINNY_CODEC_GSM_HALFRATE,SKINNY_CODEC_WIDEBAND_256K
+
+	const skinny_codec_t empty[SKINNY_MAX_CAPABILITIES]  = { SKINNY_CODEC_NONE };
+	const skinny_codec_t short1[SKINNY_MAX_CAPABILITIES] = { SKINNY_CODEC_NONSTANDARD, SKINNY_CODEC_G711_ALAW_64K, SKINNY_CODEC_G711_ALAW_56K, SKINNY_CODEC_G711_ULAW_64K, SKINNY_CODEC_G711_ULAW_56K, SKINNY_CODEC_NONE };
+	const skinny_codec_t short2[SKINNY_MAX_CAPABILITIES] = { SKINNY_CODEC_G711_ULAW_64K, SKINNY_CODEC_G722_64K, SKINNY_CODEC_G711_ULAW_56K, SKINNY_CODEC_G722_56K,
+		                                                 SKINNY_CODEC_G711_ALAW_64K, SKINNY_CODEC_G722_48K, SKINNY_CODEC_G711_ALAW_56K, SKINNY_CODEC_NONE };
+	const skinny_codec_t long1[SKINNY_MAX_CAPABILITIES]  = {
+                SKINNY_CODEC_G729_A,   SKINNY_CODEC_G729,          SKINNY_CODEC_G728,          SKINNY_CODEC_G723_1,        SKINNY_CODEC_G722_48K,      SKINNY_CODEC_G722_56K,
+                SKINNY_CODEC_G722_64K, SKINNY_CODEC_G711_ULAW_56K, SKINNY_CODEC_G711_ULAW_64K, SKINNY_CODEC_G711_ALAW_56K, SKINNY_CODEC_G711_ALAW_64K, SKINNY_CODEC_IS11172,
+                SKINNY_CODEC_IS13818,  SKINNY_CODEC_G729_B,        SKINNY_CODEC_G729_AB,       SKINNY_CODEC_GSM_FULLRATE,  SKINNY_CODEC_GSM_HALFRATE,  SKINNY_CODEC_WIDEBAND_256K
 	};
 	pbx_test_status_update(test, "Executing reduceCodecSet on two default codecArrays...\n");
 	{
-		uint8_t x = 0;
-		skinny_codec_t baseCodecArray[SKINNY_MAX_CAPABILITIES] = {SKINNY_CODEC_NONE};
+		uint8_t        x                                       = 0;
+		skinny_codec_t baseCodecArray[SKINNY_MAX_CAPABILITIES] = { SKINNY_CODEC_NONE };
 		sccp_codec_reduceSet(baseCodecArray, empty);
 		for (x = 0; x < SKINNY_MAX_CAPABILITIES; x++) {
 			pbx_test_validate(test, baseCodecArray[x] == SKINNY_CODEC_NONE);
@@ -448,7 +435,7 @@ AST_TEST_DEFINE(chan_sccp_reduce_codec_set)
 	}
 	pbx_test_status_update(test, "Executing reduceCodecSet on one partially filled and one empty codecArray...\n");
 	{
-		uint8_t x = 0;
+		uint8_t        x = 0;
 		skinny_codec_t baseCodecArray[SKINNY_MAX_CAPABILITIES];
 		memcpy(baseCodecArray, short1, sizeof(skinny_codec_t) * SKINNY_MAX_CAPABILITIES);
 		sccp_codec_reduceSet(baseCodecArray, empty);
@@ -458,29 +445,25 @@ AST_TEST_DEFINE(chan_sccp_reduce_codec_set)
 	}
 	pbx_test_status_update(test, "Executing reduceCodecSet on two partially filled codecArrays...\n");
 	{
-		uint8_t x = 0;
+		uint8_t        x = 0;
 		skinny_codec_t baseCodecArray[SKINNY_MAX_CAPABILITIES];
 		memcpy(baseCodecArray, short1, sizeof(skinny_codec_t) * SKINNY_MAX_CAPABILITIES);
 		const skinny_codec_t result[SKINNY_MAX_CAPABILITIES] = {
-			SKINNY_CODEC_G711_ALAW_64K, SKINNY_CODEC_G711_ALAW_56K,
-			SKINNY_CODEC_G711_ULAW_64K, SKINNY_CODEC_G711_ULAW_56K,
-			SKINNY_CODEC_NONE,};
+			SKINNY_CODEC_G711_ALAW_64K, SKINNY_CODEC_G711_ALAW_56K, SKINNY_CODEC_G711_ULAW_64K, SKINNY_CODEC_G711_ULAW_56K, SKINNY_CODEC_NONE,
+		};
 		sccp_codec_reduceSet(baseCodecArray, short2);
 		for (x = 0; x < SKINNY_MAX_CAPABILITIES; x++) {
-			//pbx_test_status_update(test, "entry:%d = %s == %s\n", x, codec2str(baseCodecArray[x]), codec2str(result[x]));
+			// pbx_test_status_update(test, "entry:%d = %s == %s\n", x, codec2str(baseCodecArray[x]), codec2str(result[x]));
 			pbx_test_validate(test, baseCodecArray[x] == result[x]);
 		}
 	}
 	pbx_test_status_update(test, "Executing reduceCodecSet one fully filled and one partially filled codecArrays...\n");
 	{
-		uint8_t x = 0;
+		uint8_t        x = 0;
 		skinny_codec_t baseCodecArray[SKINNY_MAX_CAPABILITIES];
 		memcpy(baseCodecArray, long1, sizeof(skinny_codec_t) * SKINNY_MAX_CAPABILITIES);
 		const skinny_codec_t result[SKINNY_MAX_CAPABILITIES] = {
-			SKINNY_CODEC_G722_48K,SKINNY_CODEC_G722_56K,SKINNY_CODEC_G722_64K,
-			SKINNY_CODEC_G711_ULAW_56K,SKINNY_CODEC_G711_ULAW_64K,
-			SKINNY_CODEC_G711_ALAW_56K,SKINNY_CODEC_G711_ALAW_64K,
-			SKINNY_CODEC_NONE,
+			SKINNY_CODEC_G722_48K, SKINNY_CODEC_G722_56K, SKINNY_CODEC_G722_64K, SKINNY_CODEC_G711_ULAW_56K, SKINNY_CODEC_G711_ULAW_64K, SKINNY_CODEC_G711_ALAW_56K, SKINNY_CODEC_G711_ALAW_64K, SKINNY_CODEC_NONE,
 		};
 		sccp_codec_reduceSet(baseCodecArray, short2);
 		for (x = 0; x < SKINNY_MAX_CAPABILITIES; x++) {
@@ -496,41 +479,29 @@ AST_TEST_DEFINE(chan_sccp_reduce_codec_set)
 AST_TEST_DEFINE(chan_sccp_combine_codec_sets)
 {
 	switch (cmd) {
-	case TEST_INIT:
-		info->name = "combineCodecSets";
-		info->category = "/channels/chan_sccp/codec/";
-		info->summary = "combineCodecSets unit test";
-		info->description = "combineCodecSets";
-		return AST_TEST_NOT_RUN;
-	case TEST_EXECUTE:
-		break;
+		case TEST_INIT:
+			info->name        = "combineCodecSets";
+			info->category    = "/channels/chan_sccp/codec/";
+			info->summary     = "combineCodecSets unit test";
+			info->description = "combineCodecSets";
+			return AST_TEST_NOT_RUN;
+		case TEST_EXECUTE:
+			break;
 	}
-	
-	const skinny_codec_t empty[SKINNY_MAX_CAPABILITIES] = {SKINNY_CODEC_NONE};
-	const skinny_codec_t short1[SKINNY_MAX_CAPABILITIES] = {
-		SKINNY_CODEC_NONSTANDARD,SKINNY_CODEC_G711_ALAW_64K,SKINNY_CODEC_G711_ALAW_56K,
-		SKINNY_CODEC_G711_ULAW_64K,SKINNY_CODEC_G711_ULAW_56K,
-		SKINNY_CODEC_NONE
-	};
-	const skinny_codec_t short2[SKINNY_MAX_CAPABILITIES] = {
-		SKINNY_CODEC_G711_ULAW_64K,SKINNY_CODEC_G722_64K,
-		SKINNY_CODEC_G711_ULAW_56K,SKINNY_CODEC_G722_56K,
-		SKINNY_CODEC_G711_ALAW_64K,SKINNY_CODEC_G722_48K,
-		SKINNY_CODEC_G711_ALAW_56K,
-		SKINNY_CODEC_NONE
-	};
-	const skinny_codec_t long1[SKINNY_MAX_CAPABILITIES] = {
-		SKINNY_CODEC_G729_A,SKINNY_CODEC_G729,SKINNY_CODEC_G728,SKINNY_CODEC_G723_1,
-		SKINNY_CODEC_G722_48K,SKINNY_CODEC_G722_56K,SKINNY_CODEC_G722_64K,
-		SKINNY_CODEC_G711_ULAW_56K,SKINNY_CODEC_G711_ULAW_64K,
-		SKINNY_CODEC_G711_ALAW_56K,SKINNY_CODEC_G711_ALAW_64K,
-		SKINNY_CODEC_IS11172,SKINNY_CODEC_IS13818,SKINNY_CODEC_G729_B,SKINNY_CODEC_G729_AB,
-		SKINNY_CODEC_GSM_FULLRATE,SKINNY_CODEC_GSM_HALFRATE,SKINNY_CODEC_WIDEBAND_256K
+
+	const skinny_codec_t empty[SKINNY_MAX_CAPABILITIES]  = { SKINNY_CODEC_NONE };
+	const skinny_codec_t short1[SKINNY_MAX_CAPABILITIES] = { SKINNY_CODEC_NONSTANDARD, SKINNY_CODEC_G711_ALAW_64K, SKINNY_CODEC_G711_ALAW_56K, SKINNY_CODEC_G711_ULAW_64K, SKINNY_CODEC_G711_ULAW_56K, SKINNY_CODEC_NONE };
+	const skinny_codec_t short2[SKINNY_MAX_CAPABILITIES] = { SKINNY_CODEC_G711_ULAW_64K, SKINNY_CODEC_G722_64K, SKINNY_CODEC_G711_ULAW_56K, SKINNY_CODEC_G722_56K,
+		                                                 SKINNY_CODEC_G711_ALAW_64K, SKINNY_CODEC_G722_48K, SKINNY_CODEC_G711_ALAW_56K, SKINNY_CODEC_NONE };
+	const skinny_codec_t long1[SKINNY_MAX_CAPABILITIES]  = {
+                SKINNY_CODEC_G729_A,   SKINNY_CODEC_G729,          SKINNY_CODEC_G728,          SKINNY_CODEC_G723_1,        SKINNY_CODEC_G722_48K,      SKINNY_CODEC_G722_56K,
+                SKINNY_CODEC_G722_64K, SKINNY_CODEC_G711_ULAW_56K, SKINNY_CODEC_G711_ULAW_64K, SKINNY_CODEC_G711_ALAW_56K, SKINNY_CODEC_G711_ALAW_64K, SKINNY_CODEC_IS11172,
+                SKINNY_CODEC_IS13818,  SKINNY_CODEC_G729_B,        SKINNY_CODEC_G729_AB,       SKINNY_CODEC_GSM_FULLRATE,  SKINNY_CODEC_GSM_HALFRATE,  SKINNY_CODEC_WIDEBAND_256K
 	};
 	pbx_test_status_update(test, "Executing combineCodecSet on two empty codecArrays...\n");
 	{
-		uint8_t x = 0;
-		skinny_codec_t baseCodecArray[SKINNY_MAX_CAPABILITIES] = {SKINNY_CODEC_NONE};
+		uint8_t        x                                       = 0;
+		skinny_codec_t baseCodecArray[SKINNY_MAX_CAPABILITIES] = { SKINNY_CODEC_NONE };
 		sccp_codec_combineSets(baseCodecArray, empty);
 		for (x = 0; x < SKINNY_MAX_CAPABILITIES; x++) {
 			pbx_test_validate(test, baseCodecArray[x] == SKINNY_CODEC_NONE);
@@ -538,47 +509,53 @@ AST_TEST_DEFINE(chan_sccp_combine_codec_sets)
 	}
 	pbx_test_status_update(test, "Executing combineCodecSet on one partially filled and one empty codecArray...\n");
 	{
-		uint8_t x = 0;
-		skinny_codec_t baseCodecArray[SKINNY_MAX_CAPABILITIES] = {SKINNY_CODEC_NONE};
+		uint8_t        x                                       = 0;
+		skinny_codec_t baseCodecArray[SKINNY_MAX_CAPABILITIES] = { SKINNY_CODEC_NONE };
 		memcpy(baseCodecArray, short1, sizeof(skinny_codec_t) * SKINNY_MAX_CAPABILITIES);
 		sccp_codec_combineSets(baseCodecArray, empty);
 		for (x = 0; x < SKINNY_MAX_CAPABILITIES; x++) {
-			//pbx_test_status_update(test, "entry:%d = %s == %s\n", x, codec2str(baseCodecArray[x]), codec2str(short1[x]));
+			// pbx_test_status_update(test, "entry:%d = %s == %s\n", x, codec2str(baseCodecArray[x]), codec2str(short1[x]));
 			pbx_test_validate(test, baseCodecArray[x] == short1[x]);
 		}
 	}
 	pbx_test_status_update(test, "Executing combineCodecSet on two partially filled codecArrays...\n");
 	{
-		uint8_t x = 0;
-		skinny_codec_t baseCodecArray[SKINNY_MAX_CAPABILITIES] = {SKINNY_CODEC_NONE};
+		uint8_t        x                                       = 0;
+		skinny_codec_t baseCodecArray[SKINNY_MAX_CAPABILITIES] = { SKINNY_CODEC_NONE };
 		memcpy(baseCodecArray, short1, sizeof(skinny_codec_t) * SKINNY_MAX_CAPABILITIES);
-		const skinny_codec_t result[SKINNY_MAX_CAPABILITIES] = {SKINNY_CODEC_NONSTANDARD,SKINNY_CODEC_G711_ALAW_64K,SKINNY_CODEC_G711_ALAW_56K,SKINNY_CODEC_G711_ULAW_64K,SKINNY_CODEC_G711_ULAW_56K,SKINNY_CODEC_G722_64K,SKINNY_CODEC_G722_56K,SKINNY_CODEC_G722_48K,SKINNY_CODEC_NONE,};
+		const skinny_codec_t result[SKINNY_MAX_CAPABILITIES] = {
+			SKINNY_CODEC_NONSTANDARD, SKINNY_CODEC_G711_ALAW_64K, SKINNY_CODEC_G711_ALAW_56K, SKINNY_CODEC_G711_ULAW_64K, SKINNY_CODEC_G711_ULAW_56K,
+			SKINNY_CODEC_G722_64K,    SKINNY_CODEC_G722_56K,      SKINNY_CODEC_G722_48K,      SKINNY_CODEC_NONE,
+		};
 		sccp_codec_combineSets(baseCodecArray, short2);
 		for (x = 0; x < SKINNY_MAX_CAPABILITIES; x++) {
-			//pbx_test_status_update(test, "entry:%d = %s == %s\n", x, codec2str(baseCodecArray[x]), codec2str(result[x]));
+			// pbx_test_status_update(test, "entry:%d = %s == %s\n", x, codec2str(baseCodecArray[x]), codec2str(result[x]));
 			pbx_test_validate(test, baseCodecArray[x] == result[x]);
 		}
 	}
 	pbx_test_status_update(test, "Executing combineCodecSet on one fully and one partially filled codecArray...\n");
 	{
-		uint8_t x = 0;
-		skinny_codec_t baseCodecArray[SKINNY_MAX_CAPABILITIES] = {SKINNY_CODEC_NONE};
+		uint8_t        x                                       = 0;
+		skinny_codec_t baseCodecArray[SKINNY_MAX_CAPABILITIES] = { SKINNY_CODEC_NONE };
 		memcpy(baseCodecArray, long1, sizeof(skinny_codec_t) * SKINNY_MAX_CAPABILITIES);
 		sccp_codec_combineSets(baseCodecArray, short2);
 		for (x = 0; x < SKINNY_MAX_CAPABILITIES; x++) {
-			//pbx_test_status_update(test, "entry:%d = %s == %s\n", x, codec2str(baseCodecArray[x]), codec2str(long1[x]));
+			// pbx_test_status_update(test, "entry:%d = %s == %s\n", x, codec2str(baseCodecArray[x]), codec2str(long1[x]));
 			pbx_test_validate(test, baseCodecArray[x] == long1[x]);
 		}
 	}
 	pbx_test_status_update(test, "Executing combineCodecSet on one partially and one fully filled codecArray...\n");
 	{
-		uint8_t x = 0;
-		skinny_codec_t baseCodecArray[SKINNY_MAX_CAPABILITIES] = {SKINNY_CODEC_NONE};
+		uint8_t        x                                       = 0;
+		skinny_codec_t baseCodecArray[SKINNY_MAX_CAPABILITIES] = { SKINNY_CODEC_NONE };
 		memcpy(baseCodecArray, short1, sizeof(skinny_codec_t) * SKINNY_MAX_CAPABILITIES);
-		const skinny_codec_t result[SKINNY_MAX_CAPABILITIES] = {SKINNY_CODEC_NONSTANDARD,SKINNY_CODEC_G711_ALAW_64K,SKINNY_CODEC_G711_ALAW_56K,SKINNY_CODEC_G711_ULAW_64K,SKINNY_CODEC_G711_ULAW_56K,SKINNY_CODEC_G729_A,SKINNY_CODEC_G729,SKINNY_CODEC_G728,SKINNY_CODEC_G723_1,SKINNY_CODEC_G722_48K,SKINNY_CODEC_G722_56K,SKINNY_CODEC_G722_64K,SKINNY_CODEC_IS11172,SKINNY_CODEC_IS13818,SKINNY_CODEC_G729_B,SKINNY_CODEC_G729_AB,SKINNY_CODEC_GSM_FULLRATE,SKINNY_CODEC_GSM_HALFRATE};
+		const skinny_codec_t result[SKINNY_MAX_CAPABILITIES] = { SKINNY_CODEC_NONSTANDARD, SKINNY_CODEC_G711_ALAW_64K, SKINNY_CODEC_G711_ALAW_56K, SKINNY_CODEC_G711_ULAW_64K, SKINNY_CODEC_G711_ULAW_56K,
+			                                                 SKINNY_CODEC_G729_A,      SKINNY_CODEC_G729,          SKINNY_CODEC_G728,          SKINNY_CODEC_G723_1,        SKINNY_CODEC_G722_48K,
+			                                                 SKINNY_CODEC_G722_56K,    SKINNY_CODEC_G722_64K,      SKINNY_CODEC_IS11172,       SKINNY_CODEC_IS13818,       SKINNY_CODEC_G729_B,
+			                                                 SKINNY_CODEC_G729_AB,     SKINNY_CODEC_GSM_FULLRATE,  SKINNY_CODEC_GSM_HALFRATE };
 		sccp_codec_combineSets(baseCodecArray, long1);
 		for (x = 0; x < SKINNY_MAX_CAPABILITIES; x++) {
-			//pbx_test_status_update(test, "entry:%d = %s == %s\n", x, codec2str(baseCodecArray[x]), codec2str(result[x]));
+			// pbx_test_status_update(test, "entry:%d = %s == %s\n", x, codec2str(baseCodecArray[x]), codec2str(result[x]));
 			pbx_test_validate(test, baseCodecArray[x] == result[x]);
 		}
 	}

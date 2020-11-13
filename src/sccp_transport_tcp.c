@@ -72,26 +72,26 @@ static const sccp_transport_t * const tcp_destroy(uint8_t h)
 }
 
 const sccp_transport_t tcptransport = {
-	.name = "TCP",
+	.name           = "TCP",
 	.secret_default = "",
-	.socktype = SOCK_STREAM,
-	.port_default = "2000",
+	.socktype       = SOCK_STREAM,
+	.port_default   = "2000",
 
-	.retrycountdefault = 0,
-	.retrycountmax = 0,
-	.retryintervaldefault = REQUEST_RETRY_INTERVAL * REQUEST_RETRY_COUNT,
-	.retryintervalmax = 60,
+	.retrycountdefault        = 0,
+	.retrycountmax            = 0,
+	.retryintervaldefault     = REQUEST_RETRY_INTERVAL * REQUEST_RETRY_COUNT,
+	.retryintervalmax         = 60,
 	.duplicateintervaldefault = DUPLICATE_INTERVAL,
 
-	.init = tcp_init,
-	.bind = tcp_bind,
-	.listen = tcp_listen,
-	.accept = tcp_accept,
-	.recv = tcp_recv,
-	.send = tcp_send,
+	.init     = tcp_init,
+	.bind     = tcp_bind,
+	.listen   = tcp_listen,
+	.accept   = tcp_accept,
+	.recv     = tcp_recv,
+	.send     = tcp_send,
 	.shutdown = tcp_shutdown,
-	.close = tcp_close,
-	.destroy = tcp_destroy,
+	.close    = tcp_close,
+	.destroy  = tcp_destroy,
 };
 
 #else

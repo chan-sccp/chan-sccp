@@ -11,7 +11,7 @@
 #include "sccp_debug.h"
 
 SCCP_FILE_VERSION(__FILE__, "");
-const char *SS_Memory_Allocation_Error = "%s: Memory Allocation Error.\n";
+const char * SS_Memory_Allocation_Error = "%s: Memory Allocation Error.\n";
 
 /*!
  * \brief SCCP Verbose Level Structure
@@ -61,16 +61,16 @@ struct sccp_debug_category const sccp_debug_categories[32] = {
  * \param new_debug_value as uint32_t
  * \return new_debug_value as uint32_t
  */
-int32_t sccp_parse_debugline(char *arguments[], int startat, int argc, int32_t new_debug_value)
+int32_t sccp_parse_debugline(char * arguments[], int startat, int argc, int32_t new_debug_value)
 {
-	int argi = 0;
-	uint32_t i = 0;
-	char *argument = "";
-	char *token = "";
+	int        argi         = 0;
+	uint32_t   i            = 0;
+	char *     argument     = "";
+	char *     token        = "";
 	const char delimiters[] = " ,\t";
-	boolean_t subtract = 0;
+	boolean_t  subtract     = 0;
 
-	if (sscanf( arguments[startat], "%d", &new_debug_value) != 1) {
+	if (sscanf(arguments[startat], "%d", &new_debug_value) != 1) {
 		for (argi = startat; argi < argc; argi++) {
 			argument = arguments[argi];
 			if (!strncmp(argument, "none", 4) || !strncmp(argument, "off", 3)) {
@@ -87,9 +87,9 @@ int32_t sccp_parse_debugline(char *arguments[], int startat, int argc, int32_t n
 				}
 			} else {
 				// parse comma separated debug_var
-				boolean_t matched = FALSE;
-				char *tokenrest = NULL;
-				token = strtok_r(argument, delimiters, &tokenrest);
+				boolean_t matched   = FALSE;
+				char *    tokenrest = NULL;
+				token               = strtok_r(argument, delimiters, &tokenrest);
 				while (token != NULL) {
 					// match debug level name to enum
 					for (i = 0; i < ARRAY_LEN(sccp_debug_categories); i++) {
@@ -103,7 +103,7 @@ int32_t sccp_parse_debugline(char *arguments[], int startat, int argc, int32_t n
 									new_debug_value += sccp_debug_categories[i].category;
 								}
 							}
-							matched=TRUE;
+							matched = TRUE;
 						}
 					}
 					if (!matched) {
@@ -122,17 +122,17 @@ int32_t sccp_parse_debugline(char *arguments[], int startat, int argc, int32_t n
  * \param debugvalue DebugValue as uint32_t
  * \return string containing list of categories comma seperated (you need to free it)
  */
-char *sccp_get_debugcategories(int32_t debugvalue)
+char * sccp_get_debugcategories(int32_t debugvalue)
 {
-	char * res = NULL;
+	char * res    = NULL;
 	char * tmpres = NULL;
-	size_t size = 0;
+	size_t size   = 0;
 
-	for(uint32_t i = 2; i < ARRAY_LEN(sccp_debug_categories); ++i) {
+	for (uint32_t i = 2; i < ARRAY_LEN(sccp_debug_categories); ++i) {
 		if ((debugvalue & sccp_debug_categories[i].category) == sccp_debug_categories[i].category) {
 			size_t new_size = size;
 
-			new_size += strlen(sccp_debug_categories[i].key) + 1 /*sizeof(sep) */  + 1;
+			new_size += strlen(sccp_debug_categories[i].key) + 1 /*sizeof(sep) */ + 1;
 			tmpres = (char *)sccp_realloc(res, new_size);
 			if (tmpres == NULL) {
 				pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, "SCCP");
@@ -141,7 +141,7 @@ char *sccp_get_debugcategories(int32_t debugvalue)
 			}
 			res = tmpres;
 			if (size == 0) {
-				//strlcpy(res, sccp_debug_categories[i].key, new_size);
+				// strlcpy(res, sccp_debug_categories[i].key, new_size);
 				snprintf(res, new_size - 1, "%s", sccp_debug_categories[i].key);
 			} else {
 				snprintf(res + strlen(res), new_size - 1, ",%s", sccp_debug_categories[i].key);
