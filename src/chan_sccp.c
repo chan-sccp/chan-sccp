@@ -370,11 +370,11 @@ int sccp_reload(void)
 
 	switch (cfg) {
 		case CONFIG_STATUS_FILE_NOT_CHANGED:
-			pbx_log(LOG_NOTICE, "config file '%s' has not change, skipping reload.\n", GLOB(config_file_name));
+			sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_3 "config file '%s' has not change, skipping reload.\n", GLOB(config_file_name));
 			returnval = 0;
 			break;
 		case CONFIG_STATUS_FILE_OK:
-			pbx_log(LOG_NOTICE, "SCCP reloading configuration.\n");
+			sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_3 "SCCP reloading configuration.\n");
 			readingtype = SCCP_CONFIG_READRELOAD;
 			GLOB(reload_in_progress) = TRUE;
 			if (!sccp_config_general(readingtype)) {

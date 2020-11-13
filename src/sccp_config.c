@@ -2947,18 +2947,18 @@ sccp_config_file_status_t sccp_config_getConfig(boolean_t force, const char * co
 		pbx_clear_flag(&config_flags, CONFIG_FLAG_FILEUNCHANGED);
 		GLOB(cfg) = pbx_config_load(newfilename, "chan_sccp", config_flags);
 		if (!force) {
-			pbx_log(LOG_NOTICE, "Config file '%s' has not changed, aborting (re)load.\n", newfilename);
+			sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_3 "Config file '%s' has not changed, aborting (re)load.\n", newfilename);
 			res = CONFIG_STATUS_FILE_NOT_CHANGED;
 			goto FUNC_EXIT;
 		} else {
-			pbx_log(LOG_NOTICE, "Config file '%s' has not changed, force requested, forcing reload.\n", newfilename);
+			sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_3 "Config file '%s' has not changed, force requested, forcing reload.\n", newfilename);
 		}
 	}
 	if (GLOB(cfg)) {
 		if (ast_variable_browse(GLOB(cfg), "devices")) {						/* Warn user when old entries exist in sccp.conf */
 			pbx_log(LOG_ERROR,
 				"\n\n --> You are using an old configuration format, please update '%s'!!\n --> Loading of module chan_sccp with current sccp.conf has terminated\n --> Check "
-				"http://chan-sccp-b.sourceforge.net/doc_setup.shtml for more information.\n\n",
+				"https://github.com/chan-sccp/chan-sccp/wiki/How-to-setup-the-chan_sccp-Module for more information.\n\n",
 				newfilename);
 			pbx_config_destroy(GLOB(cfg));
 			GLOB(cfg) = NULL;
@@ -2977,7 +2977,7 @@ sccp_config_file_status_t sccp_config_getConfig(boolean_t force, const char * co
 		res = CONFIG_STATUS_FILE_NOT_FOUND;
 		goto FUNC_EXIT;
 	}
-	pbx_log(LOG_NOTICE, "Config file '%s' loaded.\n", newfilename);
+	sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_3 "Config file '%s' loaded.\n", newfilename);
 	res = CONFIG_STATUS_FILE_OK;
 FUNC_EXIT:
 	if (GLOB(config_file_name)) {sccp_free(GLOB(config_file_name));}
