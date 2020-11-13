@@ -370,7 +370,7 @@ int sccp_reload(void)
 
 	switch (cfg) {
 		case CONFIG_STATUS_FILE_NOT_CHANGED:
-			sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_3 "config file '%s' has not change, skipping reload.\n", GLOB(config_file_name));
+			//sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_3 "config file '%s' has not changed, skipping reload.\n", GLOB(config_file_name));
 			returnval = 0;
 			break;
 		case CONFIG_STATUS_FILE_OK:
