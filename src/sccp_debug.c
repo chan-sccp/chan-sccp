@@ -17,7 +17,7 @@ const char *SS_Memory_Allocation_Error = "%s: Memory Allocation Error.\n";
  * \brief SCCP Verbose Level Structure
  */
 struct sccp_debug_category const sccp_debug_categories[32] = {
-	/* *INDENT-OFF* */
+	/* clang-format off */
 	{"all",			"all debug levels", 			DEBUGCAT_ALL,},
 	{"none",		"all debug levels", 			DEBUGCAT_NONE,},
 	{"core",		"core debug level", 			DEBUGCAT_CORE},
@@ -50,7 +50,7 @@ struct sccp_debug_category const sccp_debug_categories[32] = {
 	{"newcode",		"newcode debug level", 			DEBUGCAT_NEWCODE},
 	{"filelinefunc",	"add line/file/function to debug output", DEBUGCAT_FILELINEFUNC},
 	{"high",		"high debug level", 			DEBUGCAT_HIGH},
-	/* *INDENT-ON* */
+	/* clang-format on */
 };
 
 /*!

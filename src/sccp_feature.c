@@ -901,11 +901,11 @@ static struct meetmeAppConfig {
 	const char *appName;
 	const char *defaultMeetmeOption;
 } meetmeApps[] = {
-	/* *INDENT-OFF* */
+	/* clang-format off */
 	{"MeetMe", 	"qd"}, 
 	{"ConfBridge", 	"Mac"}, 
 	{"Konference", 	"MTV"}
-	/* *INDENT-ON* */
+	/* clang-format on */
 };
 
 /*!

@@ -1,41 +1,52 @@
----
 #BasedOnStyle : WebKit
 #AccessModifierOffset : -4
 AlignAfterOpenBracket: Align
-AlignConsecutiveAssignments: false
-AlignConsecutiveDeclarations: false
-AlignEscapedNewlines: Left
-AlignOperands:   true
+AlignConsecutiveAssignments: true
+AlignConsecutiveBitFields: true
+AlignConsecutiveDeclarations: true
+AlignConsecutiveMacros: true
+AlignEscapedNewlines: Right
+AlignOperands: AlignAfterOperator
 AlignTrailingComments: true
+AllowAllArgumentsOnNextLine: true
+AllowAllConstructorInitializersOnNextLine: true
 AllowAllParametersOfDeclarationOnNextLine: true
-AllowShortBlocksOnASingleLine: false
+AllowShortBlocksOnASingleLine: Never
 AllowShortCaseLabelsOnASingleLine: false
+AllowShortEnumsOnASingleLine: false
 AllowShortFunctionsOnASingleLine: Inline
 AllowShortIfStatementsOnASingleLine: Never
+AllowShortLambdasOnASingleLine: Empty
 AllowShortLoopsOnASingleLine: false
-AlwaysBreakAfterDefinitionReturnType: None
 AlwaysBreakAfterReturnType: None
 AlwaysBreakBeforeMultilineStrings: false
 AlwaysBreakTemplateDeclarations: Yes
+AttributeMacros: ['NONENULL','gcc_inline','extern','SCCP_API','SCCP_CALL','__PURE__','__CONST__','__NONNULL','__attribute__']
 BinPackArguments: true
 BinPackParameters: true
+BitFieldColonSpacing: None
+
 BreakBeforeBraces: Custom
 BraceWrapping:
   AfterCaseLabel:        true
   AfterClass:            true
-  AfterControlStatement: false
-  AfterEnum:             false
+  AfterControlStatement: Never
+  AfterEnum:             true
   AfterFunction:         true
-  AfterNamespace:        false
+  AfterNamespace:        true
   AfterObjCDeclaration:  false
   AfterStruct:           false
   AfterUnion:            false
-  AfterExternBlock:      false
+  AfterExternBlock:      true
   BeforeCatch:           false
   BeforeElse:            false
+  BeforeLambdaBody:      false
+  BeforeWhile:           false
   IndentBraces:          true
+  SplitEmptyFunction:    false
   SplitEmptyRecord:      false
-  SplitEmptyNamespace: false
+  SplitEmptyNamespace:   false
+BreakAfterJavaFieldAnnotations: false
 BreakBeforeBinaryOperators: NonAssignment
 BreakBeforeBraces: Linux
 BreakBeforeTernaryOperators: true
@@ -44,10 +55,12 @@ BreakInheritanceList: BeforeComma
 BreakStringLiterals: true
 ColumnLimit:     225
 CommentPragmas:  '^ IWYU pragma:'
+CompactNamespaces: false
 ConstructorInitializerAllOnOneLineOrOnePerLine: true
 ConstructorInitializerIndentWidth: 8
 ContinuationIndentWidth: 4
 Cpp11BracedListStyle: false
+DeriveLineEnding: false
 DerivePointerAlignment: false
 DisableFormat:   false
 ExperimentalAutoDetectBinPacking: false
@@ -82,16 +95,21 @@ IncludeCategories:
     Priority:        7
   - Regex:           '^<.*'         	# other external headers
     Priority:        8
+IndentCaseBlocks: true
 IndentCaseLabels: true
+IndentExternBlock: AfterExternBlock
+IndentGotoLabels: false
 IndentPPDirectives: AfterHash
 IndentWidth:     8
 IndentWrappedFunctionNames: true
+#InsertTrailingCommas: Wrapped
 KeepEmptyLinesAtTheStartOfBlocks: false
 Language: Cpp
-MacroBlockBegin: ''
-MacroBlockEnd:   ''
+#MacroBlockBegin: ''
+#MacroBlockEnd:   ''
 MaxEmptyLinesToKeep: 1
 NamespaceIndentation: Inner
+#NamespaceMacros: ''
 PenaltyBreakAssignment: 100
 PenaltyBreakBeforeFirstCallParameter: 100
 PenaltyBreakComment: 300
@@ -114,12 +132,15 @@ SortUsingDeclarations: true
 SpaceAfterCStyleCast: false
 SpaceAfterLogicalNot: false
 SpaceAfterTemplateKeyword: false
+SpaceAroundPointerQualifiers: Both
 SpaceBeforeAssignmentOperators: true
 SpaceBeforeCpp11BracedList: false
 SpaceBeforeCtorInitializerColon: false
-SpaceBeforeParens: ControlStatements
+SpaceBeforeInheritanceColon: true
+SpaceBeforeParens: ControlStatementsExceptForEachMacros
 SpaceBeforeRangeBasedForLoopColon: false
-SpaceBeforeSquareBrackets: false
+SpaceBeforeSquareBrackets: false 
+SpaceInEmptyBlock: false
 SpaceInEmptyParentheses: false
 SpacesBeforeTrailingComments: 40
 SpacesInAngles:  false
@@ -155,12 +176,7 @@ TypenameMacros: [
   'messagePtr', 
   'constMessagePtr',
 ]
-UseTab:          ForContinuationAndIndentation
-#UseTab : Always
-
-#New clang - format - 10
-AlignConsecutiveMacros: true
-AllowShortBlocksOnASingleLine: Empty
-IndentGotoLabels: false
-SpaceInEmptyBlock: false
-...
+UseCRLF: false
+#UseTab:  ForContinuationAndIndentation
+UseTab:  AlignWithSpaces
+WhitespaceSensitiveMacros: []

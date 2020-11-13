@@ -176,7 +176,7 @@ static struct sccp_refcount_obj_info {
 	char datatype[StationMaxDeviceNameSize];
 	sccp_debug_category_t debugcat;
 } obj_info[] = {
-	/* *INDENT-OFF* */
+	/* clang-format off */
 	[SCCP_REF_PARTICIPANT] = { NULL, "participant", DEBUGCAT_CONFERENCE },
 	[SCCP_REF_CONFERENCE] = { NULL, "conference", DEBUGCAT_CONFERENCE },
 	[SCCP_REF_EVENT] = { NULL, "event", DEBUGCAT_EVENT },
@@ -187,7 +187,7 @@ static struct sccp_refcount_obj_info {
 #if CS_TEST_FRAMEWORK
 	[SCCP_REF_TEST] = { NULL, "test", DEBUGCAT_HIGH },
 #endif
-	/* *INDENT-ON* */
+	/* clang-format on */
 };
 
 typedef struct refcount_object RefCountedObject;

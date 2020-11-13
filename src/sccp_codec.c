@@ -17,7 +17,7 @@
  * --DD-- We need an extra column, specifying the RFC number, needed for MultiMediaReceive/MultiMediaTransmission->lel_payload_rfc_number;
  */
 const struct skinny_codec skinny_codecs[] = {
-	/* *INDENT-OFF* */
+	/* clang-format off */
 	{SKINNY_CODEC_NONE,		SKINNY_CODEC_TYPE_UNKNOWN, 	"",		"",		"No codec", 				NULL,		0,	0,	-1},	//payload unknown
 	{SKINNY_CODEC_NONSTANDARD,	SKINNY_CODEC_TYPE_UNKNOWN,	"",		"",		"Non-standard codec", 			NULL,		0,	0,	-1},	//payload unknown
 	{SKINNY_CODEC_IS11172,		SKINNY_CODEC_TYPE_AUDIO,	"is11172",	"is11172",	"IS11172 AudioCap", 			NULL,		8000,	1,	0},	//payload unknown
@@ -93,7 +93,7 @@ const struct skinny_codec skinny_codecs[] = {
 	{SKINNY_CODEC_V150_LC_MODEM_RELAY,SKINNY_CODEC_TYPE_MIXED,	"v150_modem",	"v150_modem", 	"v150_lc_modem_relay",			NULL,		0,	1,	-1},
 	{SKINNY_CODEC_V150_LC_SPRT,	SKINNY_CODEC_TYPE_MIXED,	"v150_sprt",	"v150_sprt",	"v150_lc_sprt",				NULL,		0,	1,	-1},
 	{SKINNY_CODEC_V150_LC_SSE,	SKINNY_CODEC_TYPE_MIXED,	"v150_sse",	"v150_sse",	"v150_lc_sse",				NULL,		0,	1,	-1},
-	/* *INDENT-ON* */
+	/* clang-format on */
 };
 
 uint8_t __CONST__ sccp_codec_getArrayLen()

@@ -1052,7 +1052,7 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 	}
 	SCCP_LIST_UNLOCK(&d->addons);
 	
-	/* *INDENT-OFF* */
+	/* clang-format off */
 	CLI_AMI_OUTPUT_PARAM("MAC-Address",		CLI_AMI_LIST_WIDTH, "%s", d->id);
 	CLI_AMI_OUTPUT_PARAM("Protocol Version",	CLI_AMI_LIST_WIDTH, "Supported '%d', In Use '%d'", d->protocolversion, d->inuseprotocolversion);
 	CLI_AMI_OUTPUT_PARAM("Protocol In Use",		CLI_AMI_LIST_WIDTH, "%s Version %d", d->protocol ? (d->protocol->type == SCCP_PROTOCOL ? "SCCP" : "SPCP" ) : "NONE", d->protocol ? d->protocol->version : 0);
@@ -1143,7 +1143,7 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 		astman_append(s, "\r\n");
 	}
 
-	/* *INDENT-ON* */
+	/* clang-format on */
 	if (SCCP_LIST_FIRST(&d->buttonconfig)) {
 		// BUTTONS
 #define CLI_AMI_TABLE_NAME Buttons
@@ -1560,7 +1560,7 @@ static int sccp_show_line(int fd, sccp_cli_totals_t *totals, struct mansession *
 		}
 		local_line_total++;
 	}
-	/* *INDENT-OFF* */
+	/* clang-format off */
 	CLI_AMI_OUTPUT_PARAM("Name", 			CLI_AMI_LIST_WIDTH, "%s", l->name);
 	CLI_AMI_OUTPUT_PARAM("Description", 		CLI_AMI_LIST_WIDTH, "%s", l->description ? l->description : "<not set>");
 	CLI_AMI_OUTPUT_PARAM("Label", 			CLI_AMI_LIST_WIDTH, "%s", l->label ? l->label : "<not set>");
@@ -1628,7 +1628,7 @@ static int sccp_show_line(int fd, sccp_cli_totals_t *totals, struct mansession *
 	CLI_AMI_OUTPUT_PARAM("Active Channels",		CLI_AMI_LIST_WIDTH, "%i", l->statistic.numberOfActiveChannels);
 	CLI_AMI_OUTPUT_PARAM("Held Channels",		CLI_AMI_LIST_WIDTH, "%i", l->statistic.numberOfHeldChannels);
 	//CLI_AMI_OUTPUT_PARAM("DND Devices",		CLI_AMI_LIST_WIDTH, "%i", l->statistic.numberOfDNDDevices);
-	/* *INDENT-ON* */
+	/* clang-format on */
 	if (s) {
 		astman_append(s, "\r\n");
 	}

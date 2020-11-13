@@ -2265,7 +2265,7 @@ static const struct _skinny_stimulusMap_cb {
 	void (*const handler_cb) (constDevicePtr d, constLinePtr l, const uint16_t instance, const uint32_t callId, const uint32_t stimulusstatus);
 	boolean_t lineRequired;
 } skinny_stimulusMap_cb[] = {
-	/* *INDENT-OFF* */
+	/* clang-format off */
 	[SKINNY_STIMULUS_UNUSED] 			= {NULL, TRUE},
 	[SKINNY_STIMULUS_LASTNUMBERREDIAL] 		= {handle_stimulus_lastnumberredial, TRUE},
 	[SKINNY_STIMULUS_SPEEDDIAL] 			= {handle_stimulus_speeddial, FALSE},
@@ -2322,7 +2322,7 @@ static const struct _skinny_stimulusMap_cb {
 	[SKINNY_STIMULUS_KEYPAD] 			= {NULL, FALSE},
 	[SKINNY_STIMULUS_AEC] 				= {NULL, FALSE},
 	[SKINNY_STIMULUS_UNDEFINED] 			= {NULL, FALSE},
-	/* *INDENT-ON* */
+	/* clang-format on */
 };
 
 /*!

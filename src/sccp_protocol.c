@@ -1818,7 +1818,7 @@ const char * const __CONST__ skinny_keymode2longstr(skinny_keymode_t keymode)
 }
 
 const struct messageinfo sccp_messageinfo[] = {
-	/* *INDENT-OFF* */
+	/* clang-format off */
 	/* DEV -> PBX */
 	[KeepAliveMessage] = { KeepAliveMessage, "Keep Alive Message", offsize(sccp_data_t, StationKeepAliveMessage), SKINNY_MSGTYPE_REQUEST, SKINNY_MSGDIRECTION_DEV2PBX },
 	[RegisterMessage] = { RegisterMessage, "Register Message", offsize(sccp_data_t, RegisterMessage), SKINNY_MSGTYPE_REQUEST, SKINNY_MSGDIRECTION_DEV2PBX },
@@ -2009,16 +2009,16 @@ const struct messageinfo sccp_messageinfo[] = {
 	[MwiResponseMessage] = { MwiResponseMessage, "Mwi Response Message", offsize(sccp_data_t, MwiResponseMessage), SKINNY_MSGTYPE_RESPONSE, SKINNY_MSGDIRECTION_PBX2DEV },
 	[CallCountRespMessage] = { CallCountRespMessage, "CallCount Response Message", offsize(sccp_data_t, CallCountRespMessage), SKINNY_MSGTYPE_RESPONSE, SKINNY_MSGDIRECTION_PBX2DEV },
 	[RecordingStatusMessage] = { RecordingStatusMessage, "Recording Status Message", offsize(sccp_data_t, RecordingStatusMessage), SKINNY_MSGTYPE_EVENT, SKINNY_MSGDIRECTION_PBX2DEV },
-	/* *INDENT-ON* */
+	/* clang-format on */
 };
 
 const struct messageinfo spcp_messageinfo[] = {
-	/* *INDENT-OFF* */
+	/* clang-format off */
 	[SPCPRegisterTokenRequest - SPCP_MESSAGE_OFFSET] = { SPCPRegisterTokenRequest, "SPCP Register Token Request", offsize(sccp_data_t, SPCPRegisterTokenRequest), SKINNY_MSGTYPE_REQUEST, SKINNY_MSGDIRECTION_DEV2PBX },
 	[SPCPRegisterTokenAck - SPCP_MESSAGE_OFFSET] = { SPCPRegisterTokenAck, "SPCP RegisterMessageACK", offsize(sccp_data_t, SPCPRegisterTokenAck), SKINNY_MSGTYPE_RESPONSE, SKINNY_MSGDIRECTION_PBX2DEV },
 	[SPCPRegisterTokenReject - SPCP_MESSAGE_OFFSET] = { SPCPRegisterTokenReject, "SPCP RegisterMessageReject", offsize(sccp_data_t, SPCPRegisterTokenReject), SKINNY_MSGTYPE_RESPONSE, SKINNY_MSGDIRECTION_PBX2DEV },
 	//[UnknownVGMessage - SPCP_MESSAGE_OFFSET		] = {UnknownVGMessage,		"Unknown Message (VG224)",			offsize(sccp_data_t, UnknownVGMessage)},
-	/* *INDENT-ON* */
+	/* clang-format on */
 };
 
 gcc_inline struct messageinfo * lookupMsgInfoStruct(uint32_t messageId)

@@ -71,7 +71,7 @@ struct callinfo_lookup {
 	const enum callinfo_groups group;
 	const enum callinfo_types type;
 } static const callinfo_lookup[] = {
-	/* *INDENT-OFF* */
+	/* clang-format off */
 	[SCCP_CALLINFO_CALLEDPARTY_NAME]		= {CALLED_PARTY, NAME},
 	[SCCP_CALLINFO_CALLEDPARTY_NUMBER]		= {CALLED_PARTY, NUMBER},
 	[SCCP_CALLINFO_CALLEDPARTY_VOICEMAIL]		= {CALLED_PARTY, VOICEMAILBOX},
@@ -88,7 +88,7 @@ struct callinfo_lookup {
 	[SCCP_CALLINFO_LAST_REDIRECTINGPARTY_VOICEMAIL]	= {LAST_REDIRECTING_PARTY, VOICEMAILBOX},
 	[SCCP_CALLINFO_HUNT_PILOT_NAME]			= {HUNT_PILOT, NAME},
 	[SCCP_CALLINFO_HUNT_PILOT_NUMBER]		= {HUNT_PILOT, NUMBER},
-	/* *INDENT-ON* */
+	/* clang-format on */
 };
 
 static sccp_callinfo_t * const callinfo_Constructor(uint8_t callInstance, const char *const designator)

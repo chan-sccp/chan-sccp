@@ -241,7 +241,7 @@ SCCP_FILE_VERSION(__FILE__, "");
  * \brief Enum for Config Option Types
  */
 enum SCCPConfigOptionType {
-/* *INDENT-OFF* */
+	/* clang-format off */
 	SCCP_CONFIG_DATATYPE_BOOLEAN			= 1 << 0,
 	SCCP_CONFIG_DATATYPE_INT			= 1 << 1,
 	SCCP_CONFIG_DATATYPE_UINT			= 1 << 2,
@@ -250,14 +250,14 @@ enum SCCPConfigOptionType {
 	SCCP_CONFIG_DATATYPE_STRINGPTR			= 1 << 5,		/* string pointer */
 	SCCP_CONFIG_DATATYPE_CHAR			= 1 << 6,
 	SCCP_CONFIG_DATATYPE_ENUM			= 1 << 7,
-/* *INDENT-ON* */
+	/* clang-format on */
 };
 
 /*!
  * \brief Enum for Config Option Flags
  */
 enum SCCPConfigOptionFlag {
-/* *INDENT-OFF* */
+	/* clang-format off */
 	SCCP_CONFIG_FLAG_IGNORE 			= 1 << 0,		/*< ignore parameter */
 	SCCP_CONFIG_FLAG_NONE	 			= 1 << 1,		/*< ignore parameter */
 	SCCP_CONFIG_FLAG_DEPRECATED			= 1 << 2,		/*< parameter is deprecated and should not be used anymore, warn user and still set variable */
@@ -267,14 +267,14 @@ enum SCCPConfigOptionFlag {
 	SCCP_CONFIG_FLAG_GET_DEVICE_DEFAULT		= 1 << 6,		/*< retrieve default value from device */
 	SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT		= 1 << 7,		/*< retrieve default value from global */
 	SCCP_CONFIG_FLAG_MULTI_ENTRY			= 1 << 8,		/*< multi entries allowed */
-/* *INDENT-ON* */
+	/* clang-format on */
 };
 
 /*!
  * \brief SCCP Config Option Struct
  */
 typedef struct SCCPConfigOption {
-/* *INDENT-OFF* */
+/* clang-format off */
 	const char *name;							/*!< Configuration Parameter Name */
 	const size_t size;							/*!< The offsize of the element in the structure where the option value is stored */
 	const int offset;							/*!< The offset relative to the context structure where the option value is stored. */
@@ -287,7 +287,7 @@ typedef struct SCCPConfigOption {
 	sccp_configurationchange_t change;					/*!< Does a change of this value needs a device restart */
 	const char *defaultValue;						/*!< Default value */
 	const char *description;						/*!< Configuration description (config file) or warning message for deprecated or obsolete values */
-/* *INDENT-ON* */
+/* clang-format on */
 } SCCPConfigOption;
 
 //converter function prototypes
@@ -2992,7 +2992,7 @@ static const struct softkeyConfigurationTemplate {
 	const char configVar[16];										/*!< Config Variable as Character */
 	const int softkey;											/*!< Softkey as Int */
 } softKeyTemplate[] = {
-	/* *INDENT-OFF* */
+	/* clang-format off */
 	{"redial", 			SKINNY_LBL_REDIAL},
 	{"newcall", 			SKINNY_LBL_NEWCALL},
 	{"cfwdall", 			SKINNY_LBL_CFWDALL},
@@ -3056,7 +3056,7 @@ static const struct softkeyConfigurationTemplate {
 #endif	
 	{"empty", 			SKINNY_LBL_EMPTY},
 //	{"info", 			SKINNY_LBL_INFO},
-	/* *INDENT-ON* */
+	/* clang-format on */
 
 };
 
