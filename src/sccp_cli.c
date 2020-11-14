@@ -2396,7 +2396,7 @@ static char cli_show_softkeysets_usage[] = "Usage: sccp show softkeysets\n" "	Sh
 static char ami_show_softkeysets_usage[] = "Usage: SCCPShowSoftKeySets\n" "Show All SCCP Softkey Sets.\n\n" "PARAMS: None\n";
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
-#define CLI_COMMAND "sccp", "show", "softkeyssets"
+#define CLI_COMMAND "sccp", "show", "softkeysets"
 #define AMI_COMMAND "SCCPShowSoftKeySets"
 #define CLI_COMPLETE SCCP_CLI_NULL_COMPLETER
 #define CLI_AMI_PARAMS ""
