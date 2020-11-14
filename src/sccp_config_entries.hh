@@ -347,7 +347,7 @@ static const SCCPConfigOption sccpSoftKeyConfigOptions[] = {
 	{ "name", 0, 0, TYPE_STRING, SCCP_CONFIG_FLAG_IGNORE, SCCP_CONFIG_NOUPDATENEEDED, "default", "softkeyset name\n" },
 	{ "onhook", S_OBJ_REF(modes[KEYMODE_ONHOOK]), TYPE_STRING, SCCP_CONFIG_FLAG_NONE, SCCP_CONFIG_NOUPDATENEEDED, "redial, newcall, cfwdall, cfwdbusy, cfwdnoanswer, pickup, gpickup, dnd, private",
 	  "displayed when we are on hook" },
-	{ "connected", S_OBJ_REF(modes[KEYMODE_CONNECTED]), TYPE_STRING, SCCP_CONFIG_FLAG_NONE, SCCP_CONFIG_NOUPDATENEEDED, "hold, endcall, park, transfer, select, cfwdall, cfwdbusy, idivert, monitor, vidmode",
+	{ "connected", S_OBJ_REF(modes[KEYMODE_CONNECTED]), TYPE_STRING, SCCP_CONFIG_FLAG_NONE, SCCP_CONFIG_NOUPDATENEEDED, "hold, endcall, transfer, idivert, conf, conflist, park, monitor, vidmode",
 	  "displayed when we have a connected call" },
 	{ "onhold", S_OBJ_REF(modes[KEYMODE_ONHOLD]), TYPE_STRING, SCCP_CONFIG_FLAG_NONE, SCCP_CONFIG_NOUPDATENEEDED, "resume, newcall, endcall, transfer, conflist, select, dirtrfr, idivert, meetme",
 	  "displayed when we have a call on hold" },
