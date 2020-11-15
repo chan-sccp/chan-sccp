@@ -1279,7 +1279,7 @@ static btnlist *sccp_make_button_template(devicePtr d)
 
 	SCCP_LIST_LOCK(&d->buttonconfig);
 	SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
-		if(buttonconfig->type == LINE && buttonconfig->button.line.options && sccp_strcaseequals(buttonconfig->button.line.options, "default")) {
+		if(buttonconfig->type == LINE && buttonconfig->button.line.options && strcasestr(buttonconfig->button.line.options, "default")) {
 			d->defaultLineInstance = buttonconfig->instance;
 			sccp_log((DEBUGCAT_LINE))(VERBOSE_PREFIX_3 "set defaultLineInstance to: %u\n", buttonconfig->instance);
 			break;
