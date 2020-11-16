@@ -2408,41 +2408,40 @@ CLI_AMI_ENTRY(show_softkeysets, sccp_show_softkeysets, "Show configured SoftKeyS
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
 
 /* TODO: to be removed. temporary backward compatible version (2020-11-16) */
-static char *handle_backward_softkeysets(struct ast_cli_entry *e, int cmd, struct ast_cli_args *a)
+static char * handle_backward_softkeysets(struct ast_cli_entry * e, int cmd, struct ast_cli_args * a)
 {
-        switch (cmd) {
-        case CLI_INIT:
-                e->command = "sccp show softkeyssets";
-                e->usage =
-                        "Usage: sccp show softkeyssets\n"
-                        "       Backward compatible version.\n";
-                return NULL;
-        case CLI_GENERATE:
-                return NULL;
-        }
-        if (a->argc > 3) {
-                return CLI_SHOWUSAGE;
-        }
+	switch (cmd) {
+		case CLI_INIT:
+			e->command = "sccp show softkeyssets";
+			e->usage   = "Usage: sccp show softkeyssets\n"
+				   "       Backward compatible version.\n";
+			return NULL;
+		case CLI_GENERATE:
+			return NULL;
+	}
+	if (a->argc > 3) {
+		return CLI_SHOWUSAGE;
+	}
 
-        sccp_show_softkeysets(a->fd, NULL, NULL, NULL, 0, NULL);
-        return CLI_SUCCESS;
+	sccp_show_softkeysets(a->fd, NULL, NULL, NULL, 0, NULL);
+	return CLI_SUCCESS;
 }
 /* TODO: END */
 
-    /* -----------------------------------------------------------------------------------------------------MESSAGE DEVICES- */
-    /*!
-     * \brief Message Devices
-     * \param fd Fd as int
-     * \param totals Total number of lines as int
-     * \param s AMI Session
-     * \param m Message
-     * \param argc Argc as int
-     * \param argv[] Argv[] as char
-     * \return Result as int
-     * 
-     * \called_from_asterisk
-     * 
-     */
+/* -----------------------------------------------------------------------------------------------------MESSAGE DEVICES- */
+/*!
+ * \brief Message Devices
+ * \param fd Fd as int
+ * \param totals Total number of lines as int
+ * \param s AMI Session
+ * \param m Message
+ * \param argc Argc as int
+ * \param argv[] Argv[] as char
+ * \return Result as int
+ *
+ * \called_from_asterisk
+ *
+ */
 static int sccp_message_devices(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
 	sccp_device_t *d = NULL;
@@ -4047,53 +4046,54 @@ CLI_AMI_ENTRY(microphone, sccp_microphone, "Turn microphone <on/off> on active c
  *
  * \return Result as struct
  */
-static struct pbx_cli_entry cli_entries[] = { AST_CLI_DEFINE(cli_show_globals, "Show SCCP global settings."),
-					      AST_CLI_DEFINE(cli_show_devices, "Show all SCCP Devices."),
-					      AST_CLI_DEFINE(cli_show_device, "Show an SCCP Device"),
-					      AST_CLI_DEFINE(cli_show_lines, "Show All SCCP Lines."),
-					      AST_CLI_DEFINE(cli_show_line, "Show an SCCP Line."),
-					      AST_CLI_DEFINE(cli_show_channels, "Show all SCCP channels."),
-					      AST_CLI_DEFINE(cli_show_version, "SCCP show version."),
-					      AST_CLI_DEFINE(cli_show_mwi_subscriptions, "Show all mwi subscriptions"),
-					      AST_CLI_DEFINE(cli_show_softkeysets, "Show all mwi configured SoftKeySets"),
-					      AST_CLI_DEFINE(cli_unregister, "Unregister an SCCP device"),
-					      AST_CLI_DEFINE(cli_system_message, "Set the SCCP system message."),
-					      AST_CLI_DEFINE(cli_message_devices, "Send a message to all SCCP Devices."),
-					      AST_CLI_DEFINE(cli_message_device, "Send a message to an SCCP Device."),
-					      AST_CLI_DEFINE(cli_remove_line_from_device, "Remove a line from a device."),
-					      AST_CLI_DEFINE(cli_add_line_to_device, "Add a line to a device."),
-					      AST_CLI_DEFINE(cli_show_sessions, "Show All SCCP Sessions."),
-					      AST_CLI_DEFINE(cli_dnd_device, "Set DND on a device"),
-					      AST_CLI_DEFINE(cli_callforward, "Set CallForward on a line"),
-					      AST_CLI_DEFINE(cli_do_debug, "Enable SCCP debugging."),
-					      AST_CLI_DEFINE(cli_no_debug, "Disable SCCP debugging."),
-					      AST_CLI_DEFINE(cli_config_generate, "SCCP generate config file."),
-					      AST_CLI_DEFINE(cli_reload, "SCCP module reload."),
-					      AST_CLI_DEFINE(cli_reload_file, "SCCP module reload file."),
-					      AST_CLI_DEFINE(cli_reload_force, "SCCP module reload force."),
-					      AST_CLI_DEFINE(cli_reload_device, "SCCP module reload device."),
-					      AST_CLI_DEFINE(cli_reload_line, "SCCP module reload line."),
-					      AST_CLI_DEFINE(cli_restart, "Restart an SCCP device"),
-					      AST_CLI_DEFINE(cli_reset, "Reset an SCCP Device"),
-					      AST_CLI_DEFINE(cli_applyconfig, "Force device to reload it's cnf.xml"),
-					      AST_CLI_DEFINE(cli_start_call, "Start a Call."),
-					      AST_CLI_DEFINE(cli_end_call, "End a Call."),
-					      AST_CLI_DEFINE(cli_set_object, "Change channel/device settings."),
-					      AST_CLI_DEFINE(cli_answercall, "Remotely answer a call."),
-					      AST_CLI_DEFINE(cli_microphone, "Control Microphone on/off on active call."),
+static struct pbx_cli_entry cli_entries[] = {
+	AST_CLI_DEFINE(cli_show_globals, "Show SCCP global settings."),
+	AST_CLI_DEFINE(cli_show_devices, "Show all SCCP Devices."),
+	AST_CLI_DEFINE(cli_show_device, "Show an SCCP Device"),
+	AST_CLI_DEFINE(cli_show_lines, "Show All SCCP Lines."),
+	AST_CLI_DEFINE(cli_show_line, "Show an SCCP Line."),
+	AST_CLI_DEFINE(cli_show_channels, "Show all SCCP channels."),
+	AST_CLI_DEFINE(cli_show_version, "SCCP show version."),
+	AST_CLI_DEFINE(cli_show_mwi_subscriptions, "Show all mwi subscriptions"),
+	AST_CLI_DEFINE(cli_show_softkeysets, "Show all mwi configured SoftKeySets"),
+	AST_CLI_DEFINE(cli_unregister, "Unregister an SCCP device"),
+	AST_CLI_DEFINE(cli_system_message, "Set the SCCP system message."),
+	AST_CLI_DEFINE(cli_message_devices, "Send a message to all SCCP Devices."),
+	AST_CLI_DEFINE(cli_message_device, "Send a message to an SCCP Device."),
+	AST_CLI_DEFINE(cli_remove_line_from_device, "Remove a line from a device."),
+	AST_CLI_DEFINE(cli_add_line_to_device, "Add a line to a device."),
+	AST_CLI_DEFINE(cli_show_sessions, "Show All SCCP Sessions."),
+	AST_CLI_DEFINE(cli_dnd_device, "Set DND on a device"),
+	AST_CLI_DEFINE(cli_callforward, "Set CallForward on a line"),
+	AST_CLI_DEFINE(cli_do_debug, "Enable SCCP debugging."),
+	AST_CLI_DEFINE(cli_no_debug, "Disable SCCP debugging."),
+	AST_CLI_DEFINE(cli_config_generate, "SCCP generate config file."),
+	AST_CLI_DEFINE(cli_reload, "SCCP module reload."),
+	AST_CLI_DEFINE(cli_reload_file, "SCCP module reload file."),
+	AST_CLI_DEFINE(cli_reload_force, "SCCP module reload force."),
+	AST_CLI_DEFINE(cli_reload_device, "SCCP module reload device."),
+	AST_CLI_DEFINE(cli_reload_line, "SCCP module reload line."),
+	AST_CLI_DEFINE(cli_restart, "Restart an SCCP device"),
+	AST_CLI_DEFINE(cli_reset, "Reset an SCCP Device"),
+	AST_CLI_DEFINE(cli_applyconfig, "Force device to reload it's cnf.xml"),
+	AST_CLI_DEFINE(cli_start_call, "Start a Call."),
+	AST_CLI_DEFINE(cli_end_call, "End a Call."),
+	AST_CLI_DEFINE(cli_set_object, "Change channel/device settings."),
+	AST_CLI_DEFINE(cli_answercall, "Remotely answer a call."),
+	AST_CLI_DEFINE(cli_microphone, "Control Microphone on/off on active call."),
 #ifdef CS_EXPERIMENTAL
-					      AST_CLI_DEFINE(cli_test, "Test message."),
+	AST_CLI_DEFINE(cli_test, "Test message."),
 #endif
-					      AST_CLI_DEFINE(cli_show_refcount, "Test message."),
-					      AST_CLI_DEFINE(cli_tokenack, "Send Token Acknowledgement."),
+	AST_CLI_DEFINE(cli_show_refcount, "Test message."),
+	AST_CLI_DEFINE(cli_tokenack, "Send Token Acknowledgement."),
 #ifdef CS_SCCP_CONFERENCE
-					      AST_CLI_DEFINE(cli_show_conferences, "Show running SCCP Conferences."),
-					      AST_CLI_DEFINE(cli_show_conference, "Show SCCP Conference Info."),
-					      AST_CLI_DEFINE(cli_conference_command, "SCCP Conference Commands."),
+	AST_CLI_DEFINE(cli_show_conferences, "Show running SCCP Conferences."),
+	AST_CLI_DEFINE(cli_show_conference, "Show SCCP Conference Info."),
+	AST_CLI_DEFINE(cli_conference_command, "SCCP Conference Commands."),
 #endif
-					      AST_CLI_DEFINE(cli_show_hint_lineStates, "Show all hint lineStates"),
-					      AST_CLI_DEFINE(cli_show_hint_subscriptions, "Show all hint subscriptions"),
-					      AST_CLI_DEFINE(handle_backward_softkeysets, "Backward compatible version"),
+	AST_CLI_DEFINE(cli_show_hint_lineStates, "Show all hint lineStates"),
+	AST_CLI_DEFINE(cli_show_hint_subscriptions, "Show all hint subscriptions"),
+	AST_CLI_DEFINE(handle_backward_softkeysets, "Backward compatible version"),
 };
 
 static const char * answerCall1_command = "SCCPAnswerCall1";
@@ -4101,7 +4101,6 @@ static const char * callForward_command = "SCCPCallforward";
 static const char * dndDevice_command = "SCCPDndDevice";
 static const char * systemMessage_command = "SCCPSystemMessage";
 static const char * tokenAck_command = "SCCPTokenAck";
-
 
 /*!
  * register CLI functions from asterisk
