@@ -2406,6 +2406,29 @@ CLI_AMI_ENTRY(show_softkeysets, sccp_show_softkeysets, "Show configured SoftKeyS
 #undef AMI_COMMAND
 #undef CLI_COMMAND
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
+
+/* TODO: to be removed. temporary backward compatible version (2020-11-16) */
+static char *handle_backward_softkeysets(struct ast_cli_entry *e, int cmd, struct ast_cli_args *a)
+{
+        switch (cmd) {
+        case CLI_INIT:
+                e->command = "sccp show softkeyssets";
+                e->usage =
+                        "Usage: sccp show softkeyssets\n"
+                        "       Backward compatible version.\n";
+                return NULL;
+        case CLI_GENERATE:
+                return NULL;
+        }
+        if (a->argc > 3) {
+                return CLI_SHOWUSAGE;
+        }
+
+        sccp_show_softkeysets(a->fd, NULL, NULL, NULL, 0, NULL);
+        return CLI_SUCCESS;
+}
+/* TODO: END */
+
     /* -----------------------------------------------------------------------------------------------------MESSAGE DEVICES- */
     /*!
      * \brief Message Devices
@@ -4069,13 +4092,16 @@ static struct pbx_cli_entry cli_entries[] = { AST_CLI_DEFINE(cli_show_globals, "
 					      AST_CLI_DEFINE(cli_conference_command, "SCCP Conference Commands."),
 #endif
 					      AST_CLI_DEFINE(cli_show_hint_lineStates, "Show all hint lineStates"),
-					      AST_CLI_DEFINE(cli_show_hint_subscriptions, "Show all hint subscriptions") };
+					      AST_CLI_DEFINE(cli_show_hint_subscriptions, "Show all hint subscriptions"),
+					      AST_CLI_DEFINE(handle_backward_softkeysets, "Backward compatible version"),
+};
 
 static const char * answerCall1_command = "SCCPAnswerCall1";
 static const char * callForward_command = "SCCPCallforward";
 static const char * dndDevice_command = "SCCPDndDevice";
 static const char * systemMessage_command = "SCCPSystemMessage";
 static const char * tokenAck_command = "SCCPTokenAck";
+
 
 /*!
  * register CLI functions from asterisk
