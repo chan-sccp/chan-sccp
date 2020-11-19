@@ -57,6 +57,7 @@ struct sccp_private_device_data {
 	
 	sccp_accessorystate_t accessoryStatus[SCCP_ACCESSORY_SENTINEL + 1];		
 	sccp_devicestate_t deviceState;											/*!< Device State */
+	int                   state_hint_sub;
 
 	skinny_registrationstate_t registrationState;
 
@@ -555,7 +556,30 @@ int sccp_device_setDeviceState(constDevicePtr d, const sccp_devicestate_t state)
 		changed=1;
 	}
 	sccp_private_unlock(d->privateData);
-	
+
+	if (d->privateData->state_hint_sub) {
+		int devstate = AST_DEVICE_UNKNOWN;
+		switch (state) {
+			case SCCP_DEVICESTATE_ONHOOK:
+				devstate = AST_DEVICE_NOT_INUSE;
+				break;
+			case SCCP_DEVICESTATE_OFFHOOK:
+				devstate = AST_DEVICE_INUSE;
+				break;
+			case SCCP_DEVICESTATE_UNAVAILABLE:
+				devstate = AST_DEVICE_UNAVAILABLE;
+				break;
+			case SCCP_DEVICESTATE_DND:
+				devstate = AST_DEVICE_BUSY;
+				break;
+			case SCCP_DEVICESTATE_FWDALL:
+			default:
+				devstate = AST_DEVICE_UNKNOWN;
+				break;
+		}
+		ast_devstate_changed_literal(devstate, AST_DEVSTATE_CACHABLE, d->id);
+	}
+
 	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Device State is '%s'\n", d->id, sccp_devicestate2str(state));
 	return changed;
 }
@@ -655,7 +679,6 @@ devicePtr sccp_device_create(const char * id)
 
 //	d->softKeyConfiguration.modes = (softkey_modes *) SoftKeyModes;
 //	d->softKeyConfiguration.size = ARRAY_LEN(SoftKeyModes);
-	sccp_device_setDeviceState(d, SCCP_DEVICESTATE_ONHOOK);
 	d->postregistration_thread = AST_PTHREADT_STOP;
 	d->defaultLineInstance = SCCP_FIRST_LINEINSTANCE;
 
@@ -704,6 +727,13 @@ devicePtr sccp_device_create(const char * id)
 	d->copyStr2Locale = sccp_device_copyStr2Locale_UTF8;
 	d->keepalive = d->keepaliveinterval = d->keepalive ? d->keepalive : GLOB(keepalive);
 	d->mwiUpdateRequired = TRUE;
+
+	char hint_dialplan[256] = "";
+	int  res                = pbx_get_hint(hint_dialplan, sizeof(hint_dialplan) - 1, NULL, 0, NULL, GLOB(context), d->id);
+	if (res) {
+		d->privateData->state_hint_sub = pbx_extension_state_add(GLOB(context), d->id, NULL, NULL);
+	}
+	sccp_device_setDeviceState(d, SCCP_DEVICESTATE_UNAVAILABLE);
 
 	d->pendingUpdate = 0;
 	d->pendingDelete = 0;
@@ -2314,6 +2344,7 @@ void sccp_dev_postregistration(devicePtr d)
 	}
 	SCCP_LIST_UNLOCK(&d->buttonconfig);
 #endif
+	sccp_device_setDeviceState(d, SCCP_DEVICESTATE_ONHOOK);
 	if (d->useHookFlash()) {
 		sccp_dev_setHookFlashDetect(d);
 	}
@@ -2563,6 +2594,7 @@ int __sccp_device_destroy(const void *ptr)
 
 	// cleanup dynamic allocated during sccp_config (i.e. STRINGPTR)
 	sccp_config_cleanup_dynamically_allocated_memory(d, SCCP_CONFIG_DEVICE_SEGMENT);
+	sccp_device_setDeviceState(d, SCCP_DEVICESTATE_UNAVAILABLE);
 
 	// clean button config (only generated on read config, so do not remove during device clean)
 	{
@@ -2639,6 +2671,9 @@ int __sccp_device_destroy(const void *ptr)
 	
 	// cleanup privateData
 	if (d->privateData) {
+		if (d->privateData->state_hint_sub) {
+			ast_extension_state_del(d->privateData->state_hint_sub, NULL);
+		}
 #if HAVE_ICONV
 		if (d->privateData->iconv != (iconv_t) -1) {
 			sccp_device_destroyiconv(d);
