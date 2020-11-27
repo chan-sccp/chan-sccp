@@ -117,7 +117,7 @@ static void sccp_hint_lineStatusChanged(sccp_line_t * line, sccp_channelstate_t 
 static void sccp_hint_updateLineState(struct sccp_hint_lineState * lineState, sccp_channelstate_t state);
 static void sccp_hint_updateLineStateForMultipleChannels(struct sccp_hint_lineState * lineState, sccp_channelstate_t state);
 static void sccp_hint_updateLineStateForSingleChannel(struct sccp_hint_lineState * lineState, sccp_channelstate_t state);
-static void sccp_hint_checkForDND(struct sccp_hint_lineState *lineState);
+static void              sccp_hint_checkForDND(struct sccp_hint_lineState * lineState, sccp_line_t * line);
 static sccp_hint_list_t *sccp_hint_create(char *hint_exten, char *hint_context);
 static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint);			/* old */
 static void sccp_hint_notifyLineStateUpdate(struct sccp_hint_lineState *linestate); 	/* new */
@@ -806,7 +806,7 @@ static void sccp_hint_updateLineStateForMultipleChannels(struct sccp_hint_lineSt
 	if (!lineState || !lineState->line) {
 		return;
 	}
-	sccp_line_t *line = lineState->line;
+	AUTO_RELEASE(sccp_line_t, line, sccp_line_retain(lineState->line));
 
 	memset(lineState->callInfo.partyName, 0, sizeof(lineState->callInfo.partyName));
 	memset(lineState->callInfo.partyNumber, 0, sizeof(lineState->callInfo.partyNumber));
@@ -875,7 +875,7 @@ static void sccp_hint_updateLineStateForSingleChannel (struct sccp_hint_lineStat
 	if (!lineState || !lineState->line) {
 		return;
 	}
-	sccp_line_t *line = lineState->line;
+	AUTO_RELEASE(sccp_line_t, line, sccp_line_retain(lineState->line));
 	// sccp_channelstate_t state = SCCP_CHANNELSTATE_SENTINEL;
 
 	//boolean_t dev_privacy = FALSE;
@@ -1000,7 +1000,7 @@ static void sccp_hint_updateLineStateForSingleChannel (struct sccp_hint_lineStat
 		sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s (hint_updateLineStateForSingleChannel) NO CHANNEL\n", line->name);
 		lineState->state = SCCP_CHANNELSTATE_ONHOOK;
 		lineState->callInfo.calltype = SKINNY_CALLTYPE_SENTINEL;
-		sccp_hint_checkForDND(lineState);
+		sccp_hint_checkForDND(lineState, line);
 	}													// if(channel)
 
 	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s (hint_updateLineStateForSingleChannel) Set singleLineState to %s(%d)\n", line->name, sccp_channelstate2str(lineState->state), lineState->state);
@@ -1456,14 +1456,16 @@ static gcc_inline boolean_t sccp_hint_isCIDavailabe(const sccp_device_t * device
 }
 #endif
 
-static void sccp_hint_checkForDND(struct sccp_hint_lineState *lineState)
+static void sccp_hint_checkForDND(struct sccp_hint_lineState * lineState, sccp_line_t * line)
 {
-	sccp_linedevice_t * lineDevice = NULL;
-	sccp_line_t *line = lineState->line;
+	if (!lineState || !lineState->line || !line) {
+		return;
+	}
 
 	do { /* we have to check if all devices on this line are dnd=SCCP_DNDMODE_REJECT, otherwise do not propagate DND status */
 		boolean_t allDevicesInDND = TRUE;
 
+		sccp_linedevice_t * lineDevice = NULL;
 		SCCP_LIST_LOCK(&line->devices);
 		SCCP_LIST_TRAVERSE(&line->devices, lineDevice, list) {
 			if (lineDevice->device && lineDevice->device->dndFeature.status != SCCP_DNDMODE_REJECT) {
