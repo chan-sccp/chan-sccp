@@ -718,7 +718,7 @@ static void sccp_hint_detachLine(sccp_line_t * line, sccp_device_t * device)
 {
 	AUTO_RELEASE(sccp_line_t, l, sccp_line_retain(line));
 	if (l) {
-		sccp_hint_lineStatusChanged(line, SCCP_CHANNELSTATE_SENTINEL);
+		sccp_hint_lineStatusChanged(line, SCCP_CHANNELSTATE_ZOMBIE);
 		struct sccp_hint_lineState *lineState = NULL;
 
 		if (line->statistic.numberOfActiveDevices == 0) {		/* release last instance of lineState->line */
@@ -774,7 +774,7 @@ static void sccp_hint_updateLineState(struct sccp_hint_lineState * lineState, sc
 
 	if (line) {
 		sccp_log((DEBUGCAT_HINT))(VERBOSE_PREFIX_4 "%s (hint_updateLineState) Update Line Channel State: %s(%d) -> %s(%d)\n", line->name, sccp_channelstate2str(lineState->state), lineState->state,
-					  sccp_channelstate2str(state), state);
+		                          sccp_channelstate2str(state), state);
 
 		/* no line, or line without devices */
 		if (0 == SCCP_LIST_GETSIZE(&line->devices)) {
@@ -1461,7 +1461,6 @@ static void sccp_hint_checkForDND(struct sccp_hint_lineState * lineState, sccp_l
 	if (!lineState || !lineState->line || !line) {
 		return;
 	}
-
 	do { /* we have to check if all devices on this line are dnd=SCCP_DNDMODE_REJECT, otherwise do not propagate DND status */
 		boolean_t allDevicesInDND = TRUE;
 

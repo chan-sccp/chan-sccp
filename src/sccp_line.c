@@ -254,7 +254,7 @@ void sccp_line_clean(linePtr l, boolean_t remove_from_global)
 		sccp_event_t *event = sccp_event_allocate(SCCP_EVENT_LINEINSTANCE_DESTROYED);
 		if(event) {
 			event->lineInstance.line = sccp_line_retain(l);
-			sccp_event_fire(event);
+			sccp_event_syncFire(event);
 		}
 		sccp_line_removeFromGlobals(l);					// final release
 	}

@@ -48,7 +48,9 @@ typedef void (*sccp_event_callback_t) (const sccp_event_t * event);
 SCCP_API void SCCP_CALL sccp_event_module_start(void);
 SCCP_API boolean_t SCCP_CALL sccp_event_subscribe(int eventType, sccp_event_callback_t cb, boolean_t allowAsyncExecution);
 SCCP_API sccp_event_t * SCCP_CALL sccp_event_allocate(sccp_event_type_t eventType);
-SCCP_API boolean_t SCCP_CALL sccp_event_fire(sccp_event_t * event);
+SCCP_API boolean_t SCCP_CALL      _sccp_event_fire(sccp_event_t * event, boolean_t forceSync);
+#define sccp_event_fire(_event)     _sccp_event_fire(_event, FALSE)
+#define sccp_event_syncFire(_event) _sccp_event_fire(_event, TRUE)
 SCCP_API boolean_t SCCP_CALL sccp_event_unsubscribe(int eventType, sccp_event_callback_t cb);
 SCCP_API void SCCP_CALL sccp_event_module_stop(void);
 __END_C_EXTERN__

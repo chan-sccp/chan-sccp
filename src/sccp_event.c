@@ -297,7 +297,7 @@ sccp_event_t * sccp_event_allocate(sccp_event_type_t eventType)
  * \warning
  *      - sccp_event_listeners->subscriber is not always locked
  */
-boolean_t sccp_event_fire(sccp_event_t * event)
+boolean_t _sccp_event_fire(sccp_event_t * event, boolean_t forceSync)
 {
 	boolean_t res = FALSE;
 	if (event) {
@@ -315,10 +315,15 @@ boolean_t sccp_event_fire(sccp_event_t * event)
 		sccp_event_vector_t *subscribers = &event_subscriptions[_idx].subscribers;
 		SCCP_VECTOR_RW_RDLOCK(subscribers);
 		if ((subsize = SCCP_VECTOR_SIZE(subscribers))) {
-			sync_subscribers_cpy = SCCP_VECTOR_CALLBACK_MULTIPLE(subscribers, SUBSCRIBER_EXEC_CMP, SCCP_EVENT_SYNC);
-			async_subscribers_cpy = SCCP_VECTOR_CALLBACK_MULTIPLE(subscribers, SUBSCRIBER_EXEC_CMP, SCCP_EVENT_ASYNC);
-			syncsize = sync_subscribers_cpy ? SCCP_VECTOR_SIZE(sync_subscribers_cpy) : 0;
-			asyncsize = async_subscribers_cpy ? SCCP_VECTOR_SIZE(async_subscribers_cpy) : 0;
+			if (forceSync) {
+				sync_subscribers_cpy = SCCP_VECTOR_CALLBACK_MULTIPLE(subscribers, SCCP_VECTOR_MATCH_ALL);
+				syncsize             = sync_subscribers_cpy ? SCCP_VECTOR_SIZE(sync_subscribers_cpy) : 0;
+			} else {
+				sync_subscribers_cpy  = SCCP_VECTOR_CALLBACK_MULTIPLE(subscribers, SUBSCRIBER_EXEC_CMP, SCCP_EVENT_SYNC);
+				async_subscribers_cpy = SCCP_VECTOR_CALLBACK_MULTIPLE(subscribers, SUBSCRIBER_EXEC_CMP, SCCP_EVENT_ASYNC);
+				syncsize              = sync_subscribers_cpy ? SCCP_VECTOR_SIZE(sync_subscribers_cpy) : 0;
+				asyncsize             = async_subscribers_cpy ? SCCP_VECTOR_SIZE(async_subscribers_cpy) : 0;
+			}
 		}
 		SCCP_VECTOR_RW_UNLOCK(subscribers);
 
