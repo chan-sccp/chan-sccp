@@ -1,18 +1,18 @@
 chan-sccp (4.3.2-6) UNRELEASED; urgency=medium
 
- * Enhancements:
-   - Increased control over Button Lamps on Devstate Feature Buttons
+ - Enhancements:
+   - Increased control over Button Lamps on DeAvstate Feature Buttons
    - Added support for asterisk-18
    - Added support for AUTO_ANSWER dialplan variable
    - Added support for SCCP signaling over TLS (SCCPS)
 
- * Resolved issues:
+ - Resolved issues:
    - Parallel answer issue causing segfaults (full rewrite)
    - CallInfo when dealing with parking and retrieval of parked calls
    - RTP holepunching / dealing with NAT firewalls
    - DND/Record/Forward handling on 89xx phones
 
- * Minor Bug Fixes:
+ - Minor Bug Fixes:
    - cancelling scheduled events
    - fix resource leak
    - incominglimit handling
