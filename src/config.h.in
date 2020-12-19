@@ -48,7 +48,7 @@
 /* Defined ASTERISK_CONF_1_17 */
 #undef ASTERISK_CONF_1_17
 
-/* Defined ASTERISK_CONF_1_17 */
+/* Defined ASTERISK_CONF_1_18 */
 #undef ASTERISK_CONF_1_18
 
 /* Defined ASTERISK_CONF_1_2 */
@@ -209,6 +209,9 @@
 
 /* 'CS_AST_JB_TARGETEXTRA' available */
 #undef CS_AST_JB_TARGETEXTRA
+
+/* 'CS_AST_MANAGER_CHECK_ENABLED' available */
+#undef CS_AST_MANAGER_CHECK_ENABLED
 
 /* new frame data.ptr */
 #undef CS_AST_NEW_FRAME_STRUCT

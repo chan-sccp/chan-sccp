@@ -1003,6 +1003,15 @@ dnl 	CFLAGS="${CFLAGS_saved} -Werror=implicit-function-declaration"
 					struct manager_custom_hook __attribute__((unused)) sccp_manager_hook;
 				], [HAVE_PBX_MANAGER_HOOK_H], ['struct manager_custom_hook' available]
 			)
+
+			CS_CV_TRY_COMPILE_DEFINE([ - availability 'ast_manager_check_enabled'...], [ac_cv_ast_manager_check_enabled], [
+				$HEADER_INCLUDE
+				#include <asterisk/stringfields.h>
+				#include <asterisk/manager.h>
+				], [
+					int x = ast_manager_check_enabled();
+				], [CS_AST_MANAGER_CHECK_ENABLED], ['CS_AST_MANAGER_CHECK_ENABLED' available]
+			)
 		],,[
 			$HEADER_INCLUDE
 			#include <asterisk/stringfields.h>

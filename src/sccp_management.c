@@ -205,6 +205,7 @@ static char management_hold_desc[] = "Description: hold/resume a call\n" "\n" "V
 
 #if HAVE_PBX_MANAGER_HOOK_H
 static int sccp_asterisk_managerHookHelper(int category, const char *event, char *content);
+boolean_t  hook_registered = FALSE;
 
 static struct manager_custom_hook sccp_manager_hook = {
 	.file = "chan_sccp",
@@ -242,7 +243,13 @@ int sccp_register_management(void)
 #	undef _MAN_FLAGS
 
 #	if HAVE_PBX_MANAGER_HOOK_H
-	ast_manager_register_hook(&sccp_manager_hook);
+#		if CS_AST_MANAGER_CHECK_ENABLED
+	if (ast_manager_check_enabled())
+#		endif
+	{
+		ast_manager_register_hook(&sccp_manager_hook);
+		hook_registered = TRUE;
+	}
 #else
 #warning "manager_custom_hook not found, monitor indication does not work properly"
 #endif
@@ -271,7 +278,9 @@ int sccp_unregister_management(void)
 	result |= pbx_manager_unregister(deviceRestart_command);
 	result |= pbx_manager_unregister(deviceSetDND_command);
 #	if HAVE_PBX_MANAGER_HOOK_H
-	ast_manager_unregister_hook(&sccp_manager_hook);
+	if (hook_registered) {
+		ast_manager_unregister_hook(&sccp_manager_hook);
+	}
 #endif
 
 	return result;
