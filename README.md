@@ -39,7 +39,7 @@ For building and installation instructions please see the INSTALL file.
 ### Prerequisites
 Make sure you have the following installed on your system:
 - c-compiler:
-  - gcc >= 4.4  (note: older not supported, higher advised)
+  - gcc >= 4.6  (note: older not supported, higher advised)
   - clang >= 3.6  (note: older not supported, higher advised)
 - gnu make
 - libraries:
@@ -48,8 +48,8 @@ Make sure you have the following installed on your system:
   - gettext
   - libssl-dev / openssl-devel
 - pbx:
-  - asterisk >= 1.6.2 (absolute minimum)
-  - asterisk >= 11.21 or asterisk >= 13.7 recommended
+  - asterisk >= 11 (absolute minimum)
+  - asterisk >= 16 or 18 recommended
   - including source headers and debug symbols (asterisk-dev and asterisk-dbg / asterisk-devel and asterisk-debug-info)
   - chan_skinny module is prevented from loading in /etc/asterisk/modules.conf
 - standard posix compatible applications like sed, awk, tr
@@ -114,6 +114,7 @@ We provide prebuild binaries for:
     - [Fedora-24](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-13/Fedora_24/)
     - [Fedora-25](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-13/Fedora_25/)
     - [Fedora-26](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-13/Fedora_26/)
+    - [Rasbian 9](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-16/Raspbian_9.0) (armv7l)
     - [Ubuntu-16.04](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-13/xUbuntu_16.04/)
     - [Ubuntu-16.10](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-13/xUbuntu_16.10/)
     - [Ubuntu-17.04](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-13/xUbuntu_17.04/)
@@ -122,13 +123,13 @@ We provide prebuild binaries for:
   - Asterisk-16
     - [Debian-10](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-16/Debian_10/) (x86_64,i586)
     - [Debian-Testing](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-16/Debian_Testing/) (x86_64)
-    - [Debian-Unstanble](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-16/Debian_Unstable/) (x86_64)
+    - [Debian-Unstable](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-16/Debian_Unstable/) (x86_64)
     - [Fedora-28](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-16/Fedora_28/) (x86_64)
     - [Fedora-29](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-16/Fedora_29/) (x86_64,i586,armv7l,aarch64,ppc64le)
     - [Fedora-30](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-16/Fedora_30/) (x86_64,i586,armv7l,aarch64,ppc64le)
     - [Fedora-31](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-16/Fedora_31/) (x86_64,i586,armv7l,aarch64,ppc64le)
+    - [openSUSE-Leap_15.1](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-16/openSUSE_Leap_15.1/) (x86_64)
     - [openSUSE-Leap_15.2](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-16/openSUSE_Leap_15.2/) (x86_64)
-    - [Rasbian 9.0](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-16/Raspbian_9.0) (armv7l)
     - [Rasbian 10](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-16/Raspbian_10) (armv7l)
     - [Ubuntu 19.10](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-16/xUbuntu_19.10) (x86_64)
     - [Ubuntu 20.04](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-16/xUbuntu_20.04) (x86_64)
