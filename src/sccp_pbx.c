@@ -147,11 +147,17 @@ static void *sccp_pbx_call_autoanswer_thread(void *data)
 			pbx_log(LOG_WARNING, "%s: (autoanswer_thread) %s\n", device->id, c ? "not ringing" : "no channel");
 			goto FINAL;
 		}
+		if (c->pbx_callid) {
+			pbx_callid_threadassoc_add(c->pbx_callid);
+		}
 
 		sccp_channel_answer(device, c);
 		c->setTone(c, GLOB(autoanswer_tone), SKINNY_TONEDIRECTION_USER);
 		if (c->autoanswer_type == SCCP_AUTOANSWER_1W) {
 			sccp_dev_set_microphone(device, SKINNY_STATIONMIC_OFF);
+		}
+		if (c->pbx_callid) {
+			pbx_callid_threadassoc_remove();
 		}
 	}
 FINAL:
@@ -913,7 +919,9 @@ boolean_t sccp_pbx_channel_allocate(constChannelPtr channel, const void * ids, c
 		}
 	}
 */
-
+	if (!c->pbx_callid && c->calltype != SKINNY_CALLTYPE_INBOUND) {
+		c->pbx_callid = pbx_create_callid();
+	}
 	/* This should definitely fix CDR */
 	iPbx.alloc_pbxChannel(c, ids, parentChannel, &tmp);
 

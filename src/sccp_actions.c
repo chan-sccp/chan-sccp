@@ -125,12 +125,19 @@ gcc_inline static devicePtr check_session_message_device(constSessionPtr s, cons
 	}
 
 	if (!errors) {
-		devicePtr device = sccp_session_getDevice(s, deviceIsNecessary);
-		if (device) {
-			return device;
-		}
 		if (deviceIsNecessary) {
-			pbx_log(LOG_WARNING, "Session Device could not be retained, to handle %s for, but device is needed\n", msgtypestr);
+			devicePtr device = sccp_session_getDevice(s, deviceIsNecessary);
+			if (!device) {
+				pbx_log(LOG_WARNING, "Session Device could not be retained, to handle %s for, but device is needed\n", msgtypestr);
+				return NULL;
+			}
+			skinny_registrationstate_t registrationState = sccp_device_getRegistrationState(device);
+			if (registrationState != SKINNY_DEVICE_RS_PROGRESS && registrationState != SKINNY_DEVICE_RS_OK) {
+				pbx_log(LOG_WARNING, "%s: Device was found to handle:%s but the device is in an invalid registration state:%s to handle the request\n", device->id, msgtypestr,
+				        skinny_registrationstate2str(registrationState));
+				return NULL;
+			}
+			return device;
 		}
 	}
 	return NULL;
@@ -1506,7 +1513,7 @@ void handle_line_number(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 	char * fullyQualifiedDisplayName = "";
 	sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Configuring line number %d\n", d->id, lineNumber);
 
-	/* the description on the top bar on the phone is taken from the device description or the first default line description whichever is provided (-MC) */
+	/* the description on the top bar off the phone is taken from the device description or the first default line description whichever is provided (-MC) */
 	AUTO_RELEASE(sccp_line_t, l , sccp_line_find_byid(d, lineNumber));
 	if(l) {
 		dirNumber = l->name;
@@ -1519,7 +1526,9 @@ void handle_line_number(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 		sccp_dev_speed_find_byindex(d, lineNumber, TRUE, &k);
 		if(!k.valid) {
 			pbx_log(LOG_ERROR, "%s: requested a line configuration for unknown line/speeddial %d\n", sccp_session_getDesignator(s), lineNumber);
-			d->protocol->sendLineStatResp(d, lineNumber, "", "", "");
+			if (d->protocol) {
+				d->protocol->sendLineStatResp(d, lineNumber, "", "", "");
+			}
 			return;
 		}
 		fullyQualifiedDisplayName = dirNumber = k.name;

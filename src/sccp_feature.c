@@ -965,6 +965,9 @@ static void *sccp_feat_meetme_thread(void *data)
 	}
 	// SKINNY_DISP_CAN_NOT_COMPLETE_CONFERENCE
 	if (c && c->owner) {
+		if (c->pbx_callid) {
+			pbx_callid_threadassoc_add(c->pbx_callid);
+		}
 		if (!pbx_channel_context(c->owner) || sccp_strlen_zero(pbx_channel_context(c->owner))) {
 			return NULL;
 		}
@@ -1002,6 +1005,9 @@ static void *sccp_feat_meetme_thread(void *data)
 				pbx_log(LOG_WARNING, "SCCP: SCCP_CHANNELSTATE_INVALIDCONFERENCE\n");
 			}
 			ast_context_remove_extension(context, ext, 1, NULL);
+		}
+		if (c->pbx_callid) {
+			pbx_callid_threadassoc_remove();
 		}
 	}
 	return NULL;

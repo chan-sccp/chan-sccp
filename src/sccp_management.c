@@ -211,7 +211,7 @@ static struct manager_custom_hook sccp_manager_hook = {
 	.file = "chan_sccp",
 	.helper = sccp_asterisk_managerHookHelper,
 };
-#endif
+#	endif
 
 /*!
  * \brief Register management commands
@@ -250,10 +250,9 @@ int sccp_register_management(void)
 		ast_manager_register_hook(&sccp_manager_hook);
 		hook_registered = TRUE;
 	}
-#else
-#warning "manager_custom_hook not found, monitor indication does not work properly"
-#endif
-
+#	else
+#		warning "manager_custom_hook not found, monitor indication does not work properly"
+#	endif
 	return result;
 }
 
@@ -281,8 +280,7 @@ int sccp_unregister_management(void)
 	if (hook_registered) {
 		ast_manager_unregister_hook(&sccp_manager_hook);
 	}
-#endif
-
+#	endif
 	return result;
 }
 

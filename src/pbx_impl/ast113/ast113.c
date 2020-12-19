@@ -452,26 +452,27 @@ static void __find_joint_capabilities(sccp_channel_t *c, PBX_CHANNEL_TYPE* peer,
 	char buf[512];
 	pbx_str_t *codec_buf = pbx_str_alloca(64);
 	PBX_CHANNEL_TYPE *owner = c->owner;
-	struct ast_format_cap *caps = ao2_t_bump(c->caps, "sccp_channel_caps");
-	struct ast_format_cap *payload_caps = ast_format_cap_alloc(AST_FORMAT_CAP_FLAG_DEFAULT);
-	struct ast_format_cap *remote_caps = ast_format_cap_alloc(AST_FORMAT_CAP_FLAG_DEFAULT);
-	struct ast_format_cap *joint = ast_format_cap_alloc(AST_FORMAT_CAP_FLAG_DEFAULT);
+	RAII(struct ast_format_cap *, caps, ao2_t_bump(c->caps, "sccp_channel_caps"), ao2_cleanup);
+	RAII(struct ast_format_cap *, payload_caps, ast_format_cap_alloc(AST_FORMAT_CAP_FLAG_DEFAULT), ao2_cleanup);
+	RAII(struct ast_format_cap *, remote_caps, ast_format_cap_alloc(AST_FORMAT_CAP_FLAG_DEFAULT), ao2_cleanup);
+	RAII(struct ast_format_cap *, joint, ast_format_cap_alloc(AST_FORMAT_CAP_FLAG_DEFAULT), ao2_cleanup);
 	struct ast_format *best_fmt_cap = NULL;
 	struct ast_format *best_fmt_native = NULL;
-	if (caps && payload_caps && remote_caps && joint) {
+	if (caps && payload_caps && remote_caps && joint && !ast_format_cap_empty(caps)) {
 		ast_format_cap_append_from_cap(payload_caps, caps, media_type);
-		ast_format_cap_append_from_cap(remote_caps, ast_channel_nativeformats(peer), media_type);
+		ast_channel_lock(peer);
+		struct ast_format_cap * cap_native_peer = ast_channel_nativeformats(peer);
+		if (!ast_format_cap_empty(cap_native_peer) && ast_format_cap_has_type(cap_native_peer, media_type)) {
+			ast_format_cap_append_from_cap(remote_caps, cap_native_peer, media_type);
+		}
+		ast_channel_unlock(peer);
+		if (!ast_format_cap_empty(payload_caps) && !ast_format_cap_empty(remote_caps)) {
+			sccp_log(DEBUGCAT_CODEC)(VERBOSE_PREFIX_3 "%s: (find_joint_capabilities) native caps:%s (%d)\n", c->designator, ast_format_cap_get_names(caps, &codec_buf), (int)ast_format_cap_count(caps));
+			sccp_log(DEBUGCAT_CODEC)(VERBOSE_PREFIX_3 "%s: (find_joint_capabilities) %s  payload:%s (%d)\n", c->designator, ast_codec_media_type2str(media_type), ast_format_cap_get_names(payload_caps, &codec_buf),
+			                         (int)ast_format_cap_count(payload_caps));
+			sccp_log(DEBUGCAT_CODEC)(VERBOSE_PREFIX_3 "%s: (find_joint_capabilities) %s   remote:%s (%d)\n", c->designator, ast_codec_media_type2str(media_type), ast_format_cap_get_names(remote_caps, &codec_buf),
+			                         (int)ast_format_cap_count(remote_caps));
 
-		sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "%s: (find_joint_capabilities) native caps:%s (%d)\n", c->designator,
-			ast_format_cap_get_names(caps, &codec_buf), (int)ast_format_cap_count(caps));
-		sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "%s: (find_joint_capabilities) %s  payload:%s (%d)\n", c->designator,
-			ast_codec_media_type2str(media_type),
-			ast_format_cap_get_names(payload_caps, &codec_buf), (int)ast_format_cap_count(payload_caps));
-		sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "%s: (find_joint_capabilities) %s   remote:%s (%d)\n", c->designator,
-			ast_codec_media_type2str(media_type),
-			ast_format_cap_get_names(remote_caps, &codec_buf), (int)ast_format_cap_count(remote_caps));
-
-		if (ast_format_cap_count(caps) && ast_format_cap_count(payload_caps) && ast_format_cap_count(remote_caps)) {
 			// fill c->remoteCapabilities
 			sccp_astwrap_getSkinnyFormatMultiple(remote_caps, remoteCapabilities, SKINNY_MAX_CAPABILITIES);
 
@@ -480,7 +481,7 @@ static void __find_joint_capabilities(sccp_channel_t *c, PBX_CHANNEL_TYPE* peer,
 
 			ast_format_cap_get_compatible(payload_caps, remote_caps, joint);
 
-			if (ast_format_cap_count(joint) > 0) {
+			if (!ast_format_cap_empty(joint)) {
 				best_fmt_native = ast_format_cap_get_best_by_type(joint, media_type);
 				sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_4 "%s: (find_joint_capabilities) NOT transcoding, best_native:%s\n", c->designator, ast_format_get_codec_name(best_fmt_native));
 				if (best_fmt_native) {
@@ -497,7 +498,7 @@ static void __find_joint_capabilities(sccp_channel_t *c, PBX_CHANNEL_TYPE* peer,
 				} else {
 					best_fmt_native = ast_format_cap_get_best_by_type(caps, media_type);
 				}
-				ast_format_cap_append_from_cap(caps, joint, media_type);
+				ast_format_cap_append_from_cap(caps, payload_caps, media_type);
 				sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "%s: pbx_retrieve_remote_capabilities: transcoding, best_cap:%s, best_native:%s\n",
 					c->designator, ast_format_get_codec_name(best_fmt_cap), best_fmt_native ? ast_format_get_codec_name(best_fmt_native) : "");
 			}
@@ -505,7 +506,7 @@ static void __find_joint_capabilities(sccp_channel_t *c, PBX_CHANNEL_TYPE* peer,
 			ast_format_cap_append_from_cap(caps, ast_channel_nativeformats(c->owner), AST_MEDIA_TYPE_UNKNOWN);
 			if (best_fmt_native) {
 				if (best_fmt_native != ast_format_none) {
-					if (ast_format_cap_count(caps) > 0) {
+					if (!ast_format_cap_empty(caps)) {
 						ast_channel_lock(owner);
 						ast_channel_nativeformats_set(c->owner, caps);
 						ast_channel_unlock(owner);
@@ -530,10 +531,7 @@ static void __find_joint_capabilities(sccp_channel_t *c, PBX_CHANNEL_TYPE* peer,
 				ao2_ref(best_fmt_native, -1);
 			}
 		}
-		ao2_cleanup(joint);
-		ao2_cleanup(remote_caps);
-		ao2_cleanup(payload_caps);
-		ao2_t_ref(caps, -1, "sccp_channel_caps");
+		return;
 	}
 }
 
@@ -549,15 +547,10 @@ static void pbx_retrieve_remote_capabilities(sccp_channel_t *c)
 	//! \todo handle multiple remotePeers i.e. DIAL(SCCP/400&SIP/300), find smallest common codecs, what order to use ?
 	for (; (remotePeer = ast_channel_iterator_next(iterator)); pbx_channel_unref(remotePeer)) {
 		if (pbx_find_channel_by_linkid(ast, remotePeer, (void *) ast_channel_linkedid(ast))) {
-			pbx_str_t *codec_buf = pbx_str_alloca(64);
-			sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_2 "%s: remote peer native caps:%s\n", c->designator, ast_format_cap_get_names(ast_channel_nativeformats(remotePeer), &codec_buf));
-			//sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_4 "%s: my native caps:%s\n", c->designator, ast_format_cap_get_names(ast_channel_nativeformats(c->owner), &codec_buf));
 			__find_joint_capabilities(c, remotePeer, AST_MEDIA_TYPE_AUDIO, c->remoteCapabilities.audio);
 #if CS_SCCP_VIDEO
 			__find_joint_capabilities(c, remotePeer, AST_MEDIA_TYPE_VIDEO, c->remoteCapabilities.video);
 #endif
-			sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_2 "%s: new native caps:%s\n", c->designator, ast_format_cap_get_names(ast_channel_nativeformats(c->owner), &codec_buf));
-			pbx_channel_unref(remotePeer);
 			break;
 		}
 	}
@@ -1210,6 +1203,9 @@ static boolean_t sccp_astwrap_allocPBXChannel(sccp_channel_t * channel, const vo
 	}
 
 	ast_channel_stage_snapshot(pbxDstChannel);
+	if (channel->callid) {
+		pbx_channel_callid_set(pbxDstChannel, channel->pbx_callid);
+	}
 
 	ast_channel_tech_set(pbxDstChannel, &sccp_tech);
 	ast_channel_tech_pvt_set(pbxDstChannel, sccp_channel_retain(channel));
@@ -1321,12 +1317,6 @@ static boolean_t sccp_astwrap_allocPBXChannel(sccp_channel_t * channel, const vo
 	if (!sccp_strlen_zero(line->language) && ast_get_indication_zone(line->language)) {
 		ast_channel_zone_set(pbxDstChannel, ast_get_indication_zone(line->language));			/* this will core asterisk on hangup */
 	}
-
-	struct ast_cc_config_params * cc_params = ast_cc_config_params_init();
-	ast_cc_default_config_params (cc_params);
-	ast_cc_set_param (cc_params, "cc_agent_policy", "generic");
-	ast_cc_set_param (cc_params, "cc_agent_monitor", "generic");
-	ast_channel_cc_params_init (pbxDstChannel, cc_params);
 
 	ast_channel_stage_snapshot_done(pbxDstChannel);
 	ast_channel_unlock(pbxDstChannel);
@@ -1478,19 +1468,10 @@ int sccp_astwrap_hangup(PBX_CHANNEL_TYPE * ast_channel)
 {
 	// ast_channel_stage_snapshot(ast_channel);
 	AUTO_RELEASE(sccp_channel_t, c , get_sccp_channel_from_pbx_channel(ast_channel));
-	int callid_created = 0;
 	int res = -1;
-
-#if !defined(CS_AST_CHANNEL_CALLID_TYPEDEF)
-	struct ast_callid *callid = ast_channel_callid(ast_channel);
-#else	
-	ast_callid callid = ast_channel_callid(ast_channel);
-#endif
 
 	if (c) {
 		sccp_mutex_lock(&c->lock);
-		callid_created = c->pbx_callid_created;
-		c->pbx_callid_created = 0;
 		if (pbx_channel_hangupcause(ast_channel) == AST_CAUSE_ANSWERED_ELSEWHERE) {
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: This call was answered elsewhere\n");
 			c->answered_elsewhere = TRUE;
@@ -1504,11 +1485,6 @@ int sccp_astwrap_hangup(PBX_CHANNEL_TYPE * ast_channel)
 		ast_channel_tech_pvt_set(ast_channel, NULL);
 		pbx_channel_unref(ast_channel);									// strange unknown channel, why did we get called to hang it up ?
 	}
-	if (callid_created) {
-		ast_callid_threadstorage_auto_clean(callid, callid_created);
-	}
-
-	// ast_channel_stage_snapshot_done(ast_channel);
 	return res;
 }
 
@@ -1872,7 +1848,7 @@ static PBX_CHANNEL_TYPE *sccp_astwrap_request(const char *type, struct ast_forma
 	//sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_4 "SCCP: requestedCodec in Skinny Format: audio:%s (video:%s)\n", codec2name(audio_codec), codec2name(video_codec));
 	/** done getting remote capabilities */
 
-	int callid_created = ast_callid_threadstorage_auto(&callid);
+	callid = ast_read_threadstorage_callid();
 
 	AUTO_RELEASE(sccp_channel_t, channel , NULL);
 	requestStatus = sccp_requestChannel(lineName, autoanswer_type, autoanswer_cause, ringermode, &channel);
@@ -1904,7 +1880,10 @@ static PBX_CHANNEL_TYPE *sccp_astwrap_request(const char *type, struct ast_forma
 		channel->remoteCapabilities.video[0] = video_codec;
 	}
 #endif
-	
+	if (callid) {
+		channel->pbx_callid = (pbx_callid_t)callid;
+	}
+
 	if (!sccp_pbx_channel_allocate(channel, assignedids, requestor)) {
 		//! \todo handle error in more detail, cleanup sccp channel
 		*cause = AST_CAUSE_REQUESTED_CHAN_UNAVAIL;
@@ -1957,7 +1936,6 @@ EXITFUNC:
 		if (callid) {
 			ast_channel_callid_set(result_ast_channel, callid);
 		}
-		channel->pbx_callid_created = callid_created;
 	} else if (callid) {
 #if !defined(CS_AST_CHANNEL_CALLID_TYPEDEF)
 		ast_callid_unref(callid);
@@ -2011,9 +1989,6 @@ static int sccp_astwrap_answer(PBX_CHANNEL_TYPE * pbxchan)
 	AUTO_RELEASE(sccp_channel_t, c , get_sccp_channel_from_pbx_channel(pbxchan));
 	if(c && c->state < SCCP_GROUPED_CHANNELSTATE_CONNECTION) {
 		sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_3 "%s: Remote has answered the call.\n", c->designator);
-		if(!c->pbx_callid_created && !pbx_channel_callid(pbxchan)) {
-			pbx_callid_threadassoc_add(ast_channel_callid(pbxchan));
-		}
 
 		AUTO_RELEASE(sccp_device_t, d, sccp_channel_getDevice(c));
 		if(d && d->session) {

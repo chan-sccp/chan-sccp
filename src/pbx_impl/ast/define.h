@@ -176,8 +176,6 @@
 #define pbx_channel_trylock ast_channel_trylock
 #define pbx_channel_undefer_dtmf ast_channel_undefer_dtmf
 #define pbx_channel_unregister ast_channel_unregister
-#define pbx_channel_callid                      ast_channel_callid
-#define pbx_callid_threadassoc_add              ast_callid_threadassoc_add
 
 #define pbx_cli ast_cli
 #define pbx_cli_entry ast_cli_entry
@@ -462,5 +460,17 @@ typedef struct pbx_event_sub pbx_event_subscription_t;
 #define pbx_test_validate ast_test_validate
 #endif
 #endif
+#define pbx_channel_callid ast_channel_callid
+#if !defined(CS_AST_CHANNEL_CALLID_TYPEDEF)
+#	define pbx_callid_t                           struct ast_callid *
+#	define pbx_channel_callid_set(_chan, _callid) ast_channel_callid_set(_chan, (struct ast_callid *)_callid)
+#	define pbx_callid_threadassoc_add(_callid)    ast_callid_threadassoc_add((struct ast_callid *)_callid)
+#else
+#	define pbx_callid_t                           ast_callid
+#	define pbx_channel_callid_set(_chan, _callid) ast_channel_callid_set(_chan, (ast_callid)_callid)
+#	define pbx_callid_threadassoc_add(_callid)    ast_callid_threadassoc_add((ast_callid)_callid)
+#endif
+#define pbx_create_callid             (pbx_callid_t) ast_create_callid
+#define pbx_callid_threadassoc_remove ast_callid_threadassoc_remove
 
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

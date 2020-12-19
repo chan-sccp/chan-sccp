@@ -1033,12 +1033,6 @@ static boolean_t sccp_astwrap_allocPBXChannel(sccp_channel_t * channel, const vo
 		ast_channel_zone_set(pbxDstChannel, ast_get_indication_zone(line->language));			/* this will core asterisk on hangup */
 	}
 
-	struct ast_cc_config_params * cc_params = ast_cc_config_params_init();
-	ast_cc_default_config_params (cc_params);
-	ast_cc_set_param (cc_params, "cc_agent_policy", "generic");
-	ast_cc_set_param (cc_params, "cc_agent_monitor", "generic");
-	ast_channel_cc_params_init (pbxDstChannel, cc_params);
-
 	ast_channel_stage_snapshot_done(pbxDstChannel);
 	ast_channel_unlock(pbxDstChannel);
 
@@ -1224,15 +1218,10 @@ int sccp_astwrap_hangup(PBX_CHANNEL_TYPE * ast_channel)
 {
 	// ast_channel_stage_snapshot(ast_channel);
 	AUTO_RELEASE(sccp_channel_t, c , get_sccp_channel_from_pbx_channel(ast_channel));
-	int callid_created = 0;
 	int res = -1;
-
-	struct ast_callid *callid = ast_channel_callid(ast_channel);
 
 	if (c) {
 		sccp_mutex_lock(&c->lock);
-		callid_created = c->pbx_callid_created;
-		c->pbx_callid_created = 0;
 		if (pbx_channel_hangupcause(ast_channel) == AST_CAUSE_ANSWERED_ELSEWHERE) {
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: This call was answered elsewhere\n");
 			c->answered_elsewhere = TRUE;
@@ -1246,11 +1235,6 @@ int sccp_astwrap_hangup(PBX_CHANNEL_TYPE * ast_channel)
 		ast_channel_tech_pvt_set(ast_channel, NULL);
 		pbx_channel_unref(ast_channel);									// strange unknown channel, why did we get called to hang it up ?
 	}
-	if (callid_created) {
-		ast_callid_threadstorage_auto_clean(callid, callid_created);
-	}
-
-	// ast_channel_stage_snapshot_done(ast_channel);
 	return res;
 }
 
@@ -1593,8 +1577,6 @@ static PBX_CHANNEL_TYPE *sccp_astwrap_request(const char *type, struct ast_forma
 	/** get requested format */
 	// codec = pbx_codec2skinny_codec(ast_format_cap_to_old_bitfield(format));
 	//codec = sccp_astwrap_getSkinnyFormatSingle(cap);
-	//callid = ast_read_threadstorage_callid();
-	int callid_created = ast_callid_threadstorage_auto(&callid);
 
 	AUTO_RELEASE(sccp_channel_t, channel , NULL);
 	requestStatus = sccp_requestChannel(lineName, autoanswer_type, autoanswer_cause, ringermode, &channel);
@@ -1672,12 +1654,6 @@ static PBX_CHANNEL_TYPE *sccp_astwrap_request(const char *type, struct ast_forma
 EXITFUNC:
 	if (channel) {
 		result_ast_channel = channel->owner;
-		if (callid) {
-			ast_channel_callid_set(result_ast_channel, callid);
-		}
-		channel->pbx_callid_created = callid_created;
-	} else if (callid) {
-		ast_callid_unref(callid);
 	}
 	return result_ast_channel;
 }
@@ -1728,10 +1704,6 @@ static int sccp_astwrap_answer(PBX_CHANNEL_TYPE * pbxchan)
 	AUTO_RELEASE(sccp_channel_t, c , get_sccp_channel_from_pbx_channel(pbxchan));
 	if(c && c->state < SCCP_GROUPED_CHANNELSTATE_CONNECTION) {
 		sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_3 "%s: Remote has answered the call.\n", c->designator);
-		if(!c->pbx_callid_created && !pbx_channel_callid(pbxchan)) {
-			pbx_callid_threadassoc_add(ast_channel_callid(pbxchan));
-		}
-
 		AUTO_RELEASE(sccp_device_t, d, sccp_channel_getDevice(c));
 		if(d && d->session) {
 			sccp_log(DEBUGCAT_PBX)(VERBOSE_PREFIX_3 "%s: Waiting for pendingRequests\n", c->designator);

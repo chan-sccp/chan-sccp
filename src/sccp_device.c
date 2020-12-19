@@ -660,8 +660,8 @@ devicePtr sccp_device_create(const char * id)
 	d->defaultLineInstance = SCCP_FIRST_LINEINSTANCE;
 
 	// set minimum protocol levels
-	// d->protocolversion = SCCP_DRIVER_SUPPORTED_PROTOCOL_LOW;
-	// d->protocol = sccp_protocol_getDeviceProtocol(d, SCCP_PROTOCOL);
+	d->protocolversion = SCCP_DRIVER_SUPPORTED_PROTOCOL_LOW;
+	d->protocol        = sccp_protocol_getDeviceProtocol(d, SCCP_PROTOCOL);
 
 	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "Init MessageStack\n");
 
@@ -2463,8 +2463,6 @@ void _sccp_dev_clean(devicePtr device, boolean_t remove_from_global, boolean_t r
 		}
 		SCCP_LIST_TRAVERSE_SAFE_END;
 		SCCP_LIST_UNLOCK(&d->buttonconfig);
- 
-		d->linesRegistered = FALSE;
 
 		sccp_log((DEBUGCAT_CORE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_2 "SCCP: Unregister Device %s\n", d->id);
 

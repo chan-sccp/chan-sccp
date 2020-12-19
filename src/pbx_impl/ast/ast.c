@@ -1542,20 +1542,6 @@ enum ast_pbx_result pbx_pbx_start(PBX_CHANNEL_TYPE * pbx_channel)
 	ast_channel_lock(pbx_channel);
 	AUTO_RELEASE(sccp_channel_t, channel , get_sccp_channel_from_pbx_channel(pbx_channel));
 	if (channel) {
-#if ASTERISK_VERSION_GROUP >= 111
-#  if !defined(CS_AST_CHANNEL_CALLID_TYPEDEF)
-#    if ASTERISK_VERSION_GROUP >= 111 && ASTERISK_VERSION_GROUP < 114
-		struct ast_callid *callid = NULL;
-#    else
-		typedef unsigned int ast_callid;
-		ast_callid callid = 0;
-#    endif
-#  else
-		ast_callid callid = 0;
-#  endif
-		channel->pbx_callid_created = ast_callid_threadstorage_auto(&callid);
-		ast_channel_callid_set(pbx_channel, callid);
-#endif
 		// check if the pickup extension was entered
 		const char *dialedNumber = iPbx.getChannelExten(channel);
 		char pickupexten[SCCP_MAX_EXTENSION];

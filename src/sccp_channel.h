@@ -116,7 +116,7 @@ struct sccp_channel {
 	pbx_event_subscription_t * parking_sub;
 
 #if ASTERISK_VERSION_GROUP >= 111
-	int16_t pbx_callid_created;
+	pbx_callid_t pbx_callid;
 #endif
 };														/*!< SCCP Channel Structure */
 
