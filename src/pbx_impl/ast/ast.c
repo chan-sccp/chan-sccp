@@ -588,26 +588,28 @@ sccp_channel_t *get_sccp_channel_from_pbx_channel(const PBX_CHANNEL_TYPE * pbx_c
 /*
 static void log_hangup_info(const char * hanguptype, constChannelPtr c, PBX_CHANNEL_TYPE * const pbx_channel)
 {
-	sccp_log(DEBUGCAT_PBX)("%s: (%s):\n"
-			       " - pbx_channel: %s\n"
-			       " - channel_flags:\n"
-			       "   - ZOMBIE: %s\n"
-			       "   - BLOCKING: %s\n"
-			       " - pbx_channel_hangup_locked: %s\n"
-			       " - runningPbxThread: %s\n"
-			       " - pbx_channel_is_bridged: %s\n"
-			       " - pbx_channel_pbx: %s\n",
-			       c->designator, hanguptype, pbx_channel ? pbx_channel_name(pbx_channel) : "", pbx_channel ? pbx_test_flag(pbx_channel_flags(pbx_channel), AST_FLAG_ZOMBIE) ? "YES" : "NO" : "",
-			       pbx_channel ? pbx_test_flag(pbx_channel_flags(pbx_channel), AST_FLAG_BLOCKING) ? "YES" : "NO" : "", pbx_channel ? pbx_check_hangup_locked(pbx_channel) ? "YES" : "NO" : "",
-			       c->isRunningPbxThread ? "YES" : "NO", iPbx.channel_is_bridged((channelPtr)c) ? "YES" : "NO", pbx_channel ? pbx_channel_pbx(pbx_channel) ? "YES" : "NO" : "");
+        sccp_log(DEBUGCAT_PBX)("%s: (%s):\n"
+                               " - pbx_channel: %s\n"
+                               " - channel_flags:\n"
+                               "   - ZOMBIE: %s\n"
+                               "   - BLOCKING: %s\n"
+                               " - pbx_channel_hangup_locked: %s\n"
+                               " - runningPbxThread: %s\n"
+                               " - pbx_channel_is_bridged: %s\n"
+                               " - pbx_channel_pbx: %s\n"
+                               " - soft_hangup_set: %s\n",
+                               c->designator, hanguptype, pbx_channel ? pbx_channel_name(pbx_channel) : "", pbx_channel ? pbx_test_flag(pbx_channel_flags(pbx_channel), AST_FLAG_ZOMBIE) ? "YES" : "NO" : "",
+                               pbx_channel ? pbx_test_flag(pbx_channel_flags(pbx_channel), AST_FLAG_BLOCKING) ? "YES" : "NO" : "", pbx_channel ? pbx_check_hangup_locked(pbx_channel) ? "YES" : "NO" : "",
+                               c->isRunningPbxThread ? "YES" : "NO", iPbx.channel_is_bridged((channelPtr)c) ? "YES" : "NO", pbx_channel ? pbx_channel_pbx(pbx_channel) ? "YES" : "NO" : "",
+                               ast_channel_softhangup_internal_flag(pbx_channel) ? "YES" : "NO");
 #if CS_REFCOUNT_DEBUG
-	AUTO_RELEASE(sccp_device_t, d, sccp_channel_getDevice(c));
-	if(d) {
-		pbx_str_t * buf = pbx_str_create(DEFAULT_PBX_STR_BUFFERSIZE * 3);
-		sccp_refcount_gen_report(d, &buf);
-		pbx_log(LOG_NOTICE, "%s: (%s) refcount_report:\n%s\n", c->designator, hanguptype, pbx_str_buffer(buf));
-		sccp_free(buf);
-	}
+        AUTO_RELEASE(sccp_device_t, d, sccp_channel_getDevice(c));
+        if(d) {
+                pbx_str_t * buf = pbx_str_create(DEFAULT_PBX_STR_BUFFERSIZE * 3);
+                sccp_refcount_gen_report(d, &buf);
+                pbx_log(LOG_NOTICE, "%s: (%s) refcount_report:\n%s\n", c->designator, hanguptype, pbx_str_buffer(buf));
+                sccp_free(buf);
+        }
 #endif
 }
 */
@@ -629,12 +631,17 @@ static boolean_t sccp_astgenwrap_handleHangup(constChannelPtr channel, const cha
 				AUTO_RELEASE(sccp_device_t, d, sccp_channel_getDevice(c));
 				if(d) {
 					sccp_indicate(d, c, SCCP_CHANNELSTATE_ONHOOK);
-					sccp_log(DEBUGCAT_PBX)("%s: (%s): Onhook Only\n", c->designator, hanguptype);
-				}
-				if(iPbx.dumpchan) {
-					char * buf = sccp_alloca(sizeof(char) * 2048);
-					iPbx.dumpchan(pbx_channel, buf, 2048);
-					sccp_log(DEBUGCAT_PBX)("SCCP: (dumpchan) %s", buf);
+					if (pbx_channel && ast_channel_softhangup_internal_flag(pbx_channel)) {
+						sccp_log(DEBUGCAT_PBX)("%s: (%s): Process tail end of requested softhangup\n", c->designator, hanguptype);
+						ast_hangup(pbx_channel);
+					} else {
+						sccp_log(DEBUGCAT_PBX)("%s: (%s): Onhook Only\n", c->designator, hanguptype);
+						if (iPbx.dumpchan) {
+							char * buf = sccp_alloca(sizeof(char) * 2048);
+							iPbx.dumpchan(pbx_channel, buf, 2048);
+							sccp_log(DEBUGCAT_PBX)("SCCP: (dumpchan) %s", buf);
+						}
+					}
 				}
 				res = TRUE;
 				break;
