@@ -583,15 +583,18 @@ static void pbx_retrieve_remote_capabilities(sccp_channel_t *c)
 	PBX_CHANNEL_TYPE *remotePeer;
 
 	struct ast_channel_iterator *iterator = ast_channel_iterator_all_new();
+	if (!iterator)
+		return;
 	((struct ao2_iterator *) iterator)->flags |= AO2_ITERATOR_DONTLOCK;
 
 	//! \todo handle multiple remotePeers i.e. DIAL(SCCP/400&SIP/300), find smallest common codecs, what order to use ?
-	for (; (remotePeer = ast_channel_iterator_next(iterator)); pbx_channel_unref(remotePeer)) {
+	for (; iterator && (remotePeer = ast_channel_iterator_next(iterator)); pbx_channel_unref(remotePeer)) {
 		if (pbx_find_channel_by_linkid(ast, remotePeer, (void *) ast_channel_linkedid(ast))) {
 			__find_joint_capabilities(c, remotePeer, AST_MEDIA_TYPE_AUDIO, c->remoteCapabilities.audio);
 #if CS_SCCP_VIDEO
 			__find_joint_capabilities(c, remotePeer, AST_MEDIA_TYPE_VIDEO, c->remoteCapabilities.video);
 #endif
+			pbx_channel_unref(remotePeer);
 			break;
 		}
 	}

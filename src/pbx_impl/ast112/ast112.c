@@ -575,12 +575,13 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 			if (SKINNY_CALLTYPE_OUTBOUND == c->calltype) {
 				if (pbx_channel_state (c->owner) != AST_STATE_UP) {
 					struct ast_channel_iterator * iterator = ast_channel_iterator_all_new();
-
+					if (!iterator)
+						break;
 					((struct ao2_iterator *)iterator)->flags |= AO2_ITERATOR_DONTLOCK;
 					/*! \todo handle multiple remotePeers i.e. DIAL(SCCP/400&SIP/300), find smallest common codecs, what order to use ? */
 					PBX_CHANNEL_TYPE * remotePeer;
 
-					for (; (remotePeer = ast_channel_iterator_next (iterator)); pbx_channel_unref (remotePeer)) {
+					for (; iterator && (remotePeer = ast_channel_iterator_next(iterator)); pbx_channel_unref(remotePeer)) {
 						if (pbx_find_channel_by_linkid (remotePeer, (void *)ast_channel_linkedid (ast))) {
 							char buf[512];
 
