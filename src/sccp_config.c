@@ -3277,7 +3277,7 @@ int sccp_manager_config_metadata(struct mansession *s, const struct message *m)
 		astman_append(s, "\"VersioningType\":\"%s\",", "archive");
 #endif
 		astman_append(s, "\"ConfigRevision\":\"%d\",", sccp_config_revision);
-		char *conf_enabled_array[] = {
+		char * conf_enabled_array[] = {
 #ifdef CS_SCCP_PARK
 			"park",
 #endif
@@ -3291,7 +3291,7 @@ int sccp_manager_config_metadata(struct mansession *s, const struct message *m)
 			"video",
 #endif 
 #ifdef CS_SCCP_CONFERENCE
-			"conferenence",
+			"conference",
 #endif 
 #ifdef CS_SCCP_DIRTRFR
 			"dirtrfr",
