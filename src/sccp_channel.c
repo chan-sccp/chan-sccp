@@ -921,6 +921,9 @@ void sccp_channel_closeReceiveChannel(constChannelPtr channel, boolean_t KeepPor
 	if(sccp_rtp_getState(audio, SCCP_RTP_RECEPTION)) {
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Close receivechannel on device %s (KeepPortOpen: %s)\n", channel->designator, d->id, KeepPortOpen ? "YES" : "NO");
 		REQ(msg, CloseReceiveChannel);
+		if (!msg) {
+			return;
+		}
 		msg->data.CloseReceiveChannel.lel_conferenceId = htolel(channel->callid);
 		msg->data.CloseReceiveChannel.lel_passThruPartyId = htolel(channel->passthrupartyid);
 		msg->data.CloseReceiveChannel.lel_callReference = htolel(channel->callid);
@@ -1061,6 +1064,9 @@ void sccp_channel_stopMediaTransmission(constChannelPtr channel, boolean_t KeepP
 	if(sccp_rtp_getState(audio, SCCP_RTP_TRANSMISSION)) {
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Stop mediatransmission on device %s (KeepPortOpen: %s)\n", channel->designator, d->id, KeepPortOpen ? "YES" : "NO");
 		REQ(msg, StopMediaTransmission);
+		if (!msg) {
+			return;
+		}
 		msg->data.StopMediaTransmission.lel_conferenceId = htolel(channel->callid);
 		msg->data.StopMediaTransmission.lel_passThruPartyId = htolel(channel->passthrupartyid);
 		msg->data.StopMediaTransmission.lel_callReference = htolel(channel->callid);
@@ -1214,6 +1220,9 @@ void sccp_channel_closeMultiMediaReceiveChannel(constChannelPtr channel, boolean
 	if(sccp_rtp_getState(video, SCCP_RTP_RECEPTION)) {
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Close multimedia receive channel on device %s (KeepPortOpen: %s)\n", channel->designator, d->id, KeepPortOpen ? "YES" : "NO");
 		REQ(msg, CloseMultiMediaReceiveChannel);
+		if (!msg) {
+			return;
+		}
 		msg->data.CloseMultiMediaReceiveChannel.lel_conferenceId = htolel(channel->callid);
 		msg->data.CloseMultiMediaReceiveChannel.lel_passThruPartyId = htolel(channel->passthrupartyid);
 		msg->data.CloseMultiMediaReceiveChannel.lel_callReference = htolel(channel->callid);
@@ -1359,6 +1368,9 @@ void sccp_channel_stopMultiMediaTransmission(constChannelPtr channel, boolean_t 
 	if(sccp_rtp_getState(video, SCCP_RTP_TRANSMISSION)) {
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Stop multimediatransmission on device %s (KeepPortOpen: %s)\n", channel->designator, d->id, KeepPortOpen ? "YES" : "NO");
 		REQ(msg, StopMultiMediaTransmission);
+		if (!msg) {
+			return;
+		}
 		msg->data.StopMultiMediaTransmission.lel_conferenceId = htolel(channel->callid);
 		msg->data.StopMultiMediaTransmission.lel_passThruPartyId = htolel(channel->passthrupartyid);
 		msg->data.StopMultiMediaTransmission.lel_callReference = htolel(channel->callid);

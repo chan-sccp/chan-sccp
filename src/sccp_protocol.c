@@ -231,6 +231,7 @@ static void sccp_protocol_sendCallInfoV16 (const sccp_callinfo_t * const ci, con
 	int hdr_len = sizeof(msg->data.CallInfoDynamicMessage) - 4;
 	msg = sccp_build_packet(CallInfoDynamicMessage, hdr_len + dummy_len);
 	if (!msg) {
+		sccp_free(dummy);
 		return;
 	}
 	msg->data.CallInfoDynamicMessage.lel_lineInstance		= htolel(lineInstance);
