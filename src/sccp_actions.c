@@ -277,6 +277,9 @@ void sccp_handle_backspace(constDevicePtr d, const uint8_t lineInstance, const u
 	sccp_msg_t *msg_out = NULL;
 
 	REQ(msg_out, BackSpaceResMessage);
+	if (!msg_out) {
+		return;
+	}
 	msg_out->data.BackSpaceResMessage.lel_lineInstance = htolel(lineInstance);
 	msg_out->data.BackSpaceResMessage.lel_callReference = htolel(callid);
 	sccp_dev_send(d, msg_out);
@@ -1374,6 +1377,9 @@ void handle_unregister(constSessionPtr s, devicePtr device, constMessagePtr msg_
 
 	/* we don't need to look for active channels. the phone does send unregister only when there are no channels */
 	REQ(msg_out, UnregisterAckMessage);
+	if (!msg_out) {
+		return;
+	}
 
 	if (d && d->active_channel) {
 		msg_out->data.UnregisterAckMessage.lel_status = SKINNY_UNREGISTERSTATUS_NAK;
@@ -1436,6 +1442,9 @@ void sccp_handle_button_template_req(constSessionPtr s, devicePtr d, constMessag
 	}
 
 	REQ(msg_out, ButtonTemplateMessage);
+	if (!msg_out) {
+		return;
+	}
 	for (i = 0; i < StationMaxButtonTemplateSize; i++) {
 		msg_out->data.ButtonTemplateMessage.definition[i].instanceNumber = btn[i].instance;
 
@@ -1575,6 +1584,9 @@ void handle_speed_dial_stat_req(constSessionPtr s, devicePtr d, constMessagePtr 
 	sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Speed Dial Request for Button %d\n", sccp_session_getDesignator(s), wanted);
 
 	REQ(msg_out, SpeedDialStatMessage);
+	if (!msg_out) {
+		return;
+	}
 	msg_out->data.SpeedDialStatMessage.lel_speedDialNumber = htolel(wanted);
 
 	sccp_dev_speed_find_byindex(d, wanted, FALSE, &k);
@@ -2610,6 +2622,10 @@ void sccp_handle_soft_key_template_req(constSessionPtr s, devicePtr d, constMess
 
 	/* create message */
 	msg_out = sccp_build_packet(SoftKeyTemplateResMessage, hdr_len + dummy_len);
+	if (!msg_out) {
+		return;
+	}
+
 	msg_out->data.SoftKeyTemplateResMessage.lel_softKeyOffset = 0;
 
 	for(uint8_t i = 0; i < arrayLen; i++) {
@@ -2710,6 +2726,9 @@ void handle_soft_key_set_req(constSessionPtr s, devicePtr d, constMessagePtr msg
 	const uint8_t * b = NULL;
 
 	REQ(msg_out, SoftKeySetResMessage);
+	if (!msg_out) {
+		return;
+	}
 	msg_out->data.SoftKeySetResMessage.lel_softKeySetOffset = htolel(0);
 
 	/* look for line trnsvm */
@@ -2895,6 +2914,9 @@ void handle_dialedphonebook_message(constSessionPtr s, devicePtr d, constMessage
 
 	// Sending 0x152 Ack Message.
 	REQ(msg_out, SubscriptionStatMessage);
+	if (!msg_out) {
+		return;
+	}
 	msg_out->data.SubscriptionStatMessage.lel_transactionID = htolel(transactionID);
 	msg_out->data.SubscriptionStatMessage.lel_featureID = htolel(featureID);
 	msg_out->data.SubscriptionStatMessage.lel_timer = htolel(timer);
@@ -2919,6 +2941,9 @@ void handle_dialedphonebook_message(constSessionPtr s, devicePtr d, constMessage
 
 	if (line) {
 		REQ(msg_out, NotificationMessage);
+		if (!msg_out) {
+			return;
+		}
 		skinny_busylampfield_state_t status = iPbx.getExtensionState(subscriptionID, line->context);
 
 		msg_out->data.NotificationMessage.lel_transactionID = htolel(transactionID);
@@ -2952,6 +2977,9 @@ void sccp_handle_time_date_req(constSessionPtr s, devicePtr d, constMessagePtr n
 	pbx_assert(s != NULL);
 	sccp_msg_t * msg_out = NULL;
 	REQ(msg_out, DefineTimeDate);
+	if (!msg_out) {
+		return;
+	}
 
 	/* modulate the timezone by full hours only */
 	time_t timer = time(0) + (d->tz_offset * 3600);
@@ -3423,6 +3451,9 @@ void handle_openReceiveChannelAck(constSessionPtr s, devicePtr d, constMessagePt
 			sccp_msg_t *msg = NULL;
 
 			REQ(msg, CloseReceiveChannel);
+			if (!msg) {
+				return;
+			}
 			msg->data.CloseReceiveChannel.lel_conferenceId = htolel(callReference);
 			msg->data.CloseReceiveChannel.lel_passThruPartyId = htolel(passThruPartyId);
 			msg->data.CloseReceiveChannel.lel_callReference = htolel(callReference);
@@ -3483,12 +3514,18 @@ void handle_startMediaTransmissionAck(constSessionPtr s, devicePtr d, constMessa
 			sccp_msg_t *msg = NULL;
 
 			REQ(msg, CloseReceiveChannel);
+			if (!msg) {
+				return;
+			}
 			msg->data.CloseReceiveChannel.lel_conferenceId = htolel(callReference);
 			msg->data.CloseReceiveChannel.lel_passThruPartyId = htolel(passThruPartyId);
 			msg->data.CloseReceiveChannel.lel_callReference = htolel(callReference);
 			sccp_dev_send(d, msg);
 
 			REQ(msg, StopMediaTransmission);
+			if (!msg) {
+				return;
+			}
 			msg->data.StopMediaTransmission.lel_conferenceId = htolel(callReference);
 			msg->data.StopMediaTransmission.lel_passThruPartyId = htolel(passThruPartyId);
 			msg->data.StopMediaTransmission.lel_callReference = htolel(callReference);
@@ -3551,6 +3588,9 @@ void handle_OpenMultiMediaReceiveAck(constSessionPtr s, devicePtr d, constMessag
 			sccp_msg_t *msg = NULL;
 
 			REQ(msg, CloseMultiMediaReceiveChannel);
+			if (!msg) {
+				return;
+			}
 			msg->data.CloseMultiMediaReceiveChannel.lel_conferenceId = htolel(callReference);
 			msg->data.CloseMultiMediaReceiveChannel.lel_passThruPartyId = htolel(passThruPartyId);
 			msg->data.CloseMultiMediaReceiveChannel.lel_callReference = htolel(callReference);
@@ -3616,12 +3656,18 @@ void handle_startMultiMediaTransmissionAck(constSessionPtr s, devicePtr d, const
 			sccp_msg_t *msg = NULL;
 
 			REQ(msg, CloseMultiMediaReceiveChannel);
+			if (!msg) {
+				return;
+			}
 			msg->data.CloseMultiMediaReceiveChannel.lel_conferenceId = htolel(callReference);
 			msg->data.CloseMultiMediaReceiveChannel.lel_passThruPartyId = htolel(passThruPartyId);
 			msg->data.CloseMultiMediaReceiveChannel.lel_callReference = htolel(callReference);
 			sccp_dev_send(d, msg);
 
 			REQ(msg, StopMultiMediaTransmission);
+			if (!msg) {
+				return;
+			}
 			msg->data.StopMultiMediaTransmission.lel_conferenceId = htolel(callReference);
 			msg->data.StopMultiMediaTransmission.lel_passThruPartyId = htolel(passThruPartyId);
 			msg->data.StopMultiMediaTransmission.lel_callReference = htolel(callReference);
@@ -3682,6 +3728,9 @@ void handle_version(constSessionPtr s, devicePtr d, constMessagePtr msg_in)
 	sccp_msg_t *msg_out = NULL;
 
 	REQ(msg_out, VersionMessage);
+	if (!msg_out) {
+		return;
+	}
 	sccp_copy_string(msg_out->data.VersionMessage.requiredVersion, d->imageversion, sizeof(msg_out->data.VersionMessage.requiredVersion));
 	sccp_dev_send(d, msg_out);
 	//sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Sending version number: %s\n", d->id, d->imageversion);
@@ -3860,6 +3909,9 @@ void handle_ServerResMessage(constSessionPtr s, devicePtr d, constMessagePtr msg
 	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: Sending servers message (%s)\n", DEV_ID_LOG(d), sccp_session_getDesignator(s));
 
 	REQ(msg_out, ServerResMessage);
+	if (!msg_out) {
+		return;
+	}
 	if (d->protocolversion < 17) {
 		struct sockaddr_storage sas = { 0 };
 		sccp_session_getOurIP(s, &sas, 0);
@@ -3903,6 +3955,9 @@ void handle_ConfigStatMessage(constSessionPtr s, devicePtr d, constMessagePtr ms
 	SCCP_LIST_UNLOCK(&d->buttonconfig);
 
 	REQ(msg_out, ConfigStatMessage);
+	if (!msg_out) {
+		return;
+	}
 	sccp_copy_string(msg_out->data.ConfigStatMessage.station_identifier.deviceName, d->id, sizeof(msg_out->data.ConfigStatMessage.station_identifier.deviceName));
 	msg_out->data.ConfigStatMessage.station_identifier.lel_stationUserId = htolel(0);
 	msg_out->data.ConfigStatMessage.station_identifier.lel_stationInstance = htolel(1);
@@ -3989,6 +4044,9 @@ void handle_forward_stat_req(constSessionPtr s, devicePtr d, constMessagePtr msg
 	/* speeddial with hint. Sending empty forward message */
 	//sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Send Forward Status. Instance: %d\n", d->id, instance);
 	REQ(msg_out, ForwardStatMessage);
+	if (!msg_out) {
+		return;
+	}
 	msg_out->data.ForwardStatMessage.v3.lel_lineNumber = msg_in->data.ForwardStatReqMessage.lel_lineNumber;
 	sccp_dev_send(d, msg_out);
 }
@@ -4025,6 +4083,9 @@ void handle_feature_stat_req(constSessionPtr s, devicePtr d, constMessagePtr msg
 			sccp_msg_t * msg = NULL;
 
 			REQ(msg, FeatureStatDynamicMessage);
+			if (!msg) {
+				return;
+			}
 			msg->data.FeatureStatDynamicMessage.lel_lineInstance = htolel(featureIndex);
 			msg->data.FeatureStatDynamicMessage.lel_buttonType = htolel(SKINNY_BUTTONTYPE_BLFSPEEDDIAL);
 			msg->data.FeatureStatDynamicMessage.stateVal.lel_uint32 = htolel(0);
@@ -4062,6 +4123,9 @@ void handle_services_stat_req(constSessionPtr s, devicePtr d, constMessagePtr ms
 		/* \todo move ServiceURLStatMessage impl to sccp_protocol.c */
 		if (d->inuseprotocolversion < 7) {
 			REQ(msg_out, ServiceURLStatMessage);
+			if (!msg_out) {
+				return;
+			}
 			msg_out->data.ServiceURLStatMessage.lel_serviceURLIndex = htolel(urlIndex);
 			sccp_copy_string(msg_out->data.ServiceURLStatMessage.URL, config->button.service.url, sccp_strlen(config->button.service.url) + 1);
 			//sccp_copy_string(msg_out->data.ServiceURLStatMessage.label, config->label, sccp_strlen(config->label) + 1);
@@ -4074,6 +4138,9 @@ void handle_services_stat_req(constSessionPtr s, devicePtr d, constMessagePtr ms
 			int hdr_len = sizeof(msg_in->data.ServiceURLStatDynamicMessage) - 1;
 
 			msg_out = sccp_build_packet(ServiceURLStatDynamicMessage, hdr_len + dummy_len);
+			if (!msg_out) {
+				return;
+			}
 			msg_out->data.ServiceURLStatDynamicMessage.lel_serviceURLIndex = htolel(urlIndex);
 
 			if (dummy_len) {
@@ -4522,6 +4589,9 @@ void handle_updatecapabilities_V3_message(constSessionPtr s, devicePtr d, constM
 void handle_KeepAliveMessage(constSessionPtr s, devicePtr maybe_d, constMessagePtr msg_in)
 {
 	sccp_msg_t *msg_out = sccp_build_packet(KeepAliveAckMessage, 0);
+	if (!msg_out) {
+		return;
+	}
 	sccp_session_send2(s, msg_out);					/* device existence is not guaranteed */
 }
 

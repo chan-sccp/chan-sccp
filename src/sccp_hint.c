@@ -1206,29 +1206,27 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 				* then send another message with a longer label (correct/final label) will force an update (in white over the back drop in black)
 				*/
 				REQ(msg, FeatureStatDynamicMessage);
-				if (msg) {
-					sccp_copy_string(msg->data.FeatureStatDynamicMessage.textLabel, displayMessage, sizeof(msg->data.FeatureStatDynamicMessage.textLabel));
-					msg->data.FeatureStatDynamicMessage.textLabel[strlen(displayMessage) - 1] = '\0';
-					msg->data.FeatureStatDynamicMessage.lel_lineInstance = htolel(subscriber->instance);
-					msg->data.FeatureStatDynamicMessage.lel_buttonType = htolel(SKINNY_BUTTONTYPE_BLFSPEEDDIAL);
-					msg->data.FeatureStatDynamicMessage.stateVal.lel_uint32 = htolel(status);
-					sccp_dev_send(d, msg);
-				} else {
-					sccp_free(msg);
+				if (!msg) {
+					return;
 				}
+				sccp_copy_string(msg->data.FeatureStatDynamicMessage.textLabel, displayMessage, sizeof(msg->data.FeatureStatDynamicMessage.textLabel));
+				msg->data.FeatureStatDynamicMessage.textLabel[strlen(displayMessage) - 1] = '\0';
+				msg->data.FeatureStatDynamicMessage.lel_lineInstance                      = htolel(subscriber->instance);
+				msg->data.FeatureStatDynamicMessage.lel_buttonType                        = htolel(SKINNY_BUTTONTYPE_BLFSPEEDDIAL);
+				msg->data.FeatureStatDynamicMessage.stateVal.lel_uint32                   = htolel(status);
+				sccp_dev_send(d, msg);
 
 				/*!
 				 * Send the actual message we wanted to send */
 				REQ(msg, FeatureStatDynamicMessage);
-				if (msg) {
-					sccp_copy_string(msg->data.FeatureStatDynamicMessage.textLabel, displayMessage, sizeof(msg->data.FeatureStatDynamicMessage.textLabel));
-					msg->data.FeatureStatDynamicMessage.lel_lineInstance = htolel(subscriber->instance);
-					msg->data.FeatureStatDynamicMessage.lel_buttonType = htolel(SKINNY_BUTTONTYPE_BLFSPEEDDIAL);
-					msg->data.FeatureStatDynamicMessage.stateVal.lel_uint32 = htolel(status);
-					sccp_dev_send(d, msg);
-				} else {
-					sccp_free(msg);
+				if (!msg) {
+					return;
 				}
+				sccp_copy_string(msg->data.FeatureStatDynamicMessage.textLabel, displayMessage, sizeof(msg->data.FeatureStatDynamicMessage.textLabel));
+				msg->data.FeatureStatDynamicMessage.lel_lineInstance    = htolel(subscriber->instance);
+				msg->data.FeatureStatDynamicMessage.lel_buttonType      = htolel(SKINNY_BUTTONTYPE_BLFSPEEDDIAL);
+				msg->data.FeatureStatDynamicMessage.stateVal.lel_uint32 = htolel(status);
+				sccp_dev_send(d, msg);
 			} else
 #endif
 			{

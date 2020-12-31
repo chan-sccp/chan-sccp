@@ -1007,8 +1007,8 @@ AST_TEST_DEFINE(sccp_refcount_tests)
 		case TEST_EXECUTE:
 			break;
 	}
-	
-	pthread_t t[NUM_THREADS];
+
+	pthread_t                  t[NUM_THREADS] = { 0 };
 	int loop = 0;
 	char id[23];
 	enum ast_test_result_state test_result[NUM_THREADS] = {AST_TEST_PASS};

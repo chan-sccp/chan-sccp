@@ -1178,11 +1178,12 @@ int sccp_channel_receiveMultiMediaChannelOpen(constDevicePtr d, channelPtr c)
 	if (c->owner && (c->state == SCCP_CHANNELSTATE_CONNECTED || c->state == SCCP_CHANNELSTATE_CONNECTEDCONFERENCE)) {
 		if(sccp_rtp_getState(video, SCCP_RTP_TRANSMISSION) & SCCP_RTP_STATUS_ACTIVE) {
 			d->protocol->sendMultiMediaCommand(d, c, SKINNY_MISCCOMMANDTYPE_VIDEOFASTUPDATEPICTURE);
-			//msg_out = sccp_build_packet(FlowControlNotifyMessage, sizeof(msg_out->data.FlowControlNotifyMessage));
-			//msg_out->data.FlowControlNotifyMessage.lel_conferenceID         = htolel(c->callid);
-			//msg_out->data.FlowControlNotifyMessage.lel_passThruPartyId      = htolel(c->passthrupartyid);
-			//msg_out->data.FlowControlNotifyMessage.lel_callReference        = htolel(c->callid);
-			//msg_out->data.FlowControlNotifyMessage.lel_maxBitRate           = htolel(500000);
+			// msg_out = sccp_build_packet(FlowControlNotifyMessage, sizeof(msg_out->data.FlowControlNotifyMessage));
+			// if (!msg_out) {return;}
+			// msg_out->data.FlowControlNotifyMessage.lel_conferenceID         = htolel(c->callid);
+			// msg_out->data.FlowControlNotifyMessage.lel_passThruPartyId      = htolel(c->passthrupartyid);
+			// msg_out->data.FlowControlNotifyMessage.lel_callReference        = htolel(c->callid);
+			// msg_out->data.FlowControlNotifyMessage.lel_maxBitRate           = htolel(500000);
 		} else if(sccp_channel_getVideoMode(c) == SCCP_VIDEO_MODE_AUTO) {
 			sccp_channel_startMultiMediaTransmission(c);
 		}

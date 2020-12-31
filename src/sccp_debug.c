@@ -65,14 +65,12 @@ int32_t sccp_parse_debugline(char * arguments[], int startat, int argc, int32_t 
 {
 	int        argi         = 0;
 	uint32_t   i            = 0;
-	char *     argument     = "";
-	char *     token        = "";
 	const char delimiters[] = " ,\t";
 	boolean_t  subtract     = 0;
 
 	if (sscanf(arguments[startat], "%d", &new_debug_value) != 1) {
 		for (argi = startat; argi < argc; argi++) {
-			argument = arguments[argi];
+			char * argument = arguments[argi];
 			if (!strncmp(argument, "none", 4) || !strncmp(argument, "off", 3)) {
 				new_debug_value = 0;
 				break;
@@ -89,7 +87,7 @@ int32_t sccp_parse_debugline(char * arguments[], int startat, int argc, int32_t 
 				// parse comma separated debug_var
 				boolean_t matched   = FALSE;
 				char *    tokenrest = NULL;
-				token               = strtok_r(argument, delimiters, &tokenrest);
+				char *    token     = strtok_r(argument, delimiters, &tokenrest);
 				while (token != NULL) {
 					// match debug level name to enum
 					for (i = 0; i < ARRAY_LEN(sccp_debug_categories); i++) {

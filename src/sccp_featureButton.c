@@ -321,12 +321,18 @@ void sccp_featButton_changed(constDevicePtr device, sccp_feature_type_t featureT
 			/* send status using new message */
 			if (device->inuseprotocolversion >= 15) {
 				REQ(msg, FeatureStatDynamicMessage);
+				if (!msg) {
+					return;
+				}
 				msg->data.FeatureStatDynamicMessage.lel_lineInstance = htolel(instance);
 				msg->data.FeatureStatDynamicMessage.lel_buttonType = htolel(buttonID);
 				msg->data.FeatureStatDynamicMessage.stateVal.lel_uint32 = htolel(config->button.feature.status);
 				sccp_copy_string(msg->data.FeatureStatDynamicMessage.textLabel, label_text, sizeof(msg->data.FeatureStatDynamicMessage.textLabel));
 			} else {
 				REQ(msg, FeatureStatMessage);
+				if (!msg) {
+					return;
+				}
 				msg->data.FeatureStatMessage.lel_lineInstance = htolel(instance);
 				msg->data.FeatureStatMessage.lel_buttonType = htolel(buttonID);
 				msg->data.FeatureStatMessage.lel_stateValue = htolel(config->button.feature.status);

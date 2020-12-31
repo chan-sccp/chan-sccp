@@ -1158,7 +1158,6 @@ void sccp_session_sendmsg(const sccp_device_t * device, sccp_mid_t t)
 	}
 
 	sccp_msg_t *msg = sccp_build_packet(t, 0);
-
 	if (msg) {
 		sccp_session_send(device, msg);
 	}
@@ -1281,6 +1280,9 @@ sccp_session_t *sccp_session_reject(constSessionPtr session, char *message)
 	sessionPtr s = (sessionPtr)session;										/* discard const */
 
 	REQ(msg, RegisterRejectMessage);
+	if (!msg) {
+		return NULL;
+	}
 	sccp_copy_string(msg->data.RegisterRejectMessage.text, message, sizeof(msg->data.RegisterRejectMessage.text));
 	sccp_session_send2(s, msg);
 	return NULL;
@@ -1322,6 +1324,9 @@ void sccp_session_tokenReject(constSessionPtr session, uint32_t backoff_time)
 	sccp_msg_t *msg = NULL;
 
 	REQ(msg, RegisterTokenReject);
+	if (!msg) {
+		return;
+	}
 	msg->data.RegisterTokenReject.lel_tokenRejWaitTime = htolel(backoff_time);
 	sccp_session_send2(session, msg);
 }
@@ -1335,6 +1340,9 @@ void sccp_session_tokenAck(constSessionPtr session)
 	sccp_msg_t *msg = NULL;
 
 	REQ(msg, RegisterTokenAck);
+	if (!msg) {
+		return;
+	}
 	sccp_session_send2(session, msg);
 }
 
@@ -1348,6 +1356,9 @@ void sccp_session_tokenRejectSPCP(constSessionPtr session, uint32_t features)
 	sccp_msg_t *msg = NULL;
 
 	REQ(msg, SPCPRegisterTokenReject);
+	if (!msg) {
+		return;
+	}
 	msg->data.SPCPRegisterTokenReject.lel_features = htolel(features);
 	sccp_session_send2(session, msg);
 }
@@ -1362,6 +1373,9 @@ void sccp_session_tokenAckSPCP(constSessionPtr session, uint32_t features)
 	sccp_msg_t *msg = NULL;
 
 	REQ(msg, SPCPRegisterTokenAck);
+	if (!msg) {
+		return;
+	}
 	msg->data.SPCPRegisterTokenAck.lel_features = htolel(features);
 	sccp_session_send2(session, msg);
 }

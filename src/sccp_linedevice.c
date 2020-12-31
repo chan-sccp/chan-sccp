@@ -60,11 +60,7 @@ static void regcontext_exten(constLineDevicePtr ld, int onoff)
 	char multi[256] = "";
 	char * stringp = NULL;
 
-	char * ext = "";
-
 	char cntxt[SCCP_MAX_CONTEXT];
-	char * context = cntxt;
-
 	struct pbx_context * con = NULL;
 	struct pbx_find_info q = { .stacklen = 0 };
 
@@ -80,7 +76,10 @@ static void regcontext_exten(constLineDevicePtr ld, int onoff)
 
 	sccp_copy_string(multi, S_OR(l->regexten, l->name), sizeof(multi));
 	stringp = multi;
+
+	char * ext;
 	while((ext = strsep(&stringp, "&"))) {
+		char * context;
 		if((context = strchr(ext, '@'))) {
 			*context++ = '\0'; /* split ext@context */
 			if(!pbx_context_find(context)) {

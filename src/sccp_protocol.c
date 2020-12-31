@@ -35,7 +35,7 @@ messagePtr __attribute__((malloc)) sccp_build_packet(sccp_mid_t t, size_t pkt_le
 	sccp_msg_t * msg = (sccp_msg_t *)sccp_calloc(1, pkt_len + SCCP_PACKET_HEADER + padding);
 
 	if(!msg) {
-		pbx_log(LOG_WARNING, "SCCP: Packet memory allocation error\n");
+		pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, "SCCP_Packet");
 		return NULL;
 	}
 	msg->header.length = htolel(pkt_len + 4 + padding);
@@ -54,7 +54,9 @@ static void sccp_protocol_sendCallInfoV3 (const sccp_callinfo_t * const ci, cons
 	sccp_msg_t * msg = NULL;
 
 	REQ(msg, CallInfoMessage);
-
+	if (!msg) {
+		return;
+	}
 	int originalCdpnRedirectReason = 0;
 	int lastRedirectingReason = 0;
 	sccp_callerid_presentation_t presentation = CALLERID_PRESENTATION_ALLOWED;
@@ -105,9 +107,10 @@ static void sccp_protocol_sendCallInfoV7 (const sccp_callinfo_t * const ci, cons
 
 	unsigned int dataSize = 12;
 	char data[dataSize][StationMaxNameSize];
-	int data_len[dataSize];
+	int          data_len[dataSize];
 	unsigned int i = 0;
 	int dummy_len = 0;
+	memset(data_len, 0, dataSize * sizeof(int));
 
 	memset(data, 0, dataSize * StationMaxNameSize);
 	
@@ -140,7 +143,9 @@ static void sccp_protocol_sendCallInfoV7 (const sccp_callinfo_t * const ci, cons
 
 	int hdr_len = sizeof(msg->data.CallInfoDynamicMessage) + (dataSize - 3);
 	msg = sccp_build_packet(CallInfoDynamicMessage, hdr_len + dummy_len);
-
+	if (!msg) {
+		return;
+	}
 	msg->data.CallInfoDynamicMessage.lel_lineInstance = htolel(lineInstance);
 	msg->data.CallInfoDynamicMessage.lel_callReference = htolel(callid);
 	msg->data.CallInfoDynamicMessage.lel_callType = htolel(calltype);
@@ -225,6 +230,9 @@ static void sccp_protocol_sendCallInfoV16 (const sccp_callinfo_t * const ci, con
 	}
 	int hdr_len = sizeof(msg->data.CallInfoDynamicMessage) - 4;
 	msg = sccp_build_packet(CallInfoDynamicMessage, hdr_len + dummy_len);
+	if (!msg) {
+		return;
+	}
 	msg->data.CallInfoDynamicMessage.lel_lineInstance		= htolel(lineInstance);
 	msg->data.CallInfoDynamicMessage.lel_callReference		= htolel(callid);
 	msg->data.CallInfoDynamicMessage.lel_callType			= htolel(calltype);
@@ -257,6 +265,9 @@ static void sccp_protocol_sendDialedNumberV3(constDevicePtr device, const uint8_
 	sccp_msg_t *msg = NULL;
 
 	REQ(msg, DialedNumberMessage);
+	if (!msg) {
+		return;
+	}
 
 	sccp_copy_string(msg->data.DialedNumberMessage.v3.calledParty, dialedNumber, sizeof(msg->data.DialedNumberMessage.v3.calledParty));
 
@@ -276,6 +287,9 @@ static void sccp_protocol_sendDialedNumberV18(constDevicePtr device, const uint8
 	sccp_msg_t *msg = NULL;
 
 	REQ(msg, DialedNumberMessage);
+	if (!msg) {
+		return;
+	}
 
 	sccp_copy_string(msg->data.DialedNumberMessage.v18.calledParty, dialedNumber, sizeof(msg->data.DialedNumberMessage.v18.calledParty));
 	msg->data.DialedNumberMessage.v18.lel_lineInstance = htolel(lineInstance);
@@ -297,6 +311,9 @@ static void sccp_protocol_sendStaticDisplayprompt(constDevicePtr device, uint8_t
 	sccp_msg_t *msg = NULL;
 
 	REQ(msg, DisplayPromptStatusMessage);
+	if (!msg) {
+		return;
+	}
 	msg->data.DisplayPromptStatusMessage.lel_messageTimeout = htolel(timeout);
 	msg->data.DisplayPromptStatusMessage.lel_callReference = htolel(callid);
 	msg->data.DisplayPromptStatusMessage.lel_lineInstance = htolel(lineInstance);
@@ -316,6 +333,9 @@ static void sccp_protocol_sendDynamicDisplayprompt(constDevicePtr device, uint8_
 	int msg_len = strlen(message);
 	int hdr_len = sizeof(msg->data.DisplayDynamicPromptStatusMessage) - 3;
 	msg = sccp_build_packet(DisplayDynamicPromptStatusMessage, hdr_len + msg_len);
+	if (!msg) {
+		return;
+	}
 	msg->data.DisplayDynamicPromptStatusMessage.lel_messageTimeout = htolel(timeout);
 	msg->data.DisplayDynamicPromptStatusMessage.lel_callReference = htolel(callid);
 	msg->data.DisplayDynamicPromptStatusMessage.lel_lineInstance = htolel(lineInstance);
@@ -337,6 +357,9 @@ static void sccp_protocol_sendStaticDisplayNotify(constDevicePtr device, uint8_t
 	sccp_msg_t *msg = NULL;
 
 	REQ(msg, DisplayNotifyMessage);
+	if (!msg) {
+		return;
+	}
 	msg->data.DisplayNotifyMessage.lel_displayTimeout = htolel(timeout);
 	sccp_copy_string(msg->data.DisplayNotifyMessage.displayMessage, message, sizeof(msg->data.DisplayNotifyMessage.displayMessage));
 
@@ -355,6 +378,10 @@ static void sccp_protocol_sendDynamicDisplayNotify(constDevicePtr device, uint8_
 
 	int hdr_len = sizeof(msg->data.DisplayDynamicNotifyMessage) - 3;
 	msg = sccp_build_packet(DisplayDynamicNotifyMessage, hdr_len + msg_len);
+	if (!msg) {
+		return;
+	}
+
 	msg->data.DisplayDynamicNotifyMessage.lel_displayTimeout = htolel(timeout);
 	memcpy(&msg->data.DisplayDynamicNotifyMessage.dummy, message, msg_len);
 
@@ -374,6 +401,9 @@ static void sccp_protocol_sendStaticDisplayPriNotify(constDevicePtr device, uint
 	sccp_msg_t *msg = NULL;
 
 	REQ(msg, DisplayPriNotifyMessage);
+	if (!msg) {
+		return;
+	}
 	msg->data.DisplayPriNotifyMessage.lel_displayTimeout = htolel(timeout);
 	msg->data.DisplayPriNotifyMessage.lel_priority = htolel(priority);
 	sccp_copy_string(msg->data.DisplayPriNotifyMessage.displayMessage, message, sizeof(msg->data.DisplayPriNotifyMessage.displayMessage));
@@ -392,6 +422,9 @@ static void sccp_protocol_sendDynamicDisplayPriNotify(constDevicePtr device, uin
 	int msg_len = strlen(message);
 	int hdr_len = sizeof(msg->data.DisplayDynamicPriNotifyMessage) - 3;
 	msg = sccp_build_packet(DisplayDynamicPriNotifyMessage, hdr_len + msg_len);
+	if (!msg) {
+		return;
+	}
 	msg->data.DisplayDynamicPriNotifyMessage.lel_displayTimeout = htolel(timeout);
 	msg->data.DisplayDynamicPriNotifyMessage.lel_priority = htolel(priority);
 	memcpy(&msg->data.DisplayDynamicPriNotifyMessage.dummy, message, msg_len);
@@ -413,6 +446,9 @@ static void sccp_protocol_sendCallForwardStatus(constDevicePtr device, const scc
 	sccp_msg_t *msg = NULL;
 
 	REQ(msg, ForwardStatMessage);
+	if (!msg) {
+		return;
+	}
 	msg->data.ForwardStatMessage.v3.lel_activeForward = (ld->cfwd[SCCP_CFWD_ALL].enabled || ld->cfwd[SCCP_CFWD_BUSY].enabled || ld->cfwd[SCCP_CFWD_NOANSWER].enabled) ? htolel(1) : 0;
 	msg->data.ForwardStatMessage.v3.lel_lineNumber = htolel(ld->lineInstance);
 
@@ -445,6 +481,9 @@ static void sccp_protocol_sendCallForwardStatusV18(constDevicePtr device, const 
 	sccp_msg_t *msg = NULL;
 
 	REQ(msg, ForwardStatMessage);
+	if (!msg) {
+		return;
+	}
 	// activeForward / lel_forwardAllActive =  used 4 before... tcpdump shows 2(enbloc ?) or 8(single keypad ?)
 	// msg->data.ForwardStatMessage.v18.lel_activeForward = (ld->cfwdAll.enabled || ld->cfwdBusy.enabled) ? htolel(2) : 0;   // should this be 2 instead ?
 	msg->data.ForwardStatMessage.v18.lel_lineNumber = htolel(ld->lineInstance);
@@ -486,6 +525,9 @@ static void sccp_protocol_sendRegisterAckV3(constDevicePtr device, uint8_t keepA
 	sccp_msg_t *msg = NULL;
 
 	REQ(msg, RegisterAckMessage);
+	if (!msg) {
+		return;
+	}
 
 	/* just for documentation */
 	msg->data.RegisterAckMessage.protocolFeatures.protocolVersion = device->protocol->version;
@@ -512,6 +554,9 @@ static void sccp_protocol_sendRegisterAckV4(constDevicePtr device, uint8_t keepA
 	sccp_msg_t *msg = NULL;
 
 	REQ(msg, RegisterAckMessage);
+	if (!msg) {
+		return;
+	}
 
 	msg->data.RegisterAckMessage.protocolFeatures.protocolVersion = device->protocol->version;
 	msg->data.RegisterAckMessage.protocolFeatures.phoneFeatures[0] = 0x20;
@@ -537,6 +582,9 @@ static void sccp_protocol_sendRegisterAckV11(constDevicePtr device, uint8_t keep
 	sccp_msg_t *msg = NULL;
 
 	REQ(msg, RegisterAckMessage);
+	if (!msg) {
+		return;
+	}
 
 	msg->data.RegisterAckMessage.protocolFeatures.protocolVersion = device->protocol->version;
 	msg->data.RegisterAckMessage.protocolFeatures.phoneFeatures[0] = 0x20;
@@ -562,6 +610,9 @@ static void sccp_protocol_sendOpenReceiveChannelV3(constDevicePtr device, constC
 {
 	int packetSize = 20;											/*! \todo calculate packetSize */
 	sccp_msg_t *msg = sccp_build_packet(OpenReceiveChannel, sizeof(msg->data.OpenReceiveChannel.v3));
+	if (!msg) {
+		return;
+	}
 
 	msg->data.OpenReceiveChannel.v3.lel_conferenceId = htolel(channel->callid);
 	msg->data.OpenReceiveChannel.v3.lel_passThruPartyId = htolel(channel->passthrupartyid);
@@ -598,6 +649,9 @@ static void sccp_protocol_sendOpenReceiveChannelV17(constDevicePtr device, const
 {
 	int packetSize = 20;											/*! \todo calculate packetSize */
 	sccp_msg_t *msg = sccp_build_packet(OpenReceiveChannel, sizeof(msg->data.OpenReceiveChannel.v17));
+	if (!msg) {
+		return;
+	}
 
 	msg->data.OpenReceiveChannel.v17.lel_conferenceId = htolel(channel->callid);
 	msg->data.OpenReceiveChannel.v17.lel_passThruPartyId = htolel(channel->passthrupartyid);
@@ -641,6 +695,9 @@ static void sccp_protocol_sendOpenReceiveChannelv22(constDevicePtr device, const
 {
 	int packetSize = 20;											/*! \todo calculate packetSize */
 	sccp_msg_t *msg = sccp_build_packet(OpenReceiveChannel, sizeof(msg->data.OpenReceiveChannel.v22));
+	if (!msg) {
+		return;
+	}
 
 	msg->data.OpenReceiveChannel.v22.lel_conferenceId = htolel(channel->callid);
 	msg->data.OpenReceiveChannel.v22.lel_passThruPartyId = htolel(channel->passthrupartyid);
@@ -683,6 +740,9 @@ static void sccp_protocol_sendOpenReceiveChannelv22(constDevicePtr device, const
 static void sccp_protocol_sendOpenMultiMediaChannelV3(constDevicePtr device, constChannelPtr channel, skinny_codec_t skinnyFormat, int payloadType, uint8_t lineInstance, int bitRate)
 {
 	sccp_msg_t *msg = sccp_build_packet(OpenMultiMediaChannelMessage, sizeof(msg->data.OpenMultiMediaChannelMessage.v3));
+	if (!msg) {
+		return;
+	}
 
 	msg->data.OpenMultiMediaChannelMessage.v3.lel_conferenceID = htolel(channel->callid);
 	msg->data.OpenMultiMediaChannelMessage.v3.lel_passThruPartyID = htolel(channel->passthrupartyid);
@@ -752,6 +812,9 @@ static void sccp_protocol_sendOpenMultiMediaChannelV3(constDevicePtr device, con
 static void sccp_protocol_sendOpenMultiMediaChannelV12(constDevicePtr device, constChannelPtr channel, skinny_codec_t skinnyFormat, int payloadType, uint8_t lineInstance, int bitRate)
 {
 	sccp_msg_t *msg = sccp_build_packet(OpenMultiMediaChannelMessage, sizeof(msg->data.OpenMultiMediaChannelMessage.v12));
+	if (!msg) {
+		return;
+	}
 
 	msg->data.OpenMultiMediaChannelMessage.v12.lel_conferenceID = htolel(channel->callid);
 	msg->data.OpenMultiMediaChannelMessage.v12.lel_passThruPartyID = htolel(channel->passthrupartyid);
@@ -839,6 +902,9 @@ static void sccp_protocol_sendOpenMultiMediaChannelV12(constDevicePtr device, co
 static void sccp_protocol_sendOpenMultiMediaChannelV17(constDevicePtr device, constChannelPtr channel, skinny_codec_t skinnyFormat, int payloadType, uint8_t lineInstance, int bitRate)
 {
 	sccp_msg_t *msg = sccp_build_packet(OpenMultiMediaChannelMessage, sizeof(msg->data.OpenMultiMediaChannelMessage.v17));
+	if (!msg) {
+		return;
+	}
 
 	msg->data.OpenMultiMediaChannelMessage.v17.lel_conferenceID = htolel(channel->callid);
 	msg->data.OpenMultiMediaChannelMessage.v17.lel_passThruPartyID = htolel(channel->passthrupartyid);
@@ -957,8 +1023,11 @@ static void sccp_protocol_sendOpenMultiMediaChannelV17(constDevicePtr device, co
 static void sccp_protocol_sendStartMediaTransmissionV3(constDevicePtr device, constChannelPtr channel)
 {
 	sccp_msg_t *msg = sccp_build_packet(StartMediaTransmission, sizeof(msg->data.StartMediaTransmission.v3));
+	if (!msg) {
+		return;
+	}
 
-        uint framing = iPbx.get_codec_framing ? iPbx.get_codec_framing(channel) : 20;
+	uint framing = iPbx.get_codec_framing ? iPbx.get_codec_framing(channel) : 20;
         uint dtmf_payload_code = iPbx.get_dtmf_payload_code ? iPbx.get_dtmf_payload_code(channel) : 101;
 
 	msg->data.StartMediaTransmission.v3.lel_conferenceId = htolel(channel->callid);
@@ -991,8 +1060,11 @@ static void sccp_protocol_sendStartMediaTransmissionV3(constDevicePtr device, co
 static void sccp_protocol_sendStartMediaTransmissionV17(constDevicePtr device, constChannelPtr channel)
 {
 	sccp_msg_t *msg = sccp_build_packet(StartMediaTransmission, sizeof(msg->data.StartMediaTransmission.v17));
+	if (!msg) {
+		return;
+	}
 
-        uint framing = iPbx.get_codec_framing ? iPbx.get_codec_framing(channel) : 20;
+	uint framing = iPbx.get_codec_framing ? iPbx.get_codec_framing(channel) : 20;
         uint dtmf_payload_code = iPbx.get_dtmf_payload_code ? iPbx.get_dtmf_payload_code(channel) : 101;
         
 	msg->data.StartMediaTransmission.v17.lel_conferenceId = htolel(channel->callid);
@@ -1027,8 +1099,11 @@ static void sccp_protocol_sendStartMediaTransmissionV17(constDevicePtr device, c
 static void sccp_protocol_sendStartMediaTransmissionv22(constDevicePtr device, constChannelPtr channel)
 {
 	sccp_msg_t *msg = sccp_build_packet(StartMediaTransmission, sizeof(msg->data.StartMediaTransmission.v22));
+	if (!msg) {
+		return;
+	}
 
-        uint framing = iPbx.get_codec_framing ? iPbx.get_codec_framing(channel) : 20;
+	uint framing = iPbx.get_codec_framing ? iPbx.get_codec_framing(channel) : 20;
         uint dtmf_payload_code = iPbx.get_dtmf_payload_code ? iPbx.get_dtmf_payload_code(channel) : 101;
 
 	msg->data.StartMediaTransmission.v22.lel_conferenceId = htolel(channel->callid);
@@ -1063,6 +1138,9 @@ static void sccp_protocol_sendStartMediaTransmissionv22(constDevicePtr device, c
 static void sccp_protocol_sendStartMultiMediaTransmissionV3(constDevicePtr device, constChannelPtr channel, int payloadType, int bitRate)
 {
 	sccp_msg_t *msg = sccp_build_packet(StartMultiMediaTransmission, sizeof(msg->data.StartMultiMediaTransmission.v3));
+	if (!msg) {
+		return;
+	}
 	//uint payloadType = sccp_rtp_get_payloadType(&channel->rtp.video, video->transmission.format);
 
 	msg->data.StartMultiMediaTransmission.v3.lel_conferenceID = htolel(channel->callid);
@@ -1103,6 +1181,9 @@ static void sccp_protocol_sendStartMultiMediaTransmissionV3(constDevicePtr devic
 static void sccp_protocol_sendStartMultiMediaTransmissionV17(constDevicePtr device, constChannelPtr channel, int payloadType, int bitRate)
 {
 	sccp_msg_t *msg = sccp_build_packet(StartMultiMediaTransmission, sizeof(msg->data.StartMultiMediaTransmission.v17));
+	if (!msg) {
+		return;
+	}
 
 	msg->data.StartMultiMediaTransmission.v17.lel_conferenceID = htolel(channel->callid);
 	msg->data.StartMultiMediaTransmission.v17.lel_passThruPartyId = htolel(channel->passthrupartyid);
@@ -1153,6 +1234,9 @@ static void sccp_protocol_sendMultiMediaCommand(constDevicePtr device, constChan
 	sccp_msg_t *msg = NULL;
 
 	REQ(msg, MiscellaneousCommandMessage);
+	if (!msg) {
+		return;
+	}
 
 	msg->data.MiscellaneousCommandMessage.lel_conferenceId = htolel(channel->callid);
 	msg->data.MiscellaneousCommandMessage.lel_passThruPartyId = htolel(channel->passthrupartyid);
@@ -1193,7 +1277,6 @@ static void sccp_protocol_sendUserToDeviceDataVersion1Message(constDevicePtr dev
 			data_len -= msg_len;
 			msg = sccp_build_packet(UserToDeviceDataVersion1Message, hdr_len + msg_len);
 			if (!msg) {
-				pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, "SCCP");
 				return;
 			}
 			msg->data.UserToDeviceDataVersion1Message.lel_appID = htolel(appID);
@@ -1226,6 +1309,9 @@ static void sccp_protocol_sendUserToDeviceDataVersion1Message(constDevicePtr dev
 		msg_len = data_len;
 
 		msg = sccp_build_packet(UserToDeviceDataVersion1Message, hdr_len + msg_len);
+		if (!msg) {
+			return;
+		}
 		msg->data.UserToDeviceDataVersion1Message.lel_appID = htolel(appID);
 		msg->data.UserToDeviceDataVersion1Message.lel_lineInstance = htolel(lineInstance);
 		msg->data.UserToDeviceDataVersion1Message.lel_callReference = htolel(callReference);
@@ -1253,6 +1339,9 @@ static void sccp_protocol_sendUserToDeviceDataVersion1Message(constDevicePtr dev
 static void sccp_protocol_sendConnectionStatisticsReqV3(constDevicePtr device, constChannelPtr channel, uint8_t clear)
 {
 	sccp_msg_t *msg = sccp_build_packet(ConnectionStatisticsReq, sizeof(msg->data.ConnectionStatisticsReq.v3));
+	if (!msg) {
+		return;
+	}
 	if (channel->calltype == SKINNY_CALLTYPE_OUTBOUND) {
 		iCallInfo.Getter(sccp_channel_getCallInfo(channel),	SCCP_CALLINFO_CALLEDPARTY_NUMBER, &msg->data.ConnectionStatisticsReq.v3.DirectoryNumber, SCCP_CALLINFO_KEY_SENTINEL);
 	} else {
@@ -1269,6 +1358,9 @@ static void sccp_protocol_sendConnectionStatisticsReqV3(constDevicePtr device, c
 static void sccp_protocol_sendConnectionStatisticsReqV19(constDevicePtr device, constChannelPtr channel, uint8_t clear)
 {
 	sccp_msg_t *msg = sccp_build_packet(ConnectionStatisticsReq, sizeof(msg->data.ConnectionStatisticsReq.v19));
+	if (!msg) {
+		return;
+	}
 
 	if (channel->calltype == SKINNY_CALLTYPE_OUTBOUND) {
 		iCallInfo.Getter(sccp_channel_getCallInfo(channel),	SCCP_CALLINFO_CALLEDPARTY_NUMBER,  &msg->data.ConnectionStatisticsReq.v19.DirectoryNumber, SCCP_CALLINFO_KEY_SENTINEL);
@@ -1291,6 +1383,9 @@ static void sccp_protocol_sendPortRequest(constDevicePtr device, constChannelPtr
 	struct sockaddr_storage sas;
 	memcpy(&sas, &channel->rtp.audio.phone_remote, sizeof(struct sockaddr_storage));
 	sccp_msg_t *msg = sccp_build_packet(PortRequestMessage, sizeof(msg->data.PortRequestMessage));
+	if (!msg) {
+		return;
+	}
 
 	msg->data.PortRequestMessage.lel_conferenceId = htolel(channel->callid);
 	msg->data.PortRequestMessage.lel_callReference = htolel(channel->callid);
@@ -1311,6 +1406,9 @@ static void sccp_protocol_sendPortClose(constDevicePtr device, constChannelPtr c
 {
 	if (device->protocol && device->protocol->version >= 11) {
 		sccp_msg_t *msg = sccp_build_packet(PortCloseMessage, sizeof(msg->data.PortCloseMessage));
+		if (!msg) {
+			return;
+		}
 		msg->data.PortCloseMessage.lel_conferenceId = htolel(channel->callid);
 		msg->data.PortCloseMessage.lel_passThruPartyId = htolel(channel->passthrupartyid);
 		msg->data.PortCloseMessage.lel_callReference = htolel(channel->callid);
@@ -1332,6 +1430,9 @@ static void sccp_protocol_sendLineStatRespV3(constDevicePtr d, uint32_t lineNumb
 {
 	sccp_msg_t *msg = NULL;
 	REQ(msg, LineStatMessage);
+	if (!msg) {
+		return;
+	}
 	msg->data.LineStatMessage.lel_lineNumber = htolel(lineNumber);
 	d->copyStr2Locale(d, msg->data.LineStatMessage.lineDirNumber, dirNumber, sizeof(msg->data.LineStatMessage.lineDirNumber));
 	d->copyStr2Locale(d, msg->data.LineStatMessage.lineFullyQualifiedDisplayName, fullyQualifiedDisplayName, sizeof(msg->data.LineStatMessage.lineFullyQualifiedDisplayName));
@@ -1355,6 +1456,9 @@ static void sccp_protocol_sendLineStatRespV17(constDevicePtr d, uint32_t lineNum
 
  	int pktLen = SCCP_PACKET_HEADER + dummyLen;
 	sccp_msg_t *msg = sccp_build_packet(LineStatDynamicMessage, pktLen);
+	if (!msg) {
+		return;
+	}
 	msg->data.LineStatDynamicMessage.lel_lineNumber = htolel(lineNumber);
 
 	if (dummyLen) {
@@ -1377,17 +1481,20 @@ static void sccp_protocol_sendLineStatRespV17(constDevicePtr d, uint32_t lineNum
 /*
 static void sccp_protocol_sendLineStatRespV17(constDevicePtr d, uint32_t lineNumber, char *dirNumber, char *fullyQualifiedDisplayName, char *displayName)
 {
-	sccp_msg_t *msg = NULL;
-	REQ(msg, LineStatDynamicMessage);
-	msg->data.LineStatDynamicMessage.lel_lineNumber = htolel(lineNumber);
-	d->copyStr2Locale(d, msg->data.LineStatDynamicMessage.lineDirNumber, dirNumber, sizeof(msg->data.LineStatDynamicMessage.lineDirNumber));
-	d->copyStr2Locale(d, msg->data.LineStatDynamicMessage.lineFullyQualifiedDisplayName, fullyQualifiedDisplayName, sizeof(msg->data.LineStatDynamicMessage.lineFullyQualifiedDisplayName));
-	d->copyStr2Locale(d, msg->data.LineStatDynamicMessage.lineTextLabel, displayName, sizeof(msg->data.LineStatDynamicMessage.lineTextLabel));
+        sccp_msg_t *msg = NULL;
+        REQ(msg, LineStatDynamicMessage);
+        if (!msg) {
+                return;
+        }
+        msg->data.LineStatDynamicMessage.lel_lineNumber = htolel(lineNumber);
+        d->copyStr2Locale(d, msg->data.LineStatDynamicMessage.lineDirNumber, dirNumber, sizeof(msg->data.LineStatDynamicMessage.lineDirNumber));
+        d->copyStr2Locale(d, msg->data.LineStatDynamicMessage.lineFullyQualifiedDisplayName, fullyQualifiedDisplayName, sizeof(msg->data.LineStatDynamicMessage.lineFullyQualifiedDisplayName));
+        d->copyStr2Locale(d, msg->data.LineStatDynamicMessage.lineTextLabel, displayName, sizeof(msg->data.LineStatDynamicMessage.lineTextLabel));
 
-	//Bit-field: 1-Original Dialed 2-Redirected Dialed, 4-Calling line ID, 8-Calling name ID
-	//msg->data.LineStatDynamicMessage.lel_lineDisplayOptions = 0x01 & 0x08;
-	msg->data.LineStatDynamicMessage.lel_lineDisplayOptions = htolel(15);
-	sccp_dev_send(d, msg);
+        //Bit-field: 1-Original Dialed 2-Redirected Dialed, 4-Calling line ID, 8-Calling name ID
+        //msg->data.LineStatDynamicMessage.lel_lineDisplayOptions = 0x01 & 0x08;
+        msg->data.LineStatDynamicMessage.lel_lineDisplayOptions = htolel(15);
+        sccp_dev_send(d, msg);
 }
 */
 /* done - sendLineStat */
@@ -2036,6 +2143,9 @@ gcc_inline struct messageinfo * lookupMsgInfoStruct(uint32_t messageId)
 gcc_inline const char * msginfo2str(sccp_mid_t msgId)
 {														/* sccp_protocol.h */
 	struct messageinfo * info = lookupMsgInfoStruct(msgId);
+	if (!info) {
+		return NULL;
+	}
 	return info->text;
 }
 

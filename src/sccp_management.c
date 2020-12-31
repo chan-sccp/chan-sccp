@@ -1057,6 +1057,9 @@ static int sccp_asterisk_managerHookHelper(int category, const char *event, char
 					}
 					sccp_msg_t *msg_out = NULL;
 					REQ(msg_out, RecordingStatusMessage);
+					if (!msg_out) {
+						return -1;
+					}
 					msg_out->data.RecordingStatusMessage.lel_callReference = htolel(channel->callid);
 					msg_out->data.RecordingStatusMessage.lel_status = (d->monitorFeature.status & SCCP_FEATURE_MONITOR_STATE_ACTIVE) ? htolel(1) : htolel(0);
 					sccp_dev_send(d, msg_out);

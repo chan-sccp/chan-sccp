@@ -365,6 +365,10 @@ static const SCCPConfigSegment *sccp_find_segment(const sccp_config_segment_t se
 static const SCCPConfigOption *sccp_find_config(const sccp_config_segment_t segment, const char *name)
 {
 	const SCCPConfigSegment *sccpConfigSegment = sccp_find_segment(segment);
+	if (!sccpConfigSegment) {
+		pbx_log(LOG_ERROR, "Could not find segement:%d\n", segment);
+		return NULL;
+	}
 	const SCCPConfigOption *config = sccpConfigSegment->config;
 
 	char delims[] = "|";
@@ -480,6 +484,10 @@ static sccp_configurationchange_t sccp_config_object_setValue(void * const obj, 
 							      boolean_t default_run)
 {
 	const SCCPConfigSegment *sccpConfigSegment = sccp_find_segment(segment);
+	if (!sccpConfigSegment) {
+		pbx_log(LOG_ERROR, "Could not find segement:%d\n", segment);
+		return SCCP_CONFIG_ERROR;
+	}
 	const SCCPConfigOption *sccpConfigOption = sccp_find_config(segment, name);
 	void * dst = NULL;
 	enum SCCPConfigOptionType type = 0;  /* enum wrapper */
@@ -836,6 +844,10 @@ static void sccp_config_set_defaults(void * const obj, const sccp_config_segment
 	}
 	/* destination segment */
 	const SCCPConfigSegment *sccpConfigSegment = sccp_find_segment(segment);
+	if (!sccpConfigSegment) {
+		pbx_log(LOG_ERROR, "Could not find segement:%d\n", segment);
+		return;
+	}
 
 	/* destination/source config */
 	const SCCPConfigOption *sccpDstConfig = sccpConfigSegment->config;
@@ -946,6 +958,11 @@ static void sccp_config_set_defaults(void * const obj, const sccp_config_segment
 void sccp_config_cleanup_dynamically_allocated_memory(void * const obj, const sccp_config_segment_t segment)
 {
 	const SCCPConfigSegment *sccpConfigSegment = sccp_find_segment(segment);
+	if (!sccpConfigSegment) {
+		pbx_log(LOG_ERROR, "Could not find segement:%d\n", segment);
+		return;
+	}
+
 	const SCCPConfigOption *sccpConfigOption = sccpConfigSegment->config;
 	void * dst = NULL;
 	char * str = NULL;
@@ -3552,6 +3569,13 @@ static int _config_generate_wiki(char * filename)
 	fprintf(f, "*sccp.conf options*\n\n");
 	for(segment = SCCP_CONFIG_GLOBAL_SEGMENT; segment <= SCCP_CONFIG_SOFTKEY_SEGMENT; segment++) {
 		sccpConfigSegment = sccp_find_segment((sccp_config_segment_t)segment);
+		if (!sccpConfigSegment) {
+			pbx_log(LOG_ERROR, "Could not find segment:%d\n", (int)segment);
+			fclose(f);
+			close(fd);
+			return -3;
+		}
+
 		fprintf(f, "\n**[%s] section**\n\n", sccpConfigSegment->name);
 		fprintf(f, "<table>\n");
 		fprintf(f, "<tr><td><b>parameter</b></td><td><b>default</b></td><td><b>format</b></td><td><b>required</b></td><td><b>status</b></td></tr>\n");
@@ -3703,6 +3727,12 @@ int sccp_config_generate(char *filename, int configType)
 
 	for (segment = SCCP_CONFIG_GLOBAL_SEGMENT; segment <= SCCP_CONFIG_SOFTKEY_SEGMENT; segment++) {
 		sccpConfigSegment = sccp_find_segment((sccp_config_segment_t)segment);
+		if (!sccpConfigSegment) {
+			pbx_log(LOG_ERROR, "Could not find segment:%d\n", (int)segment);
+			fclose(f);
+			close(fd);
+			return -3;
+		}
 		if (configType == 0 && (segment == SCCP_CONFIG_DEVICE_SEGMENT || segment == SCCP_CONFIG_LINE_SEGMENT)) {
 			sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_2 "adding [%s] template section\n", sccpConfigSegment->name);
 			fprintf(f, "\n;\n; %s section\n;\n[default_%s](!)\n", sccpConfigSegment->name, sccpConfigSegment->name);
@@ -3847,8 +3877,10 @@ AST_TEST_DEFINE(sccp_config_base_functions)
 
 	pbx_test_status_update(test, "sccp_fine_config...\n");
 	const SCCPConfigSegment *sccpConfigSegment = sccp_find_segment(SCCP_CONFIG_GLOBAL_SEGMENT);
-	pbx_test_validate(test, sccp_find_config(SCCP_CONFIG_GLOBAL_SEGMENT, "debug") == &sccpConfigSegment->config[0]);
-	pbx_test_validate(test, sccp_find_config(SCCP_CONFIG_GLOBAL_SEGMENT, "port") == &sccpConfigSegment->config[6]);
+	if (sccpConfigSegment) {
+		pbx_test_validate(test, sccp_find_config(SCCP_CONFIG_GLOBAL_SEGMENT, "debug") == &sccpConfigSegment->config[0]);
+		pbx_test_validate(test, sccp_find_config(SCCP_CONFIG_GLOBAL_SEGMENT, "port") == &sccpConfigSegment->config[6]);
+	}
 
 	return AST_TEST_PASS;
 }

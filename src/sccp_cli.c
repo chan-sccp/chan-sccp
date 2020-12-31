@@ -1951,6 +1951,8 @@ static int sccp_test(int fd, int argc, char *argv[])
 				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "Sending OpenReceiveChannel and changing payloadType to 8\n");
 
 				REQ(msg1, OpenReceiveChannel);
+				if (!msg1)
+					return RESULT_FAILURE;
 				msg1->data.OpenReceiveChannel.v17.lel_conferenceId = htolel(tmpChannel->callid);
 				msg1->data.OpenReceiveChannel.v17.lel_passThruPartyId = htolel(tmpChannel->passthrupartyid);
 				msg1->data.OpenReceiveChannel.v17.lel_millisecondPacketSize = htolel(packetSize);
@@ -1962,6 +1964,8 @@ static int sccp_test(int fd, int argc, char *argv[])
 				// sleep(1);
 				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "Sending OpenReceiveChannel and changing payloadType to 4\n");
 				REQ(msg2, OpenReceiveChannel);
+				if (!msg2)
+					return RESULT_FAILURE;
 				msg2->data.OpenReceiveChannel.v17.lel_conferenceId = htolel(tmpChannel->callid);
 				msg2->data.OpenReceiveChannel.v17.lel_passThruPartyId = htolel(tmpChannel->passthrupartyid);
 				msg2->data.OpenReceiveChannel.v17.lel_millisecondPacketSize = htolel(packetSize);
@@ -1993,6 +1997,8 @@ static int sccp_test(int fd, int argc, char *argv[])
 				if (buttonconfig->type == SPEEDDIAL) {
 					instance = buttonconfig->instance;
 					REQ(msg1, SpeedDialStatDynamicMessage);
+					if (!msg1)
+						return RESULT_FAILURE;
 					msg1->data.SpeedDialStatDynamicMessage.lel_Number = htolel(instance);
 					sccp_copy_string(msg1->data.SpeedDialStatDynamicMessage.DirNumber, argv[5], sizeof(msg1->data.SpeedDialStatDynamicMessage.DirNumber));
 					sccp_copy_string(msg1->data.SpeedDialStatDynamicMessage.DisplayName, argv[6], sizeof(msg1->data.SpeedDialStatDynamicMessage.DisplayName));					
@@ -2294,6 +2300,8 @@ static int sccp_test(int fd, int argc, char *argv[])
 			};
 			for(uint i = 0; i < ARRAY_LEN(state); i++) {
 				REQ(msg, FeatureStatDynamicMessage);
+				if (!msg)
+					return RESULT_FAILURE;
 				msg->data.FeatureStatDynamicMessage.lel_lineInstance = htolel(1);
 				msg->data.FeatureStatDynamicMessage.lel_buttonType = htolel(SKINNY_BUTTONTYPE_MULTIBLINKFEATURE);
 				msg->data.FeatureStatDynamicMessage.stateVal.strct = state[i];
@@ -3474,6 +3482,8 @@ static int sccp_unregister(int fd, int argc, char *argv[])
 	pbx_cli(fd, "%s: Turn off the monitored line lamps to permit the %s\n", argv[2], argv[1]);
 
 	REQ(msg, RegisterRejectMessage);
+	if (!msg)
+		return RESULT_FAILURE;
 	sccp_copy_string(msg->data.RegisterRejectMessage.text, "Unregister user request", StationMaxDisplayTextSize);
 	
 	sccp_dev_send(d, msg);

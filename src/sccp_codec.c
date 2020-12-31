@@ -163,9 +163,9 @@ char * sccp_codec_multiple2str(char * buf, size_t size, const skinny_codec_t * c
 		endptr += strlen(endptr);
 	}
 	if (buf == endptr) {
-		snprintf(endptr, size, "nothing)");
+		snprintf(endptr++, size, "nothing)");
 	}
-	snprintf(endptr++, size, "]");
+	snprintf(endptr, size, "]");
 	return buf;
 }
 

@@ -350,12 +350,18 @@ void notifySubscriber(deviceState_t * deviceState, const SubscribingDevice_t * s
 	const feature_state_t * curstate = &subscriber->states[deviceState->featureState];
 	if (subscriber->device->inuseprotocolversion >= 15) {
 		REQ(msg, FeatureStatDynamicMessage);
+		if (!msg) {
+			return;
+		}
 		msg->data.FeatureStatDynamicMessage.lel_lineInstance = htolel(subscriber->buttonConfig->instance);
 		msg->data.FeatureStatDynamicMessage.lel_buttonType = htolel(SKINNY_BUTTONTYPE_MULTIBLINKFEATURE);
 		msg->data.FeatureStatDynamicMessage.stateVal.strct = curstate->value.strct;
 		sccp_copy_string(msg->data.FeatureStatDynamicMessage.textLabel, subscriber->label, sizeof(msg->data.FeatureStatDynamicMessage.textLabel));
 	} else {
 		REQ(msg, FeatureStatMessage);
+		if (!msg) {
+			return;
+		}
 		msg->data.FeatureStatMessage.lel_lineInstance = htolel(subscriber->buttonConfig->instance);
 		msg->data.FeatureStatMessage.lel_buttonType = htolel(SKINNY_BUTTONTYPE_FEATURE);
 		//msg->data.FeatureStatMessage.lel_stateValue = htolel((*(int *)&curstate->value) ? 1 : 0);
