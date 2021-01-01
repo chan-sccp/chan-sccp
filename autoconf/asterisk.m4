@@ -180,7 +180,7 @@ AC_DEFUN([AST_GET_VERSION], [
 					echo "Either install asterisk and asterisk-devel packages using your package manager."
 					echo "If you compiled asterisk manually, make sure you also run `make install-headers` so chan-sccp can find them."
 					echo "Or specify the location where asterisk can be found, using ./configure --with-asterisk=[path]"
-					exit
+					exit 255
 				fi
 			],[
 				AC_MSG_RESULT('ASTERISK_VERSION could not be established)
@@ -341,9 +341,8 @@ AC_DEFUN([AST_GET_VERSION], [
 		echo "=================================== config.log"
 		cat config.log 
 		echo "=================================== config.log"
-		exit
+		exit 255
 	fi
-	
 ])
 
 dnl Find Asterisk Header Files

@@ -40,8 +40,8 @@ SCCP_FILE_VERSION(__FILE__, "");
 #if defined(CS_AST_HAS_EVENT) && defined(HAVE_PBX_EVENT_H) 	// ast_event_subscribe
 #  include <asterisk/event.h>
 #endif
-#if HAVE_ICONV
-#include <iconv.h>
+#if CS_HAVE_ICONV
+#	include <iconv.h>
 int sccp_device_createiconv(devicePtr d);
 void sccp_device_destroyiconv(devicePtr d);
 #endif
@@ -60,7 +60,7 @@ struct sccp_private_device_data {
 
 	skinny_registrationstate_t registrationState;
 
-#if HAVE_ICONV
+#if CS_HAVE_ICONV
 	iconv_t iconv;
 	sccp_mutex_t iconv_lock;
 #endif
@@ -233,7 +233,7 @@ static void sccp_device_copyStr2Locale_UTF8(constDevicePtr d, char *dst, ICONV_C
 	sccp_copy_string(dst, src, dst_size);
 }
 
-#if HAVE_ICONV
+#if CS_HAVE_ICONV
 int sccp_device_createiconv(devicePtr d)
 {
 	d->privateData->iconv = iconv_open(d->iconvcodepage, "UTF-8");
@@ -676,7 +676,7 @@ devicePtr sccp_device_create(const char * id)
 #ifndef SCCP_ATOMIC
 	sccp_mutex_unlock(&d->messageStack.lock);
 #endif
-#if HAVE_ICONV
+#if CS_HAVE_ICONV
 	d->privateData->iconv = (iconv_t) -1;
 #endif
 
@@ -848,7 +848,7 @@ void sccp_device_preregistration(devicePtr device)
 			device->indicate = &sccp_device_indication_olderDevices;
 			break;
 	}
-#if HAVE_ICONV
+#if CS_HAVE_ICONV
 	if (!(device->device_features.phoneFeatures[1] & SKINNY_PHONE_FEATURES1_UTF8)) {
 		sccp_device_createiconv(device);
 		device->copyStr2Locale = sccp_device_copyStr2Locale_Convert;
@@ -2651,7 +2651,7 @@ int __sccp_device_destroy(const void *ptr)
 	
 	// cleanup privateData
 	if (d->privateData) {
-#if HAVE_ICONV
+#if CS_HAVE_ICONV
 		if (d->privateData->iconv != (iconv_t) -1) {
 			sccp_device_destroyiconv(d);
 		}
