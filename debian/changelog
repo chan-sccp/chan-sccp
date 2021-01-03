@@ -1,7 +1,7 @@
 chan-sccp (4.3.2-6) UNRELEASED; urgency=medium
 
   * Enhancements:
-   - Increased control over Button Lamps on DeAvstate Feature Buttons
+   - Increased control over Button Lamps on DevState Feature Buttons
    - Added support for asterisk-18
    - Added support for AUTO_ANSWER dialplan variable
    - Added support for SCCP signaling over TLS (SCCPS)
