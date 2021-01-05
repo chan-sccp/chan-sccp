@@ -120,7 +120,7 @@ We provide prebuild binaries for:
     - [Ubuntu-17.04](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-13/xUbuntu_17.04/)
     - [Ubuntu-17.10](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-13/xUbuntu_17.10/)
     - [Ubuntu-18.04](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-13/xUbuntu_18.04/)
-  - Asterisk-16
+  - Asterisk-16 LTS
     - [Debian-10](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-16/Debian_10/) (x86_64,i586)
     - [Debian-Testing](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-16/Debian_Testing/) (x86_64)
     - [Debian-Unstable](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-16/Debian_Unstable/) (x86_64)
@@ -133,12 +133,12 @@ We provide prebuild binaries for:
     - [Rasbian 10](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-16/Raspbian_10) (armv7l)
     - [Ubuntu 19.10](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-16/xUbuntu_19.10) (x86_64)
     - [Ubuntu 20.04](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-16/xUbuntu_20.04) (x86_64)
-  - Asterisk-17
-    - [openSUSE-Leap_15.1](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-17/openSUSE_Leap_15.1/) (x86_64)
-    - [openSUSE-Leap_15.2](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-17/openSUSE_Leap_15.2/) (x86_64)
-    - [openSUSE-Factory](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-17/openSUSE_Factory/) (x86_64,i586)
-    - [openSUSE-Factory_ARM](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-17/openSUSE_Factory_ARM/) (aarch64,armv6l,armv7l)
-    - [openSUSE_Factory_PPC](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-17/openSUSE_Factory_PPC/) (ppc64,ppc64le)
+  - Asterisk-18 LTS
+    - [openSUSE-Leap_15.1](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-18/openSUSE_Leap_15.1/) (x86_64)
+    - [openSUSE-Leap_15.2](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-18/openSUSE_Leap_15.2/) (x86_64)
+    - [openSUSE-Factory](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-18/openSUSE_Factory/) (x86_64,i586)
+    - [openSUSE-Factory_ARM](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-18/openSUSE_Factory_ARM/) (aarch64,armv6l,armv7l)
+    - [openSUSE_Factory_PPC](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-18/openSUSE_Factory_PPC/) (ppc64,ppc64le)
 
 ### Wiki
 You can find more information and documentation on our [![Wiki](https://img.shields.io/badge/Wiki-new-blue.svg)](https://github.com/chan-sccp/chan-sccp/wiki/)

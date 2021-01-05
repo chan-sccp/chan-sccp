@@ -14,7 +14,7 @@ Recommends: libbinutils, libc6
 Replaces: chan-sccp-b
 Description: chan-sccp is a branch from the original chan-sccp
  implementation of Skinny Client Control Protocol (SCCP) for the Asterisk
- soft-PBX. It is mainly focused on extending the functionality provided by
+ soft-PBX. It is mainly focused on replacing and expanding the functionality provided by
  chan_skinny. 
 
 Package: chan-sccp-dbg
