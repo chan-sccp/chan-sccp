@@ -78,11 +78,11 @@ fi
 #echo "Retrieving ModelInfo from phone at $IPADDRESS..."
 deviceinfo_tmp=$(mktemp)
 wget -q http://$IPADDRESS/DeviceInformationX -O $deviceinfo_tmp>/dev/null
-modelnumber=`grep modelNumber $deviceinfo_tmp`
-if [[ ! -z "`grep -e 7960 -e 7940 DeviceInformationX`" ]]; then
+modelnumber=`grep modelNumber ${deviceinfo_tmp}`
+if [[ ! -z "`grep -e 7960 -e 7940 ${deviceinfo_tmp}`" ]]; then
 	echo "Converting Screenshot to ${OUTPUTFILE}.png..."
 	$0/../scr2img $screenshot_tmp $OUTPUTFILE.png
-elif [[ ! -z "`grep -e 8941 -e 8945 DeviceInformationX`" ]]; then
+elif [[ ! -z "`grep -e 8941 -e 8945 ${deviceinfo_tmp}`" ]]; then
 	echo "Saving Screenshot to ${OUTPUTFILE}.png..."
 	mv $screenshot_tmp ${OUTPUTFILE}.png
 else

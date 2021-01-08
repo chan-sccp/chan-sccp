@@ -398,30 +398,69 @@ static const SCCPConfigOption *sccp_find_config(const sccp_config_segment_t segm
 }
 
 /* Create new variable structure for Multi Entry Parameters */
+/*
 static PBX_VARIABLE_TYPE *createVariableSetForMultiEntryParameters(PBX_VARIABLE_TYPE * cat_root, const char *configOptionName, PBX_VARIABLE_TYPE * out)
 {
-	PBX_VARIABLE_TYPE *v = cat_root;
-	PBX_VARIABLE_TYPE *tmp = NULL;
-	char delims[] = "|";
-	char option_name[strlen(configOptionName) + 2];
-	char * token = NULL;
-	char * tokenrest = NULL;
+        PBX_VARIABLE_TYPE *v = cat_root;
+        PBX_VARIABLE_TYPE *tmp = NULL;
+        char delims[] = "|";
+        char option_name[strlen(configOptionName) + 2];
+        char * token = NULL;
+        char * tokenrest = NULL;
 
-	snprintf(option_name, sizeof(option_name), "%s%s", configOptionName, delims);
-	token = strtok_r(option_name, delims, &tokenrest);
-	while (token != NULL) {
-		sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "Token %s/%s\n", option_name, token);
-		for (v = cat_root; v; v = v->next) {
-			if(strcasecmp(token, v->name) == 0) {
+        snprintf(option_name, sizeof(option_name), "%s%s", configOptionName, delims);
+        token = strtok_r(option_name, delims, &tokenrest);
+        while (token != NULL) {
+                sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "Token %s/%s\n", option_name, token);
+                for (v = cat_root; v; v = v->next) {
+                        if(strcasecmp(token, v->name) == 0) {
+                                if (!tmp) {
+                                        sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "Create new variable set (%s=%s)\n", v->name, v->value);
+                                        if (!(out = pbx_variable_new(v->name, v->value, ""))) {
+                                                pbx_log(LOG_ERROR, "SCCP: (sccp_config) Error while creating new var structure\n");
+                                                goto EXIT;
+                                        }
+                                        tmp = out;
+                                } else {
+                                        sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "Add to variable set (%s=%s)\n", v->name, v->value);
+                                        if (!(tmp->next = pbx_variable_new(v->name, v->value, ""))) {
+                                                pbx_log(LOG_ERROR, "SCCP: (sccp_config) Error while creating new var structure\n");
+                                                pbx_variables_destroy(out);
+                                                goto EXIT;
+                                        }
+                                        tmp = tmp->next;
+                                }
+                        }
+                }
+                token = strtok_r(NULL, delims, &tokenrest);
+        }
+EXIT:
+        return out;
+}
+*/
+static PBX_VARIABLE_TYPE * createVariableSetForMultiEntryParameters(PBX_VARIABLE_TYPE * cat_root, const char * configOptionName, PBX_VARIABLE_TYPE * out)
+{
+	PBX_VARIABLE_TYPE * v   = cat_root;
+	PBX_VARIABLE_TYPE * tmp = NULL;
+
+	size_t options_len = strlen(configOptionName) + 3;
+	char   options[options_len];
+	snprintf(options, options_len, "|%s|", configOptionName);
+	for (v = cat_root; v; v = v->next) {
+		if (strcasestr(options, v->name)) {                                        // quick match
+			size_t v_name_len = strlen(v->name) + 3;
+			char   v_name[v_name_len];
+			snprintf(v_name, v_name_len, "|%s|", v->name);
+			if (strcasestr(options, v_name)) {                                        // fully verify
 				if (!tmp) {
-					sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "Create new variable set (%s=%s)\n", v->name, v->value);
+					sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH))(VERBOSE_PREFIX_4 "Create new variable set (%s=%s)\n", v->name, v->value);
 					if (!(out = pbx_variable_new(v->name, v->value, ""))) {
 						pbx_log(LOG_ERROR, "SCCP: (sccp_config) Error while creating new var structure\n");
 						goto EXIT;
 					}
 					tmp = out;
 				} else {
-					sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "Add to variable set (%s=%s)\n", v->name, v->value);
+					sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH))(VERBOSE_PREFIX_4 "Add to variable set (%s=%s)\n", v->name, v->value);
 					if (!(tmp->next = pbx_variable_new(v->name, v->value, ""))) {
 						pbx_log(LOG_ERROR, "SCCP: (sccp_config) Error while creating new var structure\n");
 						pbx_variables_destroy(out);
@@ -431,7 +470,6 @@ static PBX_VARIABLE_TYPE *createVariableSetForMultiEntryParameters(PBX_VARIABLE_
 				}
 			}
 		}
-		token = strtok_r(NULL, delims, &tokenrest);
 	}
 EXIT:
 	return out;
