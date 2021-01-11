@@ -227,14 +227,14 @@ int sccp_codec_parseAllowDisallow(skinny_codec_t * skinny_codec_prefs, const cha
 	while ((token = pbx_strip(strsep(&parse, ",")))) {
 		if (!sccp_strlen_zero(token)) {
 			if (token[0] == '!') {
-				sccp_log((DEBUGCAT_CODEC))(VERBOSE_PREFIX_1 "matched !, token=%s\n", token);
+				// sccp_log((DEBUGCAT_CODEC))(VERBOSE_PREFIX_1 "matched !, token=%s\n", token);
 				allow = !allowing;
 				token++;                                        // consume !
 			}
 			all = sccp_strcaseequals(token, "all") ? TRUE : FALSE;
 			if (all && !allow) {                                        // disallowing all
 				memset(skinny_codec_prefs, 0, sizeof(skinny_codec_t) * SKINNY_MAX_CAPABILITIES);
-				sccp_log((DEBUGCAT_CODEC))("SCCP: disallow=all => reset codecs\n");
+				// sccp_log((DEBUGCAT_CODEC))("SCCP: disallow=all => reset codecs\n");
 				allow = allowing;
 				continue;
 			}
@@ -243,10 +243,10 @@ int sccp_codec_parseAllowDisallow(skinny_codec_t * skinny_codec_prefs, const cha
 					codec = skinny_codecs[x].codec;
 					found = TRUE;
 					if (allow) {
-						sccp_log((DEBUGCAT_CODEC))(VERBOSE_PREFIX_1 "appending codec '%s'\n", codec2name(codec));
+						// sccp_log((DEBUGCAT_CODEC))(VERBOSE_PREFIX_1 "appending codec '%s'\n", codec2name(codec));
 						codec_pref_append(skinny_codec_prefs, codec);
 					} else {
-						sccp_log((DEBUGCAT_CODEC))(VERBOSE_PREFIX_1 "removing codec '%s'\n", codec2name(codec));
+						// sccp_log((DEBUGCAT_CODEC))(VERBOSE_PREFIX_1 "removing codec '%s'\n", codec2name(codec));
 						codec_pref_remove(skinny_codec_prefs, codec);
 					}
 				}
