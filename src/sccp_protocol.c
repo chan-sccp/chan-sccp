@@ -782,12 +782,12 @@ static void sccp_protocol_sendOpenMultiMediaChannelV3(constDevicePtr device, con
 				channelVideoParams->h261.lel_stillImageTransmission = htolel(0);		// ??
 			} else if (skinnyFormat == SKINNY_CODEC_H263) {						//
 				channelVideoParams->h263.lel_capabilityBitfield = htolel(0);			// ??
-				channelVideoParams->h263.lel_annexNandWFutureUse = htolel(0);			// ?? 
-			} else if (skinnyFormat == SKINNY_CODEC_H263P) {					// H263P / aka:Vieo / H263-1998
-				//CIF=1,QCIF=1
+				channelVideoParams->h263.lel_annexNandWFutureUse = htolel(0);			// ??
+			} else if (skinnyFormat == SKINNY_CODEC_VIEO) {                                         // H263P / aka:Vieo / H263-1998
+				// CIF=1,QCIF=1
 				channelVideoParams->h263P.lel_modelNumber = htolel(0);				// ??
 				channelVideoParams->h263P.lel_bandwidth = htolel(0);				// ?? 90000
-			} else if (skinnyFormat == SKINNY_CODEC_H264) {						// aka: MPEG4-AVC
+			} else if (skinnyFormat == SKINNY_CODEC_H264) {                                           // aka: MPEG4-AVC
 				channelVideoParams->h264.lel_profile = htolel(64);				// should be taken from UpdateCapabilitiesMessage
 				channelVideoParams->h264.lel_level = htolel(43);				// should be taken from UpdateCapabilitiesMessage
 				channelVideoParams->h264.lel_customMaxMBPS = htolel(40500);			// should be taken from UpdateCapabilitiesMessage
@@ -854,12 +854,12 @@ static void sccp_protocol_sendOpenMultiMediaChannelV12(constDevicePtr device, co
 				channelVideoParams->h261.lel_stillImageTransmission = htolel(0);		// ??
 			} else if (skinnyFormat == SKINNY_CODEC_H263) {						//
 				channelVideoParams->h263.lel_capabilityBitfield = htolel(0);			// ??
-				channelVideoParams->h263.lel_annexNandWFutureUse = htolel(0);			// ?? 
-			} else if (skinnyFormat == SKINNY_CODEC_H263P) {					// H263P / aka:Vieo / H263-1998
-				//CIF=1,QCIF=1
+				channelVideoParams->h263.lel_annexNandWFutureUse = htolel(0);			// ??
+			} else if (skinnyFormat == SKINNY_CODEC_VIEO) {                                         // H263P / aka:Vieo / H263-1998
+				// CIF=1,QCIF=1
 				channelVideoParams->h263P.lel_modelNumber = htolel(0);				// ??
 				channelVideoParams->h263P.lel_bandwidth = htolel(0);				// ?? 90000
-			} else if (skinnyFormat == SKINNY_CODEC_H264) {						// aka: MPEG4-AVC
+			} else if (skinnyFormat == SKINNY_CODEC_H264) {                                           // aka: MPEG4-AVC
 				channelVideoParams->h264.lel_profile = htolel(64);				// should be taken from UpdateCapabilitiesMessage
 				channelVideoParams->h264.lel_level = htolel(43);				// should be taken from UpdateCapabilitiesMessage
 				channelVideoParams->h264.lel_customMaxMBPS = htolel(40500);			// should be taken from UpdateCapabilitiesMessage
@@ -950,12 +950,12 @@ static void sccp_protocol_sendOpenMultiMediaChannelV17(constDevicePtr device, co
 				channelVideoParams->h261.lel_stillImageTransmission = htolel(0);		// ??
 			} else if (skinnyFormat == SKINNY_CODEC_H263) {						// https://tools.ietf.org/html/rfc4629
 				channelVideoParams->h263.lel_capabilityBitfield = htolel(0);			// ??
-				channelVideoParams->h263.lel_annexNandWFutureUse = htolel(0);			// ?? 
-			} else if (skinnyFormat == SKINNY_CODEC_H263P) {					// H263P / aka:Vieo / H263-1998
-				//CIF=1,QCIF=1
+				channelVideoParams->h263.lel_annexNandWFutureUse = htolel(0);			// ??
+			} else if (skinnyFormat == SKINNY_CODEC_VIEO) {                                         // H263P / aka:Vieo / H263-1998
+				// CIF=1,QCIF=1
 				channelVideoParams->h263P.lel_modelNumber = htolel(0);				// ??
 				channelVideoParams->h263P.lel_bandwidth = htolel(0);				// ?? 90000
-			} else if (skinnyFormat == SKINNY_CODEC_H264) {						// aka: MPEG4-AVC
+			} else if (skinnyFormat == SKINNY_CODEC_H264) {                                           // aka: MPEG4-AVC
 				/*
 				      PROFILE:  profile number, in the range 0 through 10,
 				      specifying the supported H.263 annexes/subparts based on H.263

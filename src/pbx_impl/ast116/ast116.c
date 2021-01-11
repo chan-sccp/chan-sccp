@@ -174,7 +174,7 @@ static struct ast_format *sccp_astwrap_skinny2ast_format(skinny_codec_t skinnyco
 			return ast_format_g729;
 		case SKINNY_CODEC_G729_A:
 			return ast_format_g729;
-		case SKINNY_CODEC_G729_B_LOW:
+		case SKINNY_CODEC_ILBC:
 			return ast_format_ilbc;
 //		case SKINNY_CODEC_G729_B:
 //		case SKINNY_CODEC_G729_ANNEX_B:
@@ -202,7 +202,7 @@ static struct ast_format *sccp_astwrap_skinny2ast_format(skinny_codec_t skinnyco
 			return ast_format_h261;
 		case SKINNY_CODEC_H263:
 			return ast_format_h263;
-		case SKINNY_CODEC_H263P:
+		case SKINNY_CODEC_VIEO:
 			return ast_format_h263p;
 		case SKINNY_CODEC_H264:
 			return ast_format_h264;

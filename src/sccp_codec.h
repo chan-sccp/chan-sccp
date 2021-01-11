@@ -59,14 +59,14 @@ typedef enum
 	SKINNY_CODEC_G726_24K            = 0x0053,
 	SKINNY_CODEC_G726_16K            = 0x0054,
 	SKINNY_CODEC_G729_ANNEX_B        = 0x0055,
-	SKINNY_CODEC_G729_B_LOW          = 0x0056,                                        // ILBC
+	SKINNY_CODEC_ILBC                = 0x0056,                                        // ILBC
 	SKINNY_CODEC_ISAC                = 0x0059,
 	SKINNY_CODEC_OPUS                = 0x005a,                                        // New
 	SKINNY_CODEC_AMR                 = 0x0061,
 	SKINNY_CODEC_AMR_WB              = 0x0062,
 	SKINNY_CODEC_H261                = 0x0064,
 	SKINNY_CODEC_H263                = 0x0065,
-	SKINNY_CODEC_H263P               = 0x0066,
+	SKINNY_CODEC_VIEO                = 0x0066,
 	SKINNY_CODEC_H264                = 0x0067,
 	SKINNY_CODEC_H264_SVC            = 0x0068,
 	SKINNY_CODEC_T120                = 0x0069,
@@ -84,7 +84,7 @@ typedef enum
 	SKINNY_CODEC_UNIVERSAL_XCODER    = 0x00DE,
 	SKINNY_CODEC_DTMF_OOB_RFC2833    = 0x0101,                                        // OUTOFBAND / DTMF 0x101 / RFC2833_DYNAMIC_PAYLOAD
 	SKINNY_CODEC_DTMF_PASSTHROUGH    = 0x0102,
-	SKINNY_CODEC_DTMF_DYNAMIC        = 0x0103,
+	SKINNY_CODEC_DTMF_DYNAMIC        = 0x0103,                                        // DYNAMIC_PAYLOAD_PASSTHROUGH
 	SKINNY_CODEC_DTMF_OOB            = 0x0104,                                        // OUTOFBAND
 	SKINNY_CODEC_DTMF_IB_RFC2833     = 0x0105,                                        // INBAND
 	SKINNY_CODEC_CFB_TONES           = 0x0106,

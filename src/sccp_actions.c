@@ -4225,7 +4225,7 @@ static void handle_updatecapabilities_dissect_videocapabiltyunion(constDevicePtr
 				sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: %-7s annexNandW: %d\n", DEV_ID_LOG(d), "", annexNandW);
 			}
 			break;
-		case SKINNY_CODEC_H263P:		/* Vieo */
+		case SKINNY_CODEC_VIEO: /* Vieo */
 			{
 				int modelNumber= letohl(capability->h263P.lel_modelNumber);
 				int bandwidth = letohl(capability->h263P.lel_bandwidth);

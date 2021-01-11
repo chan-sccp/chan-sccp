@@ -45,7 +45,7 @@ const struct skinny_codec skinny_codecs[] = {
 	{SKINNY_CODEC_G728,		SKINNY_CODEC_TYPE_AUDIO,	"g728",		"g728",		"G.728", 			 	"G728",		8000,	1,	-1},	//payload unknown
 	{SKINNY_CODEC_G729,		SKINNY_CODEC_TYPE_AUDIO,	"g729",		"g729",		"G.729", 				"G729",		8000,	1,	18},
 	{SKINNY_CODEC_G729_A,		SKINNY_CODEC_TYPE_AUDIO,	"g729",		"g729a",	"G.729 Annex A", 			"G729a",	8000,	1,	18},
-	{SKINNY_CODEC_G729_B_LOW,	SKINNY_CODEC_TYPE_AUDIO, 	"ilbc",		"ilbc",		"G.729B Low/ILBC",			"iLBC",		8000,	1,	97},
+	{SKINNY_CODEC_ILBC,		SKINNY_CODEC_TYPE_AUDIO, 	"ilbc",		"ilbc",		"ILBC",					"iLBC",		16000,	1,	86},
 	{SKINNY_CODEC_G729_B,		SKINNY_CODEC_TYPE_AUDIO,	"g729",		"g729b",	"G.729 Annex B", 			"G729",		8000,	1,	18},
 	{SKINNY_CODEC_G729_AB,		SKINNY_CODEC_TYPE_AUDIO,	"g729",		"g729ab",	"G.729 Annex A + B", 			"G729",		8000,	1,	18},
 	{SKINNY_CODEC_G729_ANNEX_B,	SKINNY_CODEC_TYPE_AUDIO, 	"g729",		"g729/annex/b",	"G.729 Annex B", 			"G729",		8000,	1,	18},
@@ -64,7 +64,7 @@ const struct skinny_codec skinny_codecs[] = {
 	{SKINNY_CODEC_AMR_WB,		SKINNY_CODEC_TYPE_AUDIO,	"amr_wb",	"amr_wb",	"amr_wb",				"AMR-WB",	16000,	1,	-2},	// --DD-- please check
 	{SKINNY_CODEC_H261,		SKINNY_CODEC_TYPE_VIDEO,	"h261",		"h261",		"H.261", 				"H261",		90000,	1,	34},
 	{SKINNY_CODEC_H263,		SKINNY_CODEC_TYPE_VIDEO,	"h263",		"h263",		"H.263", 				"H263",		90000,	1,	34},
-	{SKINNY_CODEC_H263P,		SKINNY_CODEC_TYPE_VIDEO,	"h263",		"h263p",	"Vieo H.263+", 				"H263p",	90000,	1,	98},
+	{SKINNY_CODEC_VIEO,		SKINNY_CODEC_TYPE_VIDEO,	"h263",		"h263p",	"Vieo", 				"H263p",	90000,	1,	98},
 	{SKINNY_CODEC_H264,		SKINNY_CODEC_TYPE_VIDEO,	"h264",		"h264",		"H.264", 				"H264",		90000,	1,	103},
 	{SKINNY_CODEC_H264_SVC,		SKINNY_CODEC_TYPE_VIDEO,	"h264",		"h264_svc",	"h264_svc",				"H264 SVC",	90000,	1,	-2},	// --DD-- please check
 	{SKINNY_CODEC_H265,		SKINNY_CODEC_TYPE_VIDEO,	"h265",		"h265",		"h265",					"H265",		90000,	1,	-1},
@@ -84,7 +84,7 @@ const struct skinny_codec skinny_codecs[] = {
 	{SKINNY_CODEC_UNIVERSAL_XCODER,	SKINNY_CODEC_TYPE_MIXED,	"univ_xcoder",	"univ_xcoder", 	"univ_xcoder",				NULL,		0,	1,	-1},
 	{SKINNY_CODEC_DTMF_OOB_RFC2833,	SKINNY_CODEC_TYPE_MIXED,	"rfc2833",	"rfc2833",	"DTMF RFC 2833 Dyn Pay Load",		"telephone-event",	0,	1,	101},	// --DD-- please check 105| 101| 96 which one goes where
 	{SKINNY_CODEC_DTMF_PASSTHROUGH,	SKINNY_CODEC_TYPE_MIXED,	"passthrough",	"passthrough",	"DTMF Passthrough",			"CISCO_DTMF pt"	,0,	1,	105},	// --DD-- please check 105| 101| 96
-	{SKINNY_CODEC_DTMF_DYNAMIC,	SKINNY_CODEC_TYPE_MIXED,	"dynamic",	"dynamic",	"DTMF Dynamic",				NULL,		0,	1,	101},	// --DD-- please check 105| 101| 96 
+	{SKINNY_CODEC_DTMF_DYNAMIC,	SKINNY_CODEC_TYPE_MIXED,	"dynamic",	"dynamic",	"DTMF Dynamic Passthrough",		NULL,		0,	1,	101},	// --DD-- please check 105| 101| 96 
 	{SKINNY_CODEC_DTMF_OOB,		SKINNY_CODEC_TYPE_MIXED,	"oob",		"oob",		"DTMF Out of Band",			NULL,		0,	1,	101},	// --DD-- please check 105| 101| 96
 	{SKINNY_CODEC_DTMF_IB_RFC2833,	SKINNY_CODEC_TYPE_MIXED,	"rfc2833(ib)",	"rfc2833(ib)",	"DTMF RFC2833 In band",			"CISCO_DTMF ib",0,	1,	96},	// --DD-- please check 105| 101| 96
 	{SKINNY_CODEC_CFB_TONES,	SKINNY_CODEC_TYPE_MIXED,	"cfb",		"cfb",		"CFB Tones",				NULL,		0,	1,	-1},
