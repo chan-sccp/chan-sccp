@@ -428,7 +428,7 @@ typedef struct {
 	EncryptionKey keyData;
 	uint32_t isMKIPresent;
 	uint32_t keyDerivationRate;
-} EncryptionInfo;
+} EncryptionInfo_t;
 
 /*!
  * \brief SKINNY Media Payload Capability Structure
@@ -519,6 +519,18 @@ typedef struct {
 	uint32_t lel_pixelclockDivisor;										/*!< Picture Pixel Divisor */
 } customPictureFormat_t;											/*!< SKINNY Picture Format Structure */
 
+typedef enum Media_G723BitRate
+{
+	Media_G723Bitrate_5_3 = 0x1,
+	Media_G723Bitrate_6_3 = 0x2,
+} Media_G723BitRate_t;
+
+typedef enum Media_SilenceSuppression
+{
+	Media_SilenceSuppression_Off = 0x0,
+	Media_SilenceSuppression_On  = 0x1,
+} Media_SilenceSuppression_t;
+
 typedef struct
 {
   uint8_t codecMode;
@@ -528,7 +540,19 @@ typedef struct
 } CodecParameters_t;
 
 typedef union {
-	uint32_t lel_g723BitRate;										/*!< G723 Bit Rate : Enum(5.3: 0x01, 6.3: 0x02) */
+	Media_G723BitRate_t g723BitRate;
+	CodecParameters_t   codecParams;
+} Media_QualifierOutgoingUnion_t;
+
+typedef struct {
+	uint32_t                       lel_precedenceValue;
+	Media_SilenceSuppression_t     lel_ssValue;
+	uint32_t                       lel_maxFramesPerPacket;
+	Media_QualifierOutgoingUnion_t codecParamsUnion;
+} Media_QualifierOutgoing_t;
+
+typedef union {
+	Media_G723BitRate_t lel_g723BitRate; /*!< G723 Bit Rate : Enum(5.3: 0x01, 6.3: 0x02) */
 	struct {
 		uint32_t lel_capabilityAndVersion;
 		uint32_t lel_modulationAndModem2833Support;
@@ -2121,14 +2145,10 @@ typedef union {
 														   little-endian. */
 				uint32_t lel_remotePortNumber;							/*!< Remote Port Number */
 				uint32_t lel_millisecondPacketSize;						/*!< Packet Size per MilliSecond */
-				//uint32_t lel_payloadType;							/*!< Media_PayloadType */
-				skinny_codec_t lel_codecType;							/*!< Skinny Codec Type / Compression Type */
-				uint32_t lel_precedenceValue;							/*!< Precedence Value */
-				uint32_t lel_ssValue;								/*!< Silence Suppression Value */
-				uint32_t lel_maxFramesPerPacket;						/*!< Maximum Frames per Packet */
-				uint32_t lel_g723BitRate;							/*!< only used with G.723 payload */
+				skinny_codec_t            lel_codecType;                                                         /*!< Skinny Codec Type / Compression Type / Media Payload */
+				Media_QualifierOutgoing_t qualifierOut;
 				uint32_t lel_callReference;							/*!< Conference ID 1 */
-				EncryptionInfo encryptioninfo;
+				EncryptionInfo_t          encryptioninfo;
 				/* protocol v11 mods */
 				uint32_t lel_streamPassThroughID;						/*!< Stream Pass-Through ID */
 				uint32_t lel_assocStreamID;							/*!< Associated Stream ID */
@@ -2159,14 +2179,10 @@ typedef union {
 														   little-endian. */
 				uint32_t lel_remotePortNumber;							/*!< Remote Port Number */
 				uint32_t lel_millisecondPacketSize;						/*!< Packet Size per Millisecond */
-				//uint32_t lel_payloadType;							/*!< Media_PayloadType */
-				skinny_codec_t lel_codecType;							/*!< Skinny Codec Type / Compression Type */
-				uint32_t lel_precedenceValue;							/*!< Precedence Value */
-				uint32_t lel_ssValue;								/*!< Silence Suppression Value */
-				uint32_t lel_maxFramesPerPacket;						/*!< Maximum Frames per Packet */
-				uint32_t lel_g723BitRate;							/*!< G.723 BitRate (only used with G.723 payload) */
+				skinny_codec_t            lel_codecType;                                                         /*!< Skinny Codec Type / Compression Type / Media Payload */
+				Media_QualifierOutgoing_t qualifierOut;
 				uint32_t lel_callReference;							/*!< Conference ID 1 */
-				EncryptionInfo encryptioninfo;
+				EncryptionInfo_t          encryptioninfo;
 				uint32_t lel_streamPassThroughID;						/*!< Stream Pass-Through ID */
 				uint32_t lel_assocStreamID;							/*!< Associated Stream ID */
 				uint32_t lel_RFC2833Type;							/*!< RTP DTMP PayLoad (this is often set to 0x65 (101)) */
@@ -2184,14 +2200,10 @@ typedef union {
 														   little-endian. */
 				uint32_t lel_remotePortNumber;							/*!< Remote Port Number */
 				uint32_t lel_millisecondPacketSize;						/*!< Packet Size per Millisecond */
-				//uint32_t lel_payloadType;							/*!< Media_PayloadType */
-				skinny_codec_t lel_codecType;							/*!< Skinny Codec Type / Compression Type */
-				uint32_t lel_precedenceValue;							/*!< Precedence Value */
-				uint32_t lel_ssValue;								/*!< Silence Suppression Value */
-				uint32_t lel_maxFramesPerPacket;						/*!< Maximum Frames per Packet */
-				uint32_t lel_g723BitRate;							/*!< G.723 BitRate (only used with G.723 payload) */
+				skinny_codec_t            lel_codecType;                                                         /*!< Skinny Codec Type / Compression Type / Media Payload */
+				Media_QualifierOutgoing_t qualifierOut;
 				uint32_t lel_callReference;							/*!< Conference ID 1 */
-				EncryptionInfo encryptioninfo;
+				EncryptionInfo_t          encryptioninfo;
 				uint32_t lel_streamPassThroughID;						/*!< Stream Pass-Through ID */
 				uint32_t lel_assocStreamID;							/*!< Associated Stream ID */
 				uint32_t lel_RFC2833Type;							/*!< RTP DTMP PayLoad (this is often set to 0x65 (101)) */
@@ -2471,7 +2483,7 @@ typedef union {
 				uint32_t lel_millisecondPacketSize;						/*!< Millisecond Packet Size */
 				skinny_codec_t lel_payloadCapability;						/*!< PayLoad Capability */
 				uint32_t lel_precedenceValue;							/*!< Precedence Value */
-				uint32_t lel_silenceSuppression;						/*!< Silence Suppression */
+				Media_SilenceSuppression_t lel_silenceSuppression;                                                /*!< Silence Suppression */
 				uint32_t lel_maxFramesPerPacket;						/*!< Max Frames Per Packet */
 				uint32_t lel_g723BitRate;							/*!< G.723 Bit Rate (only applies to G.723 */
 			} v3;
@@ -2484,7 +2496,7 @@ typedef union {
 				uint32_t lel_millisecondPacketSize;						/*!< Millisecond Packet Size */
 				skinny_codec_t lel_payloadCapability;						/*!< PayLoad Capability */
 				uint32_t lel_precedenceValue;							/*!< Precedence Value */
-				uint32_t lel_silenceSuppression;						/*!< Silence Suppression */
+				Media_SilenceSuppression_t lel_silenceSuppression;                                                /*!< Silence Suppression */
 				uint32_t lel_maxFramesPerPacket;						/*!< Max Frames Per Packet */
 				uint32_t lel_g723BitRate;							/*!< G.723 Bit Rate (only applies to G.723 */
 			} v16;
@@ -2586,7 +2598,7 @@ typedef union {
 				uint32_t lel_g723BitRate;							/*!< G.723 Payload (Only applies to G.723) */
 				/* protocol version 5 fields */
 				uint32_t lel_callReference;							/*!< Conference ID */
-				EncryptionInfo encryptioninfo;
+				EncryptionInfo_t encryptioninfo;
 				uint32_t lel_streamPassThroughID;						/*!< Stream Pass-Through ID */
 				uint32_t lel_assocStreamID;							/*!< Associated Stream ID */
 				uint32_t lel_RFC2833Type;							/*!< RTP DTMF PayLoad (this is often set to 0x65 (101)) */
@@ -2619,7 +2631,7 @@ typedef union {
 				uint32_t lel_g723BitRate;							/*!< G.723 Payload (Only applies to G.723) */
 				/* protocol version 5 fields */
 				uint32_t lel_callReference;							/*!< Conference ID */
-				EncryptionInfo encryptioninfo;
+				EncryptionInfo_t encryptioninfo;
 				uint32_t lel_streamPassThroughID;						/*!< Stream Pass-Through ID */
 				uint32_t lel_assocStreamID;							/*!< Associated Stream ID */
 				uint32_t lel_RFC2833Type;							/*!< RTP DTMF PayLoad (this is often set to 0x65 (101)) */
@@ -2643,7 +2655,7 @@ typedef union {
 				uint32_t lel_g723BitRate;							/*!< G.723 Payload (Only applies to G.723) */
 				/* protocol version 5 fields */
 				uint32_t lel_callReference;							/*!< Conference ID */
-				EncryptionInfo encryptioninfo;
+				EncryptionInfo_t encryptioninfo;
 				uint32_t lel_streamPassThroughID;						/*!< Stream Pass-Through ID */
 				uint32_t lel_assocStreamID;							/*!< Associated Stream ID */
 				uint32_t lel_RFC2833Type;							/*!< RTP DTMF PayLoad (this is often set to 0x65 (101)) */
@@ -2819,7 +2831,7 @@ typedef union {
 				skinny_RTPPayloadType_t payloadType;
 				uint32_t lel_isConferenceCreator;
 				skinny_OpenMultiMediaReceiveChannelUnion_t capability;
-				EncryptionInfo RxEncryptionInfo;
+				EncryptionInfo_t                           RxEncryptionInfo;
 				uint32_t lel_streamPassThroughID;
 				uint32_t lel_associatedStreamID;
 			} v3;
@@ -2832,7 +2844,7 @@ typedef union {
 				skinny_RTPPayloadType_t payloadType;
 				uint32_t lel_isConferenceCreator;
 				skinny_OpenMultiMediaReceiveChannelUnion_t capability;
-				EncryptionInfo RxEncryptionInfo;
+				EncryptionInfo_t                           RxEncryptionInfo;
 				uint32_t lel_streamPassThroughID;
 				uint32_t lel_associatedStreamID;
 				uint32_t bel_sourceIpAddr;
@@ -2847,7 +2859,7 @@ typedef union {
 				skinny_RTPPayloadType_t payloadType;
 				uint32_t lel_isConferenceCreator;
 				skinny_OpenMultiMediaReceiveChannelUnion_t capability;
-				EncryptionInfo RxEncryptionInfo;
+				EncryptionInfo_t                           RxEncryptionInfo;
 				uint32_t lel_streamPassThroughID;
 				uint32_t lel_associatedStreamID;
 				skinny_ipAddress_t sourceIpAddr;
@@ -2910,7 +2922,7 @@ typedef union {
 				uint32_t lel_DSCPValue;								/*!< DSCP Value */
 
 				videoParameter_t videoParameter;						/*!< Data Parameter */
-				EncryptionInfo encryptionInfo;
+				EncryptionInfo_t encryptionInfo;
 				uint32_t lel_streamPassThroughID;						/*!< Stream Pass-Through ID */
 				uint32_t lel_assocStreamID;							/*!< Associated Stream ID */
 			} v17;

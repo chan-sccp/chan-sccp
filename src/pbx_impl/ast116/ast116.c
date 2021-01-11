@@ -2533,6 +2533,8 @@ static boolean_t sccp_astwrap_createRtpInstance(constDevicePtr d, constChannelPt
 			ast_rtp_codecs_payloads_unset(ast_rtp_instance_get_codecs(instance), instance, 101);
  		}
 		ast_rtp_codecs_payload_replace_format(ast_rtp_instance_get_codecs(instance), 25, ast_format_slin16);				// replace slin16 RTPPayloadType=25 (wideband-256)
+		// ast_rtp_codecs_payload_replace_format(ast_rtp_instance_get_codecs(instance), 97, ast_format_ilbc);				// replace slin16 RTPPayloadType=25 (wideband-256)
+		ast_rtp_codecs_payload_replace_format(ast_rtp_instance_get_codecs(instance), 0x56, ast_format_ilbc);                                        // replace slin16 RTPPayloadType=25 (wideband-256)
 	}
 
 	ast_rtp_codecs_set_framing(ast_rtp_instance_get_codecs(instance), ast_format_cap_get_framing(ast_channel_nativeformats(c->owner)));

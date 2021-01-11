@@ -1035,11 +1035,18 @@ static void sccp_protocol_sendStartMediaTransmissionV3(constDevicePtr device, co
 	msg->data.StartMediaTransmission.v3.lel_passThruPartyId = htolel(channel->passthrupartyid);
 	msg->data.StartMediaTransmission.v3.lel_callReference = htolel(channel->callid);
 	msg->data.StartMediaTransmission.v3.lel_millisecondPacketSize = htolel(framing);
-	//msg->data.StartMediaTransmission.v3.lel_payloadType = htolel(channel->rtp.audio.transmission.format);
 	msg->data.StartMediaTransmission.v3.lel_codecType = htolel(channel->rtp.audio.transmission.format);
-	msg->data.StartMediaTransmission.v3.lel_precedenceValue = htolel((uint32_t)device->audio_tos);
-	msg->data.StartMediaTransmission.v3.lel_ssValue = htolel(channel->line->silencesuppression);		// Silence supression
-	msg->data.StartMediaTransmission.v3.lel_maxFramesPerPacket = htolel(0);
+	msg->data.StartMediaTransmission.v3.qualifierOut.lel_precedenceValue    = htolel((uint32_t)device->audio_tos);
+	msg->data.StartMediaTransmission.v3.qualifierOut.lel_ssValue            = htolel(channel->line->silencesuppression);                                        // Silence supression
+	msg->data.StartMediaTransmission.v3.qualifierOut.lel_maxFramesPerPacket = htolel(0);
+	if (channel->rtp.audio.transmission.format == SKINNY_CODEC_G723_1) {
+		msg->data.StartMediaTransmission.v3.qualifierOut.codecParamsUnion.g723BitRate = Media_G723Bitrate_5_3;
+	} else {
+		msg->data.StartMediaTransmission.v3.qualifierOut.codecParamsUnion.codecParams.codecMode      = htolel(0);
+		msg->data.StartMediaTransmission.v3.qualifierOut.codecParamsUnion.codecParams.dynamicPayload = htolel(0);
+		msg->data.StartMediaTransmission.v3.qualifierOut.codecParamsUnion.codecParams.codecParam1    = htolel(0);
+		msg->data.StartMediaTransmission.v3.qualifierOut.codecParamsUnion.codecParams.codecParam2    = htolel(0);
+	}
 	msg->data.StartMediaTransmission.v3.lel_RFC2833Type = htolel(dtmf_payload_code);
 	msg->data.StartMediaTransmission.v3.lel_dtmfType = htolel(10);;
 
@@ -1072,11 +1079,18 @@ static void sccp_protocol_sendStartMediaTransmissionV17(constDevicePtr device, c
 	msg->data.StartMediaTransmission.v17.lel_passThruPartyId = htolel(channel->passthrupartyid);
 	msg->data.StartMediaTransmission.v17.lel_callReference = htolel(channel->callid);
 	msg->data.StartMediaTransmission.v17.lel_millisecondPacketSize = htolel(framing);
-	//msg->data.StartMediaTransmission.v17.lel_payloadType = htolel(channel->rtp.audio.transmission.format);
 	msg->data.StartMediaTransmission.v17.lel_codecType = htolel(channel->rtp.audio.transmission.format);
-	msg->data.StartMediaTransmission.v17.lel_precedenceValue = htolel((uint32_t)device->audio_tos);
-	msg->data.StartMediaTransmission.v17.lel_ssValue = htolel(channel->line->silencesuppression);		// Silence supression
-	msg->data.StartMediaTransmission.v17.lel_maxFramesPerPacket = htolel(0);
+	msg->data.StartMediaTransmission.v17.qualifierOut.lel_precedenceValue    = htolel((uint32_t)device->audio_tos);
+	msg->data.StartMediaTransmission.v17.qualifierOut.lel_ssValue            = htolel(channel->line->silencesuppression);                                        // Silence supression
+	msg->data.StartMediaTransmission.v17.qualifierOut.lel_maxFramesPerPacket = htolel(0);
+	if (channel->rtp.audio.transmission.format == SKINNY_CODEC_G723_1) {
+		msg->data.StartMediaTransmission.v17.qualifierOut.codecParamsUnion.g723BitRate = Media_G723Bitrate_5_3;
+	} else {
+		msg->data.StartMediaTransmission.v17.qualifierOut.codecParamsUnion.codecParams.codecMode      = htolel(0);
+		msg->data.StartMediaTransmission.v17.qualifierOut.codecParamsUnion.codecParams.dynamicPayload = htolel(0);
+		msg->data.StartMediaTransmission.v17.qualifierOut.codecParamsUnion.codecParams.codecParam1    = htolel(0);
+		msg->data.StartMediaTransmission.v17.qualifierOut.codecParamsUnion.codecParams.codecParam2    = htolel(0);
+	}
 	msg->data.StartMediaTransmission.v17.lel_RFC2833Type = htolel(dtmf_payload_code);
 	msg->data.StartMediaTransmission.v17.lel_dtmfType = htolel(10);;
 
@@ -1111,11 +1125,18 @@ static void sccp_protocol_sendStartMediaTransmissionv22(constDevicePtr device, c
 	msg->data.StartMediaTransmission.v22.lel_passThruPartyId = htolel(channel->passthrupartyid);
 	msg->data.StartMediaTransmission.v22.lel_callReference = htolel(channel->callid);
 	msg->data.StartMediaTransmission.v22.lel_millisecondPacketSize = htolel(framing);
-	//msg->data.StartMediaTransmission.v22.lel_payloadType = htolel(channel->rtp.audio.transmission.format);
 	msg->data.StartMediaTransmission.v22.lel_codecType = htolel(channel->rtp.audio.transmission.format);
-	msg->data.StartMediaTransmission.v22.lel_precedenceValue = htolel((uint32_t)device->audio_tos);
-	msg->data.StartMediaTransmission.v22.lel_ssValue = htolel(channel->line->silencesuppression);		// Silence supression
-	msg->data.StartMediaTransmission.v22.lel_maxFramesPerPacket = htolel(0);
+	msg->data.StartMediaTransmission.v22.qualifierOut.lel_precedenceValue    = htolel((uint32_t)device->audio_tos);
+	msg->data.StartMediaTransmission.v22.qualifierOut.lel_ssValue            = htolel(channel->line->silencesuppression);                                        // Silence supression
+	msg->data.StartMediaTransmission.v22.qualifierOut.lel_maxFramesPerPacket = htolel(0);
+	if (channel->rtp.audio.transmission.format == SKINNY_CODEC_G723_1) {
+		msg->data.StartMediaTransmission.v22.qualifierOut.codecParamsUnion.g723BitRate = Media_G723Bitrate_5_3;
+	} else {
+		msg->data.StartMediaTransmission.v22.qualifierOut.codecParamsUnion.codecParams.codecMode      = htolel(0);
+		msg->data.StartMediaTransmission.v22.qualifierOut.codecParamsUnion.codecParams.dynamicPayload = htolel(0);
+		msg->data.StartMediaTransmission.v22.qualifierOut.codecParamsUnion.codecParams.codecParam1    = htolel(0);
+		msg->data.StartMediaTransmission.v22.qualifierOut.codecParamsUnion.codecParams.codecParam2    = htolel(0);
+	}
 	msg->data.StartMediaTransmission.v22.lel_RFC2833Type = htolel(dtmf_payload_code);
 	msg->data.StartMediaTransmission.v22.lel_dtmfType = htolel(10);;
 
