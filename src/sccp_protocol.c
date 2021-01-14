@@ -80,11 +80,12 @@ static void sccp_protocol_sendCallInfoV3 (const sccp_callinfo_t * const ci, cons
 		SCCP_CALLINFO_KEY_SENTINEL);
 
 	// 7920's exception. They don't seem to reverse the interpretation of the presentation flag
-	if (device->skinny_type == SKINNY_DEVICETYPE_CISCO7920) {
-		msg->data.CallInfoMessage.partyPIRestrictionBits = presentation ? 0x0 : 0xf;
-	} else {
-		msg->data.CallInfoMessage.partyPIRestrictionBits = presentation ? 0xf : 0x0;
-	}
+	// if (device->skinny_type == SKINNY_DEVICETYPE_CISCO7920) {
+	//	msg->data.CallInfoMessage.partyPIRestrictionBits = presentation ? 0x0 : 0xf;
+	//} else {
+	//	msg->data.CallInfoMessage.partyPIRestrictionBits = presentation ? 0xf : 0x0;
+	//}
+	msg->data.CallInfoMessage.partyPIRestrictionBits         = presentation == CALLERID_PRESENTATION_ALLOWED ? 0x0 : 0xf;
 	msg->data.CallInfoMessage.lel_lineInstance = htolel(lineInstance);
 	msg->data.CallInfoMessage.lel_callReference = htolel(callid);
 	msg->data.CallInfoMessage.lel_callType = htolel(calltype);
@@ -149,7 +150,7 @@ static void sccp_protocol_sendCallInfoV7 (const sccp_callinfo_t * const ci, cons
 	msg->data.CallInfoDynamicMessage.lel_lineInstance = htolel(lineInstance);
 	msg->data.CallInfoDynamicMessage.lel_callReference = htolel(callid);
 	msg->data.CallInfoDynamicMessage.lel_callType = htolel(calltype);
-	msg->data.CallInfoDynamicMessage.partyPIRestrictionBits = presentation ? 0x0 : 0xf;
+	msg->data.CallInfoDynamicMessage.partyPIRestrictionBits = (presentation == CALLERID_PRESENTATION_ALLOWED) ? 0x0 : 0xf;
 	//! note callSecurityStatus:
 	// when indicating ringout we should set SKINNY_CALLSECURITYSTATE_UNKNOWN
 	// when indicating connected we should set SKINNY_CALLSECURITYSTATE_NOTAUTHENTICATED
@@ -237,7 +238,7 @@ static void sccp_protocol_sendCallInfoV16 (const sccp_callinfo_t * const ci, con
 	msg->data.CallInfoDynamicMessage.lel_lineInstance		= htolel(lineInstance);
 	msg->data.CallInfoDynamicMessage.lel_callReference		= htolel(callid);
 	msg->data.CallInfoDynamicMessage.lel_callType			= htolel(calltype);
-	msg->data.CallInfoDynamicMessage.partyPIRestrictionBits		= presentation ? 0x0 : 0xf;
+	msg->data.CallInfoDynamicMessage.partyPIRestrictionBits         = (presentation == CALLERID_PRESENTATION_ALLOWED) ? 0x0 : 0xf;
 	msg->data.CallInfoDynamicMessage.lel_callSecurityStatus		= htolel(callsecurityState);
 	msg->data.CallInfoDynamicMessage.lel_callInstance		= htolel(callInstance);
 	msg->data.CallInfoDynamicMessage.lel_originalCdpnRedirectReason	= htolel(originalCdpnRedirectReason);
