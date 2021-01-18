@@ -2,3 +2,4 @@ usr/lib/asterisk/modules
 usr/bin
 var/lib/asterisk/documentation/thirdparty
 etc/asterisk
+usr/share/doc/chan-sccp/samples
