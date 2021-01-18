@@ -56,17 +56,17 @@ CREATE TABLE sccpdevice (
 -- Table with device-configuration
 --
 CREATE TABLE sccpline (
-  id 				integer 	DEFAULT NULL AUTOINCREMENT,
+  id 				INTEGER 	PRIMARY KEY AUTOINCREMENT,
   pin 				varchar(7) 	DEFAULT NULL,
   label 			varchar(45) 	DEFAULT NULL,
   description 			varchar(45) 	DEFAULT NULL,
-  context 			varchar(45) 	DEFAULT NOT NULL,
+  context 			varchar(45) 	DEFAULT '' NOT NULL,
   incominglimit			varchar(45) 	DEFAULT NULL,
   transfer 			varchar(45) 	DEFAULT NULL,
   mailbox 			varchar(45) 	DEFAULT NULL,
   vmnum 			varchar(45) 	DEFAULT NULL,
   cid_name 			varchar(45) 	DEFAULT NULL,
-  cid_num 			varchar(45) 	DEFAULT NOT NULL,
+  cid_num 			varchar(45) 	DEFAULT '' NOT NULL,
   disallow 			varchar(255) 	DEFAULT NULL,
   allow 			varchar(255) 	DEFAULT NULL,
   trnsfvm 			varchar(45) 	DEFAULT NULL,
@@ -84,9 +84,8 @@ CREATE TABLE sccpline (
   dnd 				varchar(7) 	DEFAULT 'reject',
   amaflags 			varchar(45) 	DEFAULT NULL,
   setvar 			varchar(50) 	DEFAULT NULL,
-  name 				varchar(45) 	NOT NULL DEFAULT '',
-  PRIMARY KEY  (name),
-  UNIQUE (id)
+  name 				varchar(45) 	DEFAULT '' NOT NULL,
+  UNIQUE (name)
 );
 
 CREATE TABLE buttontype (

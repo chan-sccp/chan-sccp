@@ -59,12 +59,13 @@ install: build
 	# Add here commands to install the package into debian/chan-sccp
 	$(MAKE) DESTDIR=$(CURDIR)/debian/chan-sccp install
 	$(MAKE) DESTDIR=$(CURDIR)/debian/chan-sccp gen_sccpconf_install
-	mkdir -p $(CURDIR)/debian/chan-sccp/usr/share/doc/chan-sccp/samples
-	cp $(CURDIR)/conf/mysql_v5_enum.sql $(CURDIR)/debian/chan-sccp/usr/share/doc/chan-sccp/
-	cp $(CURDIR)/conf/postgresql.sql $(CURDIR)/debian/chan-sccp/usr/share/doc/chan-sccp/samples/
-	cp $(CURDIR)/conf/sqlite3.sql $(CURDIR)/debian/chan-sccp/usr/share/doc/chan-sccp/samples/
-	cp $(CURDIR)/conf/sccp.conf $(CURDIR)/debian/chan-sccp/usr/share/doc/chan-sccp/samples/
-	cp $(CURDIR)/conf/sccp.conf.annotated $(CURDIR)/debian/chan-sccp/usr/share/doc/chan-sccp/samples/
+
+	#mkdir -p $(CURDIR)/debian/chan-sccp/usr/share/doc/chan-sccp/samples
+	#cp $(CURDIR)/conf/mysql_v5_enum.sql $(CURDIR)/debian/chan-sccp/usr/share/doc/chan-sccp/
+	#cp $(CURDIR)/conf/postgresql.sql $(CURDIR)/debian/chan-sccp/usr/share/doc/chan-sccp/samples/
+	#cp $(CURDIR)/conf/sqlite3.sql $(CURDIR)/debian/chan-sccp/usr/share/doc/chan-sccp/samples/
+	#cp $(CURDIR)/conf/sccp.conf $(CURDIR)/debian/chan-sccp/usr/share/doc/chan-sccp/samples/
+	#cp $(CURDIR)/conf/sccp.conf.annotated $(CURDIR)/debian/chan-sccp/usr/share/doc/chan-sccp/samples/
 
 override_dh_auto_install:
 	dh_auto_install
