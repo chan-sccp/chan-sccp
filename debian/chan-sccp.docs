@@ -1,6 +1,6 @@
 README.md
-samples/mysql_v5_enum.sql
-samples/postgresql.sql
-samples/sqlite3.sql
-samples/sccp.conf
-samples/sccp.conf.annotated
+conf/mysql-v5_enum.sql
+conf/postgres.sql
+conf/sqlite3.sql
+conf/sccp.conf
+conf/sccp.conf.annotated

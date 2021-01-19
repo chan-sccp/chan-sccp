@@ -29,9 +29,8 @@ configure: configure-stamp
 configure-stamp:
 	dh_testdir
 	# Add here commands to configure the package.
-	./configure --enable-video --enable-conference --enable-distributed-devstate --enable-advanced-features $(CONFIGURE_PARAMS) --with-hash-size=3001
+	./configure --enable-video --enable-conference --enable-distributed-devstate --enable-advanced-features $(CONFIGURE_PARAMS) --with-hash-size=4001
 	touch configure-stamp
-
 
 build: build-stamp
 build-stamp: configure-stamp  
@@ -61,13 +60,6 @@ install: build
 	$(MAKE) DESTDIR=$(CURDIR)/debian/chan-sccp install
 	$(MAKE) DESTDIR=$(CURDIR)/debian/chan-sccp gen_sccpconf_install
 
-	mkdir -p $(CURDIR)/debian/chan-sccp/usr/share/doc/chan-sccp/samples
-	cp $(CURDIR)/conf/mysql_v5_enum.sql $(CURDIR)/debian/chan-sccp/usr/share/doc/chan-sccp/
-	cp $(CURDIR)/conf/postgresql.sql $(CURDIR)/debian/chan-sccp/usr/share/doc/chan-sccp/samples/
-	cp $(CURDIR)/conf/sqlite3.sql $(CURDIR)/debian/chan-sccp/usr/share/doc/chan-sccp/samples/
-	cp $(CURDIR)/conf/sccp.conf $(CURDIR)/debian/chan-sccp/usr/share/doc/chan-sccp/samples/
-	cp $(CURDIR)/conf/sccp.conf.annotated $(CURDIR)/debian/chan-sccp/usr/share/doc/chan-sccp/samples/
-
 override_dh_auto_install:
 	dh_auto_install
 
@@ -75,12 +67,12 @@ override_dh_auto_install:
 binary-indep: build-stamp install
 	dh_testdir
 	dh_testroot
-	dh_installdocs -i --link-doc=chan-sccp
-	dh_fixperms -i
-	dh_installdeb -i
-	dh_gencontrol -i
-	dh_md5sums -i
-	dh_builddeb -i
+	#dh_installdocs -i --link-doc=chan-sccp
+	#dh_fixperms -i
+	#dh_installdeb -i
+	#dh_gencontrol -i
+	#dh_md5sums -i
+	#dh_builddeb -i
 
 # We have nothing to do by default.
 
