@@ -7,6 +7,8 @@
 */
 
 PRAGMA auto_vacuum=2;
+PRAGMA foreign_keys=OFF;
+BEGIN TRANSACTION;
 --
 -- Table with line-configuration
 --
@@ -123,3 +125,6 @@ CREATE VIEW sccpdeviceconfig AS
 	WHERE buttonconfig.device=sccpdevice.name 
 	GROUP BY sccpdevice.name
 	ORDER BY sccpdevice.name, buttonconfig.instance;
+COMMIT;
+PRAGMA foreign_keys=ON;
+
