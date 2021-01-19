@@ -10,7 +10,7 @@ PRAGMA auto_vacuum=2;
 --
 -- Table with line-configuration
 --
-CREATE TABLE sccpdevice (
+CREATE TABLE IF NOT EXISTS sccpdevice (
   type 				varchar(15) 	DEFAULT NULL,
   addon 			varchar(45) 	DEFAULT NULL,
   description	 		varchar(45) 	DEFAULT NULL,
@@ -48,14 +48,14 @@ CREATE TABLE sccpdevice (
   backgroundThumbnail		varchar(255) 	DEFAULT '',
   ringtone			varchar(255)	DEFAULT '',
   setvar 			varchar(100) 	DEFAULT NULL,
-  name 				varchar(15) 	NOT NULL DEFAULT '',
+  name 				varchar(15) 	DEFAULT '' NOT NULL,
   PRIMARY KEY  (name)
 );
 
 --
 -- Table with device-configuration
 --
-CREATE TABLE sccpline (
+CREATE TABLE IF NOT EXISTS sccpline (
   id 				INTEGER 	PRIMARY KEY AUTOINCREMENT,
   pin 				varchar(7) 	DEFAULT NULL,
   label 			varchar(45) 	DEFAULT NULL,
@@ -88,23 +88,23 @@ CREATE TABLE sccpline (
   UNIQUE (name)
 );
 
-CREATE TABLE buttontype (
+CREATE TABLE IF NOT EXISTS buttontype (
   type 				varchar(9) 	DEFAULT NULL,
   PRIMARY KEY (type)
 );
 
-INSERT INTO buttontype (type) VALUES ('line');
-INSERT INTO buttontype (type) VALUES ('speeddial');
-INSERT INTO buttontype (type) VALUES ('service');
-INSERT INTO buttontype (type) VALUES ('feature');
-INSERT INTO buttontype (type) VALUES ('empty');
+INSERT OR REPLACE INTO buttontype (type) VALUES ('line');
+INSERT OR REPLACE INTO buttontype (type) VALUES ('speeddial');
+INSERT OR REPLACE INTO buttontype (type) VALUES ('service');
+INSERT OR REPLACE INTO buttontype (type) VALUES ('feature');
+INSERT OR REPLACE INTO buttontype (type) VALUES ('empty');
 --
 -- Table with button-configuration for device
 --
-CREATE TABLE buttonconfig (
-  device 			varchar(15) 	NOT NULL DEFAULT '',
-  instance 			tinyint(4) 	NOT NULL DEFAULT '0',
-  type 				varchar(9),
+CREATE TABLE IF NOT EXISTS buttonconfig (
+  device 			varchar(15) 	DEFAULT '' NOT NULL,
+  instance 			tinyint(4) 	DEFAULT '0' NOT NULL,
+  type 				varchar(9)	DEFAULT 'line' NOT NULL,
   name 				varchar(36) 	DEFAULT NULL,
   options			varchar(100) 	DEFAULT NULL,
   PRIMARY KEY  (device,instance),
@@ -115,6 +115,7 @@ CREATE TABLE buttonconfig (
 --
 -- View for merging device and button configuration
 --
+DROP VIEW IF EXISTS sccpdeviceconfig;
 CREATE VIEW sccpdeviceconfig AS 
 	SELECT 	sccpdevice.*, 
 		group_concat(buttonconfig.type||","||buttonconfig.name||","||buttonconfig.options,";") as button 
