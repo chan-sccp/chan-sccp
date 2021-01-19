@@ -1,4 +1,4 @@
-chan-sccp (4.3.2-6) UNRELEASED; urgency=medium
+chan-sccp (4.3.3-12) unstable; urgency=medium
 
   * Enhancements:
    - Increased control over Button Lamps on DevState Feature Buttons
@@ -19,7 +19,7 @@ chan-sccp (4.3.2-6) UNRELEASED; urgency=medium
 
  -- Diederik de Groot <ddegroot@users.sf.net>  Wed, 20 Feb 2019 17:47:00 +0100
 
-chan-sccp (4.3.2) UNRELEASED; urgency=medium
+chan-sccp (4.3.2) unstable; urgency=medium
   * Enhancements:
     - Compile with c++ compatibility
     - Directed barge
@@ -42,7 +42,7 @@ chan-sccp (4.3.2) UNRELEASED; urgency=medium
 
  -- Diederik de Groot <ddegroot@users.sf.net>  Wed, 20 Feb 2019 17:47:00 +0100
 
-chan-sccp (4.3.1-5ubuntu1) UNRELEASED; urgency=medium
+chan-sccp (4.3.1-5ubuntu1) unstable; urgency=medium
 
   * CHANGES:
     - Added 'force_dtmf' to realtime/database example files
@@ -52,7 +52,7 @@ chan-sccp (4.3.1-5ubuntu1) UNRELEASED; urgency=medium
 
  -- Diederik de Groot <ddegroot@users.sf.net>  Fri, 14 Dec 2018 12:46:00 +0100
 
-chan-sccp (4.3.0-5ubuntu1) UNRELEASED; urgency=medium
+chan-sccp (4.3.0-5ubuntu1) unstable; urgency=medium
 
   * WIP
      - Reworked configure/make system:
@@ -96,7 +96,7 @@ chan-sccp (4.3.0-5ubuntu1) UNRELEASED; urgency=medium
 
  -- Diederik de Groot <ddegroot@users.sf.net>  Thu, 26 Jan 2017 15:08:00 +0100
 
-chan-sccp (4.3.0-4ubuntu1) UNRELEASED; urgency=medium
+chan-sccp (4.3.0-4ubuntu1) unstable; urgency=medium
 
   * WIP:
     - Fixed direcrtp
@@ -137,7 +137,7 @@ chan-sccp (4.2.0-4) stable; urgency=high
 
  -- Diederik de Groot <ddegroot@users.sf.net>  Mon, 15 Jun 2015 19:21:57 +0200
 
-chan-sccp (4.2.0-2ppa5836~vividubuntu1) UNRELEASED; urgency=medium
+chan-sccp (4.2.0-2ppa5836~vividubuntu1) unstable; urgency=medium
 
   * New Features in V4.2
     - Same as RC2

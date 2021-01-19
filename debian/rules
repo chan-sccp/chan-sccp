@@ -48,6 +48,7 @@ clean:
 	dh_testdir
 	dh_testroot
 	rm -f build-stamp configure-stamp
+	rm -rf $(CURDIR)/build
 	dh_clean 
 
 install: build
@@ -60,18 +61,27 @@ install: build
 	$(MAKE) DESTDIR=$(CURDIR)/debian/chan-sccp install
 	$(MAKE) DESTDIR=$(CURDIR)/debian/chan-sccp gen_sccpconf_install
 
-	#mkdir -p $(CURDIR)/debian/chan-sccp/usr/share/doc/chan-sccp/samples
-	#cp $(CURDIR)/conf/mysql_v5_enum.sql $(CURDIR)/debian/chan-sccp/usr/share/doc/chan-sccp/
-	#cp $(CURDIR)/conf/postgresql.sql $(CURDIR)/debian/chan-sccp/usr/share/doc/chan-sccp/samples/
-	#cp $(CURDIR)/conf/sqlite3.sql $(CURDIR)/debian/chan-sccp/usr/share/doc/chan-sccp/samples/
-	#cp $(CURDIR)/conf/sccp.conf $(CURDIR)/debian/chan-sccp/usr/share/doc/chan-sccp/samples/
-	#cp $(CURDIR)/conf/sccp.conf.annotated $(CURDIR)/debian/chan-sccp/usr/share/doc/chan-sccp/samples/
+	mkdir -p $(CURDIR)/debian/chan-sccp/usr/share/doc/chan-sccp/samples
+	cp $(CURDIR)/conf/mysql_v5_enum.sql $(CURDIR)/debian/chan-sccp/usr/share/doc/chan-sccp/
+	cp $(CURDIR)/conf/postgresql.sql $(CURDIR)/debian/chan-sccp/usr/share/doc/chan-sccp/samples/
+	cp $(CURDIR)/conf/sqlite3.sql $(CURDIR)/debian/chan-sccp/usr/share/doc/chan-sccp/samples/
+	cp $(CURDIR)/conf/sccp.conf $(CURDIR)/debian/chan-sccp/usr/share/doc/chan-sccp/samples/
+	cp $(CURDIR)/conf/sccp.conf.annotated $(CURDIR)/debian/chan-sccp/usr/share/doc/chan-sccp/samples/
 
 override_dh_auto_install:
 	dh_auto_install
 
 # Build architecture-independent files here.
-binary-indep: install
+binary-indep: build-stamp install
+	dh_testdir
+	dh_testroot
+	dh_installdocs -i --link-doc=chan-sccp
+	dh_fixperms -i
+	dh_installdeb -i
+	dh_gencontrol -i
+	dh_md5sums -i
+	dh_builddeb -i
+
 # We have nothing to do by default.
 
 # Build architecture-dependent files here.
@@ -79,7 +89,8 @@ binary-arch: install
 	dh_testdir
 	dh_testroot
 #	dh_installchangelogs ChangeLog
-	dh_installdocs
+	dh_installchangelogs -p chan-sccp
+	dh_installdocs -a --link-doc=chan-sccp
 #	dh_installexamples
 #	dh_install
 #	dh_installmenu
@@ -94,16 +105,16 @@ binary-arch: install
 #	dh_installman
 	dh_link
 	dh_strip --dbg-package=chan-sccp-dbg
-	dh_compress
-	dh_fixperms
+	dh_compress -a
+	dh_fixperms -a
 #	dh_perl
 #	dh_python
 #	dh_makeshlibs
-	dh_installdeb
-	dh_shlibdeps
-	dh_gencontrol
-	dh_md5sums
-	dh_builddeb
+	dh_installdeb -a
+	dh_shlibdeps -a
+	dh_gencontrol -a
+	dh_md5sums -a
+	dh_builddeb -a
 
 binary: binary-indep binary-arch
 .PHONY: build clean binary-indep binary-arch binary install configure

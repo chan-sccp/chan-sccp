@@ -1,16 +1,45 @@
 Source: chan-sccp
-Priority: extra
-Maintainer: Diederik de Groot <ddegroot@users.sf.net>
-Build-Depends: asterisk, asterisk-dev, dh-make, debhelper, binutils, coreutils, libacl1, libasound2, libc6, libattr1, libc6, libc6-dev, libncurses5, libselinux1, linux-libc-dev, zlib1g, gettext, libxml2-dev, libxslt1-dev
-Standards-Version: 4.3.0
 Section: libs
+Priority: optional
+Maintainer: Diederik de Groot <ddegroot@users.sf.net>
+Build-Depends:
+	asterisk,
+	asterisk-dev,
+	dh-make,
+	debhelper,
+	binutils,
+	coreutils,
+	libacl1,
+	libasound2,
+	libc6,
+	libattr1,
+	libc6,
+	libc6-dev,
+	libncurses5,
+	libselinux1,
+	linux-libc-dev,
+	zlib1g,
+	gettext,
+	libxml2-dev,
+	libxslt1-dev
+Standards-Version: 4.4.0
 Homepage: https://github.com/chan-sccp/chan-sccp/
+Vcs-Browser: https://github.com/chan-sccp/chan-sccp/
+Vcs-Git: https://github.com/chan-sccp/chan-sccp.git
 
 Package: chan-sccp
 Section: libs
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, asterisk (>=11), gettext, libxml2, libxslt1.1
-Recommends: libbinutils, libc6
+Depends:
+	${shlibs:Depends},
+	${misc:Depends},
+	asterisk (>=11),
+	gettext,
+	libxml2,
+	libxslt1.1
+Recommends:
+	libbinutils,
+	libc6
 Replaces: chan-sccp-b
 Description: chan-sccp is a branch from the original chan-sccp
  implementation of Skinny Client Control Protocol (SCCP) for the Asterisk
