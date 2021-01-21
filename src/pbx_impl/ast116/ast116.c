@@ -1170,7 +1170,7 @@ static boolean_t sccp_astwrap_allocPBXChannel(sccp_channel_t * channel, const vo
 	}
 
 	ast_channel_stage_snapshot(pbxDstChannel);
-	if (channel->callid) {
+	if (channel->pbx_callid) {
 		pbx_channel_callid_set(pbxDstChannel, channel->pbx_callid);
 	}
 
