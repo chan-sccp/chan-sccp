@@ -119,9 +119,6 @@ if (!s) {
 		local_line_total++;
 		astman_append(s, "ChannelObjectType: %s\r\n", STRINGIFY(CLI_AMI_TABLE_PER_ENTRY_NAME));
 		local_line_total++;
-		if (!pbx_strlen_zero(UNIQUE_VAR(id, CLI_AMI_TABLE_NAME))) {
-			astman_append(s, "%s", UNIQUE_VAR(idtext, CLI_AMI_TABLE_NAME));
-		}
 		CLI_AMI_TABLE_FIELDS
 		astman_append(s, "\r\n");
 		local_line_total++;
