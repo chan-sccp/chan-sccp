@@ -113,6 +113,9 @@ if (!s) {
 
 		local_line_total++;
 		astman_append(s, "ChannelType: SCCP\r\n");
+		if (!pbx_strlen_zero(UNIQUE_VAR(id, CLI_AMI_TABLE_NAME))) {
+			astman_append(s, "ActionID: %s\r\n", UNIQUE_VAR(id, CLI_AMI_TABLE_NAME));
+		}
 		local_line_total++;
 		astman_append(s, "ChannelObjectType: %s\r\n", STRINGIFY(CLI_AMI_TABLE_PER_ENTRY_NAME));
 		local_line_total++;
@@ -141,7 +144,7 @@ if (!s) {
 	astman_append(s, "TableEntries: %d\r\n", UNIQUE_VAR(table_entries_, CLI_AMI_TABLE_NAME));
 	local_line_total++;
 	if (!pbx_strlen_zero(UNIQUE_VAR(id, CLI_AMI_TABLE_NAME))) {
-		astman_append(s, "%s\r\n", UNIQUE_VAR(idtext, CLI_AMI_TABLE_NAME));
+		astman_append(s, "ActionID: %s\r\n", UNIQUE_VAR(id, CLI_AMI_TABLE_NAME));
 		local_line_total++;
 	} else {
 	        astman_append(s, "\r\n");
