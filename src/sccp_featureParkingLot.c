@@ -350,23 +350,23 @@ static sccp_parkinglot_t * const findCreateParkinglot(const char *parkinglot, bo
 		//sccp_log(DEBUGCAT_PARKINGLOT)(VERBOSE_PREFIX_1 "SCCP: (findCreateParkinglot) New %s Created\n", parkinglot);
 		sccp_parkinglot_lock(pl);
 	}
-	sccp_log(DEBUGCAT_PARKINGLOT)(VERBOSE_PREFIX_1 "SCCP: (findCreateParkinglot) Found:%s \n", pl ? "TRUE" : "FALSE");
+	sccp_log(DEBUGCAT_PARKINGLOT)(VERBOSE_PREFIX_1 "SCCP: (findCreateParkinglot) ParkingLot:%s, Found:%s \n", parkinglot, pl ? "TRUE" : "FALSE");
 	return pl;
 }
 
 // observer
-static int attachObserver(sccp_device_t * device, const sccp_buttonconfig_t * const buttonConfig)
+static int attachObserver(sccp_device_t * device, const char * const context, uint32_t instance)
 {
-	pbx_assert(device != NULL && buttonConfig != NULL);
+	pbx_assert(device != NULL);
 	int res = FALSE;
 
-	if(!sccp_strlen_zero(buttonConfig->button.feature.options)) {
-		sccp_log(DEBUGCAT_PARKINGLOT)(VERBOSE_PREFIX_1 "%s: (attachObserver) device:%s at instance:%d\n", buttonConfig->button.feature.options, device->id, buttonConfig->instance);
-		RAII(sccp_parkinglot_t *, pl, findCreateParkinglot(buttonConfig->button.feature.options, TRUE), sccp_parkinglot_unlock);
+	if (!sccp_strlen_zero(context)) {
+		sccp_log(DEBUGCAT_PARKINGLOT)(VERBOSE_PREFIX_1 "%s: (attachObserver) context:%s at instance:%d\n", device->id, context, instance);
+		RAII(sccp_parkinglot_t *, pl, findCreateParkinglot(context, TRUE), sccp_parkinglot_unlock);
 		if (pl) {
 			plobserver_t observer = {
-				.device = device,
-				.instance = buttonConfig->instance,
+				.device        = device,
+				.instance      = instance,
 				.transactionId = 0,
 			};
 
@@ -379,18 +379,18 @@ static int attachObserver(sccp_device_t * device, const sccp_buttonconfig_t * co
 	return res;
 }
 
-static int detachObserver(sccp_device_t * device, const sccp_buttonconfig_t * const buttonConfig)
+static int detachObserver(sccp_device_t * device, const char * const context, uint32_t instance)
 {
-	pbx_assert(device != NULL && buttonConfig != NULL);
+	pbx_assert(device != NULL);
 	int res = FALSE;
 
-	if(!sccp_strlen_zero(buttonConfig->button.feature.options)) {
-		sccp_log(DEBUGCAT_PARKINGLOT)(VERBOSE_PREFIX_1 "%s: (detachObserver) device:%s at instance:%d\n", buttonConfig->button.feature.options, device->id, buttonConfig->instance);
-		sccp_parkinglot_t * pl = findCreateParkinglot(buttonConfig->button.feature.options, FALSE); /* don't use RAII, removeParkinglot unlocks and destroys the lock */
+	if (!sccp_strlen_zero(context)) {
+		sccp_log(DEBUGCAT_PARKINGLOT)(VERBOSE_PREFIX_1 "%s: (detachObserver) context:%s at instance:%d\n", device->id, context, instance);
+		sccp_parkinglot_t * pl = findCreateParkinglot(context, FALSE); /* don't use RAII, removeParkinglot unlocks and destroys the lock */
 		if (pl) {
 			plobserver_t cmp = {
-				.device = device,
-				.instance = buttonConfig->instance,
+				.device   = device,
+				.instance = instance,
 			};
 			if (SCCP_VECTOR_REMOVE_CMP_UNORDERED(&pl->observers, cmp, OBSERVER_CB_CMP, SCCP_VECTOR_ELEM_CLEANUP_NOOP) == 0) {
 				res = TRUE;
@@ -430,9 +430,19 @@ static char * const getParkingLotCXML(sccp_parkinglot_t *pl, int protocolversion
 			} else {
 				pbx_str_append(&buf, 0, "<Name>%s by %s</Name>", slot->callerid_num, connected_line);
 			}
-			pbx_str_append(&buf, 0, "<URL>UserCallData:%d:%d:%d:%d:%s/%s</URL>", appID, instance, 0, transactionId, pl->context, slot->exten);
+			pbx_str_append(&buf, 0, "<URL>UserData:%d:%d:%d:%d:%s/%s</URL>", appID, instance, 1, transactionId, pl->context, slot->exten);
 			pbx_str_append(&buf, 0, "</MenuItem>");
 		}
+		/*
+		// * UserData:INTEGER:STRING
+		// * UserDataSoftKey:STRING:INTEGER:STRING
+		// * UserCallDataSoftKey:STRING:INTEGER0:INTEGER1:INTEGER2:INTEGER3:STRING
+		// * UserCallData:INTEGER0:INTEGER1:INTEGER2:INTEGER3:STRING
+		pbx_str_append(&buf, 0, "<MenuItem><Name>UserData:1:a</Name><URL>UserData:1:a</URL></MenuItem>");
+		pbx_str_append(&buf, 0, "<MenuItem><Name>UserCallData:1:2:3:4:a</Name><URL>UserCallData:1:2:3:4:a</URL></MenuItem>");
+		pbx_str_append(&buf, 0, "<MenuItem><Name>UserData:1:a/a</Name><URL>UserData:1:a/a</URL></MenuItem>");
+		pbx_str_append(&buf, 0, "<MenuItem><Name>UserCallData:1:2:3:4:a/a</Name><URL>UserCallData:1:2:3:4:a/a</URL></MenuItem>");
+		*/
 		pbx_str_append(&buf, 0, "<SoftKeyItem>");
 		pbx_str_append(&buf, 0, "<Name>Dial</Name>");
 		pbx_str_append(&buf, 0, "<Position>1</Position>");
@@ -441,7 +451,7 @@ static char * const getParkingLotCXML(sccp_parkinglot_t *pl, int protocolversion
 		pbx_str_append(&buf, 0, "<SoftKeyItem>");
 		pbx_str_append(&buf, 0, "<Name>Exit</Name>");
 		pbx_str_append(&buf, 0, "<Position>3</Position>");
-		pbx_str_append(&buf, 0, "<URL>UserDataSoftKey:Select:%d:EXIT/%d</URL>", appID, transactionId);
+		pbx_str_append(&buf, 0, "<URL>UserDataSoftKey:Exit:%d:EXIT/%d</URL>", appID, transactionId);
 		pbx_str_append(&buf, 0, "</SoftKeyItem>\n");
 
 		pbx_str_append(&buf, 0, "</CiscoIPPhoneMenu>");
@@ -519,6 +529,8 @@ static void _notifyHelper(plobserver_t *observer, sccp_parkinglot_t *pl, constDe
 	} else {
 		iconstate = numslots ? ICONSTATE_NEW_ON : ICONSTATE_NEW_OFF;
 	}
+	// activate park softkey
+	sccp_softkey_setSoftkeyState((sccp_device_t *)device, KEYMODE_ONHOOK, SKINNY_LBL_PARK, numslots ? TRUE : FALSE);
 
 	// change button state
 	SCCP_LIST_LOCK(&device->buttonconfig);
@@ -540,16 +552,16 @@ static void _notifyHelper(plobserver_t *observer, sccp_parkinglot_t *pl, constDe
 	sccp_feat_changed(device, NULL, SCCP_FEATURE_PARKINGLOT);
 }
 
-static void notifyDevice(constDevicePtr device, const sccp_buttonconfig_t * const buttonConfig)
+static void notifyDevice(constDevicePtr device, const char * const context)
 {
-	pbx_assert(device != NULL && buttonConfig != NULL);
+	pbx_assert(device != NULL);
 	uint8_t idx = 0;
 	//uint32_t iconstate = 0;
 	plobserver_t *observer = NULL;
 
-	if(!sccp_strlen_zero(buttonConfig->button.feature.options)) {
-		sccp_log(DEBUGCAT_PARKINGLOT)(VERBOSE_PREFIX_1 "%s: (notifyDevice) notifyDevice:%s\n", buttonConfig->button.feature.options, device->id);
-		RAII(sccp_parkinglot_t *, pl, findCreateParkinglot(buttonConfig->button.feature.options, TRUE), sccp_parkinglot_unlock);
+	if (!sccp_strlen_zero(context)) {
+		sccp_log(DEBUGCAT_PARKINGLOT)(VERBOSE_PREFIX_1 "%s: (notifyDevice) for context:%s\n", device->id, context);
+		RAII(sccp_parkinglot_t *, pl, findCreateParkinglot(context, TRUE), sccp_parkinglot_unlock);
 		if (pl) {
 			for (idx = 0; idx < SCCP_VECTOR_SIZE(&pl->observers); idx++) {
 				observer = SCCP_VECTOR_GET_ADDR(&pl->observers, idx);
@@ -680,29 +692,76 @@ static void handleButtonPress(constDevicePtr d, const sccp_buttonconfig_t * cons
 	}
 }
 
-static void handleDevice2User(const char *parkinglot, constDevicePtr d, const char *slot_exten, uint8_t instance, uint32_t transactionId)
+/*
+ * Handle Park Feature Button Press
+ * -If we have an active call -> pressing the park feature key, will park that call
+ * -If we are not on an active call:
+ * 	- If there is 0 parked calls: Display Status Message, "No parked calls'
+ * 	- If there is 1 parked call: Unpark that call immediatly
+ *	- If there is more than 1 parked call: display the visual parking lot representation.
+ */
+static void handleSoftkeyPress(constDevicePtr d, constLinePtr l, uint32_t lineInstance, constChannelPtr c)
 {
-	pbx_assert(d != NULL);
-	sccp_log(DEBUGCAT_PARKINGLOT)(VERBOSE_PREFIX_1 "%s: (handleDevice2Usewr) instance:%d, transactionId:%d\n", d->id, instance, transactionId);
+	pbx_assert(d != NULL && l != NULL);
+	sccp_log(DEBUGCAT_PARKINGLOT)(VERBOSE_PREFIX_1 "%s: (handleSoftkeyPress) line:%s, channel:%s\n", d->id, l->name, c ? c->designator : "<null>");
 
-	if (d->dtu_softkey.action && d->dtu_softkey.transactionID == transactionId) {
-		if (sccp_strequals(d->dtu_softkey.action, "DIAL")) {
-			AUTO_RELEASE(sccp_line_t, line , d->currentLine ? sccp_dev_getActiveLine(d) : sccp_line_find_byid(d, d->defaultLineInstance));
-			AUTO_RELEASE(sccp_channel_t, new_channel, sccp_channel_newcall(line, d, slot_exten, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL));                                        // implicit release
-		} else if (sccp_strequals(d->dtu_softkey.action, "EXIT")) {
-			hideVisualParkingLot(parkinglot, d, instance);
+	if (c && c->state != SCCP_CHANNELSTATE_OFFHOOK && c->state != SCCP_CHANNELSTATE_HOLD) {
+		sccp_channel_park(c);
+	} else {
+		// RAII(sccp_parkinglot_t *, pl, findCreateParkinglot(l->context, TRUE), sccp_parkinglot_unlock);
+		RAII(sccp_parkinglot_t *, pl, findCreateParkinglot("default", TRUE), sccp_parkinglot_unlock);
+		if (pl) {
+			if (SCCP_VECTOR_SIZE(&pl->slots) == 0) {
+				sccp_log(DEBUGCAT_PARKINGLOT)(VERBOSE_PREFIX_1 "%s: (handleButtonPress) 0 slot occupied. Show statusBar message\n", d->id);
+				sccp_dev_displayprinotify(d, SKINNY_DISP_CANNOT_RETRIEVE_PARKED_CALL, SCCP_MESSAGE_PRIORITY_TIMEOUT, 5);
+			} else {
+				if (SCCP_VECTOR_SIZE(&pl->slots) == 1) {
+					sccp_log(DEBUGCAT_PARKINGLOT)(VERBOSE_PREFIX_1 "%s: (handleButtonPress) 1 slot occupied -> Unpark Call Immediately\n", d->id);
+					plslot_t * slot = SCCP_VECTOR_GET_ADDR(&pl->slots, 0);
+					if (slot) {
+						AUTO_RELEASE(sccp_channel_t, new_channel,
+						             sccp_channel_newcall(l, d, slot->exten, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL));                                        // implicit release
+					}
+				} else {
+					sccp_log(DEBUGCAT_PARKINGLOT)(VERBOSE_PREFIX_1 "%s: (handleButtonPress) multiple slots occupied -> Show Visual ParkingLot\n", d->id);
+					uint8_t idx = 0;
+					for (idx = 0; idx < SCCP_VECTOR_SIZE(&pl->observers); idx++) {
+						plobserver_t * observer = SCCP_VECTOR_GET_ADDR(&pl->observers, idx);
+						if (observer->device == d && observer->instance == lineInstance) {
+							__showVisualParkingLot(pl, d, observer);
+						}
+					}
+				}
+			}
 		}
 	}
 }
+
+static void handleDevice2User(const char *parkinglot, constDevicePtr d, const char *slot_exten, uint8_t instance, uint32_t transactionId)
+{
+	pbx_assert(d != NULL);
+	sccp_log(DEBUGCAT_PARKINGLOT)(VERBOSE_PREFIX_1 "%s: (handleDevice2User) instance:%d, transactionId:%d, parkinglot:%s, slot:%s\n", d->id, instance, transactionId, parkinglot, slot_exten);
+	if (d->dtu_softkey.action && d->dtu_softkey.transactionID == transactionId) {
+		if (sccp_strequals(d->dtu_softkey.action, "DIAL")) {
+			sccp_log(DEBUGCAT_PARKINGLOT)(VERBOSE_PREFIX_1 "%s: (handleDevice2User) handling Dial to %s@%s\n", d->id, slot_exten, parkinglot);
+			AUTO_RELEASE(sccp_line_t, line , d->currentLine ? sccp_dev_getActiveLine(d) : sccp_line_find_byid(d, d->defaultLineInstance));
+			AUTO_RELEASE(sccp_channel_t, new_channel, sccp_channel_newcall(line, d, slot_exten, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL));                                        // implicit release
+		} else if (sccp_strequals(d->dtu_softkey.action, "EXIT")) {
+			sccp_log(DEBUGCAT_PARKINGLOT)(VERBOSE_PREFIX_1 "%s: (handleDevice2User) handling Exit\n", d->id);
+		}
+	}
+	hideVisualParkingLot(parkinglot, d, instance);
+}
 /* Assign to interface */
 const ParkingLotInterface iParkingLot = {
-	.attachObserver = attachObserver,
-	.detachObserver = detachObserver,
-	.addSlot = addSlot,
-	.removeSlot = removeSlot,
-	.handleButtonPress = handleButtonPress,
-	.handleDevice2User = handleDevice2User,
-	.notifyDevice = notifyDevice,
+	.attachObserver     = attachObserver,
+	.detachObserver     = detachObserver,
+	.addSlot            = addSlot,
+	.removeSlot         = removeSlot,
+	.handleButtonPress  = handleButtonPress,
+	.handleSoftkeyPress = handleSoftkeyPress,
+	.handleDevice2User  = handleDevice2User,
+	.notifyDevice       = notifyDevice,
 };
 #else
 const ParkingLotInterface iParkingLot = { 0 };

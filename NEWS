@@ -1,4 +1,14 @@
-Version: v4.3.2_DEV (zeta)
+Version: v4.3.3_DEV
+==========================
+
+ - Enhancements:
+
+ - Resolved issues:
+   - Fix AMI Table Output missing ActionID per entry
+
+ - Minor Bug Fixes:
+
+Version: v4.3.3_STABLE
 ==========================
 
  - Enhancements:
@@ -18,7 +28,7 @@ Version: v4.3.2_DEV (zeta)
    - fix resource leak
    - incominglimit handling
 
-Version: v4.3.2_DEV
+Version: v4.3.2
 =====================
  - Enhancements:
    - Compile with c++ compatibility
@@ -47,14 +57,14 @@ Version: v4.3.2_DEV
    - video mode
    - Callforward on sharedline
 
-Version: v4.3.1_DEV
+Version: v4.3.1
 =====================
  - Added 'force_dtmf' to realtime/database example files
  - Moved call specific pickup setting to be defined per line instead of per device
  - Added 'callhistory_answered_elsewhere = Missed Calls' to fix
    callhistory/phonebook for picked calls.
 
-Version: v4.3.0_DEV
+Version: v4.3.0
 =====================
  - Reworked configure/make system:
    - Create Makefile.am per subdirectory
@@ -95,7 +105,7 @@ Version: v4.3.0_DEV
   - Fixed direcrtp (more work needed)
   - letohl / bswap fix
 
-Version: v4.2.3_STABLE
+Version: v4.2.3
 =====================
 New Features in V4.2.3
  - Warning about use of ancient gcc compiler
@@ -117,7 +127,7 @@ Bug Fixes
  - Some smaller patches (Check ChangeLog for details)
   -Some minor BSD Compilation issues
 
-Version: v4.3_STABLE
+Version: v4.3
 =====================
 New Features in V4.3
  - Modularized / Specialize sourcecode
@@ -129,7 +139,7 @@ Bug Fixes
  - Fixed Hangup and Timeout Scheduling
  - Fixed refcount bug causing hanging channels
 
-Version: v4.2_STABLE
+Version: v4.2
 =====================
 New Features in V4.2
  - Enums processed using awk generation script
@@ -207,7 +217,7 @@ New Features in V4.2
 Bug Fixes
  - Numerous smaller / bigger fixes (Check ChangeLog for details)
 
-Version: 4.2.0_DEV
+Version: 4.2.0
 ==================
 New Features in V4.2
  - Direct RTP
@@ -217,7 +227,7 @@ New Features in V4.2
 Bug Fixes
  - 
 
-Version: V4.1_STABLE
+Version: V4.1
 ==================
 New features with V4.1:
  - Compatible with multitute of asterisk versions from asterisk-1.6.2 up to asterisk-11, using one code base
@@ -261,7 +271,7 @@ Version: 4.1.0_RC1
  - new Conference implementation
  - New sccp.conf handling system, using a flexible TABLE as the basis for all config parsing
 
-Version: 4.1.0_DEV
+Version: 4.1.0
 ==================
  - Updated audio/video/codec handling
  - Reworked hint handling

@@ -271,7 +271,8 @@ static const SCCPConfigOption sccpDeviceConfigOptions[] = {
 	{"backgroundImage",		D_OBJ_REF(backgroundImage),		TYPE_STRINGPTR,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"Set the Background Image after device registered. Image must be set as URI to a http served file."},
 	{"backgroundThumbnail",		D_OBJ_REF(backgroundTN),		TYPE_STRINGPTR,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"Set the Background Thumbnail after device registered. Thumbnail Image must be set as URI to a http served file. This is required on some of the 89xx series phones."},
 	{"ringtone",			D_OBJ_REF(ringtone),			TYPE_STRINGPTR,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"Set the Ring Tone after device registered. Ring Tone must be set as URI to a http served file."},
-	{"imageversion",		D_OBJ_REF(imageversion),		TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"ImageVersion to be loaded on the device."},
+	{"imageversion",		D_OBJ_REF(imageversion),		TYPE_STRINGPTR,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"ImageVersion to be loaded on the device."},
+	{"parkinglot",			D_OBJ_REF(parkinglot),			TYPE_STRINGPTR,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"default",			"Name of the parkinglot to use when parking or retrieving parked calls."},
 };
 
 /*!
@@ -345,7 +346,7 @@ static const SCCPConfigOption sccpLineConfigOptions[] = {
 static const SCCPConfigOption sccpSoftKeyConfigOptions[] = {
 	{ "type", 0, 0, TYPE_STRING, SCCP_CONFIG_FLAG_NONE, SCCP_CONFIG_NOUPDATENEEDED, "softkeyset", "This should be set to softkeyset" },
 	{ "name", 0, 0, TYPE_STRING, SCCP_CONFIG_FLAG_IGNORE, SCCP_CONFIG_NOUPDATENEEDED, "default", "softkeyset name\n" },
-	{ "onhook", S_OBJ_REF(modes[KEYMODE_ONHOOK]), TYPE_STRING, SCCP_CONFIG_FLAG_NONE, SCCP_CONFIG_NOUPDATENEEDED, "redial, newcall, cfwdall, cfwdbusy, cfwdnoanswer, pickup, gpickup, dnd, private",
+	{ "onhook", S_OBJ_REF(modes[KEYMODE_ONHOOK]), TYPE_STRING, SCCP_CONFIG_FLAG_NONE, SCCP_CONFIG_NOUPDATENEEDED, "redial, newcall, cfwdall, cfwdbusy, cfwdnoanswer, pickup, gpickup, dnd, private, park",
 	  "displayed when we are on hook" },
 	{ "connected", S_OBJ_REF(modes[KEYMODE_CONNECTED]), TYPE_STRING, SCCP_CONFIG_FLAG_NONE, SCCP_CONFIG_NOUPDATENEEDED, "hold, endcall, transfer, idivert, conf, conflist, park, monitor, vidmode",
 	  "displayed when we have a connected call" },

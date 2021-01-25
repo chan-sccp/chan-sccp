@@ -3255,7 +3255,7 @@ void handle_soft_key_event(constSessionPtr s, devicePtr d, constMessagePtr msg_i
 	AUTO_RELEASE(sccp_line_t, l, NULL);
 	AUTO_RELEASE(sccp_channel_t, c, NULL);
 	/* we have no line and call information -> use default line */
-	if (!lineInstance && !callid && (event == SKINNY_LBL_NEWCALL || event == SKINNY_LBL_REDIAL)) {
+	if (!lineInstance && !callid && (event == SKINNY_LBL_NEWCALL || event == SKINNY_LBL_REDIAL || event == SKINNY_LBL_PARK)) {
 		if (d->defaultLineInstance > 0) {
 			lineInstance = d->defaultLineInstance;
 		} else {
@@ -4671,13 +4671,15 @@ void handle_device_to_user(constSessionPtr s, devicePtr d, constMessagePtr msg_i
 		memcpy(data, msg_in->data.DeviceToUserDataVersion1Message.data, dataLength);
 	}
 
+	sccp_log(DEBUGCAT_ACTION)(VERBOSE_PREFIX_3 "%s: Handle DTU Softkey Button: appId:%d, callReference:%d, lineInstance:%d, transactionId:%d, dataLength:%d, data:[%s]\n", d->id, appID, callReference, lineInstance,
+	                          transactionID, dataLength, data);
 	if (lineInstance == 0 && callReference == 0) {
 		if (dataLength) {
 			/* split data by "/" */
 			char str_action[11] = "";
 
 			char str_transactionID[11] = "";
-			if (sscanf(data, "%10[^/]/%10s", str_action, str_transactionID) > 0) {
+			if (sscanf(data, "%10[^/]/%10s", str_action, str_transactionID) == 2) {
 				sccp_log((DEBUGCAT_CONFERENCE + DEBUGCAT_MESSAGE + DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Handle DTU Softkey Button:%s, %s\n", d->id, str_action, str_transactionID);
 				d->dtu_softkey.action = pbx_strdup(str_action);
 				d->dtu_softkey.transactionID = sccp_atoi(str_transactionID, sizeof(str_transactionID));
@@ -4707,11 +4709,11 @@ void handle_device_to_user(constSessionPtr s, devicePtr d, constMessagePtr msg_i
 			case APPID_VISUALPARKINGLOT:								// Handle Conference Invite
 #ifdef CS_SCCP_PARK
 				{
-					//sccp_log((DEBUGCAT_ACTION + DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "%s: Handle VisualParkingLot Info for AppID %d , Transaction %d, Action: %s, Observer:%d, Data:%s\n", d->id, appID, transactionID, d->dtu_softkey.action, lineInstance, data);
-					char parkinglot[11] = "";
-
-					char slot_exten[11] = "";
-					if (sscanf(data, "%10[^/]/%10s", parkinglot, slot_exten) > 0) {
+					sccp_log((DEBUGCAT_ACTION + DEBUGCAT_MESSAGE))(VERBOSE_PREFIX_3 "%s: Handle VisualParkingLot Info for AppID %d , Transaction %d, Action: %s, Observer:%d, Data:%s\n", d->id, appID,
+					                                               transactionID, d->dtu_softkey.action, lineInstance, data);
+					char parkinglot[SCCP_MAX_CONTEXT]   = "";
+					char slot_exten[SCCP_MAX_EXTENSION] = "";
+					if (sscanf(data, "%79[^/]/%79s", parkinglot, slot_exten) == 2) {
 						iParkingLot.handleDevice2User(parkinglot, d, slot_exten, lineInstance, transactionID);
 					}
 				}

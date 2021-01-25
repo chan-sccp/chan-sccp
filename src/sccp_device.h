@@ -166,7 +166,7 @@ struct sccp_device {
 	SCCP_LIST_HEAD (, sccp_hostname_t) permithosts;								/*!< Permit Registration to the Hostname/IP Address */
 
 	char *description;											/*!< Internal Description. Skinny protocol does not use it */
-	char imageversion[StationMaxImageVersionSize];								/*!< Version to Send to the phone */
+	char *  imageversion;                                                                                     /*!< Version to Send to the phone */
 	char loadedimageversion[StationMaxImageVersionSize];							/*!< Loaded version on the phone */
 	char config_type[SCCP_MAX_DEVICE_CONFIG_TYPE];								/*!< Model of this Phone used for setting up features/softkeys/buttons etc. */
 	int32_t tz_offset;											/*!< Timezone OffSet */
@@ -315,6 +315,7 @@ struct sccp_device {
 #endif
 	struct sockaddr_storage ipv4;
 	struct sockaddr_storage ipv6;
+	char *                  parkinglot; /*!< Name of the parkinglot to use when parking or retrieving parked calls. */
 
 	boolean_t pendingDelete;										/*!< this bit will tell the scheduler to delete this line when unused */
 	boolean_t pendingUpdate;										/*!< this will contain the updated line struct once reloaded from config to update the line when unused */

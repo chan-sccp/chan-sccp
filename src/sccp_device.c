@@ -1488,7 +1488,10 @@ void sccp_dev_set_keyset(constDevicePtr d, uint8_t lineInstance, uint32_t callid
 			sccp_softkey_setSoftkeyState((sccp_device_t *) d, softKeySetIndex, SKINNY_LBL_TRANSFER, FALSE);
 		}
 	}
-	//msg->data.SelectSoftKeysMessage.les_validKeyMask = 0xFFFFFFFF;           /* htolel(65535); */
+	// if (softKeySetIndex == KEYMODE_ONHOOK) {
+	//	sccp_softkey_setSoftkeyState((sccp_device_t *) d, softKeySetIndex, SKINNY_LBL_PARK, FALSE);
+	//}
+	// msg->data.SelectSoftKeysMessage.les_validKeyMask = 0xFFFFFFFF;           /* htolel(65535); */
 	msg->data.SelectSoftKeysMessage.les_validKeyMask = htolel(d->softKeyConfiguration.activeMask[softKeySetIndex]);
 
 	sccp_log((DEBUGCAT_SOFTKEY + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Set softkeyset to %s(%d) on line %d  and call %d\n", d->id, skinny_keymode2str(softKeySetIndex), softKeySetIndex, lineInstance, callid);
@@ -2317,16 +2320,20 @@ void sccp_dev_postregistration(devicePtr d)
 	sccp_dev_check_displayprompt(d);
 
 #ifdef CS_SCCP_PARK
-	sccp_buttonconfig_t *config = NULL;
-	SCCP_LIST_LOCK(&d->buttonconfig);
-	SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
-		if (config->type == FEATURE && config->button.feature.id ==SCCP_FEATURE_PARKINGLOT) {
-			if(iParkingLot.attachObserver && iParkingLot.attachObserver(d, config)) {
-				iParkingLot.notifyDevice(d, config);
+	if (iParkingLot.attachObserver) {
+		sccp_buttonconfig_t * config = NULL;
+		SCCP_LIST_LOCK(&d->buttonconfig);
+		SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
+			if (config->type == FEATURE && config->button.feature.id == SCCP_FEATURE_PARKINGLOT) {
+				if (iParkingLot.attachObserver(d, config->button.feature.options, config->instance)) {
+					iParkingLot.notifyDevice(d, config->button.feature.options);
+				}
 			}
 		}
+		SCCP_LIST_UNLOCK(&d->buttonconfig);
+		AUTO_RELEASE(sccp_line_t, l, sccp_line_find_byid(d, d->defaultLineInstance));
+		iParkingLot.attachObserver(d, d->parkinglot, d->defaultLineInstance);
 	}
-	SCCP_LIST_UNLOCK(&d->buttonconfig);
 #endif
 	if (d->useHookFlash()) {
 		sccp_dev_setHookFlashDetect(d);
@@ -2459,10 +2466,13 @@ void _sccp_dev_clean(devicePtr device, boolean_t remove_from_global, boolean_t r
 				sccp_log((DEBUGCAT_CORE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_2 "SCCP: Remove Line %s from device %s\n", line->name, d->id);
 				sccp_linedevice_remove(d, line);
 #ifdef CS_SCCP_PARK
+				if (iParkingLot.detachObserver) {
+					iParkingLot.detachObserver(d, d->parkinglot, d->defaultLineInstance);
+				}
 			} else if (iParkingLot.detachObserver && config->type == FEATURE && config->button.feature.id ==SCCP_FEATURE_PARKINGLOT) {
 				sccp_log((DEBUGCAT_DEVICE))(VERBOSE_PREFIX_2 "%s: checking buttonconfig index:%d, type:%s (%d) to see if there are any observed parkinglots\n", d->id, config->index,
 							    sccp_config_buttontype2str(config->type), config->type);
-				iParkingLot.detachObserver(d, config);
+				iParkingLot.detachObserver(d, config->button.feature.options, config->instance);
 #endif
 			}
 		}
