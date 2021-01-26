@@ -786,21 +786,11 @@ static int sccp_astwrap_rtp_write(PBX_CHANNEL_TYPE * ast, PBX_FRAME_TYPE * frame
 				sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "%s: (rtp_write) device requested earlyRtp and we received an incoming audio packet calling makeProgress\n", c->designator);
 				c->makeProgress(c);
 			}
-			if(!frame->samples) {
-				if(!strcasecmp(frame->src, "ast_prod")) {
-					sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "%s: Asterisk prodded channel %s.\n", c->currentDeviceId, pbx_channel_name(ast));
-				} else {
-					pbx_log(LOG_NOTICE, "%s: Asked to transmit frame type %d ('%s') with no samples.\n", c->currentDeviceId, (int)frame->frametype, frame->src);
-				}
-				break;
-			}
 			if (!frame->samples) {
-				if (strcasecmp(frame->src, "ast_prod")) {
-					pbx_log(LOG_NOTICE, "%s: Asked to transmit frame type %d ('%s') with no samples.\n", c->currentDeviceId, (int)frame->frametype, frame->src);
-				} else {
-					// frame->samples == 0  when frame_src is ast_prod
+				if (!strcasecmp(frame->src, "ast_prod")) {
 					sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Asterisk prodded channel %s.\n", c->currentDeviceId, pbx_channel_name(ast));
 				}
+				break;
 			}
 			if (c->rtp.audio.instance) {
 				res = ast_rtp_instance_write(c->rtp.audio.instance, frame);
