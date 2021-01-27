@@ -108,7 +108,7 @@ if (!s) {
 #else
 	CLI_AMI_TABLE_ITERATOR {
 #endif
-		CLI_AMI_TABLE_BEFORE_ITERATION astman_append(s, "Event: SCCP%sEntry\r\n", STRINGIFY(CLI_AMI_TABLE_PER_ENTRY_NAME));
+		CLI_AMI_TABLE_BEFORE_ITERATION astman_append(s, "Event: SCCP%s_Entry\r\n", STRINGIFY(CLI_AMI_TABLE_NAME));
 		UNIQUE_VAR(table_entries_, CLI_AMI_TABLE_NAME)++;
 
 		local_line_total++;
