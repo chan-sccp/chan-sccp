@@ -49,7 +49,7 @@ SCCP_FILE_VERSION(__FILE__, "");
  * \param messagebuffer Pointer to Message Buffer as char
  * \param len Lenght as Int
  */
-void sccp_dump_packet(unsigned char *messagebuffer, int len)
+void sccp_dump_packet(const unsigned char * const messagebuffer, int len)
 {
 	static const int numcolumns = 16;									// number output columns
 
@@ -66,6 +66,7 @@ void sccp_dump_packet(unsigned char *messagebuffer, int len)
 	char chrout[numcolumns + 1];
 	char * chrptr = NULL;
 	pbx_str_t *output_buf = pbx_str_create(DEFAULT_PBX_STR_BUFFERSIZE);
+	unsigned char * bufptr     = (unsigned char *)messagebuffer;
 
 	do {
 		// memset(hexout, 0, sizeof(hexout));
@@ -75,14 +76,14 @@ void sccp_dump_packet(unsigned char *messagebuffer, int len)
 		hexptr = hexout;
 		chrptr = chrout;
 		for (col = 0; col < numcolumns && (cur + col) < len; col++) {
-			*hexptr++ = hex[(*messagebuffer >> 4) & 0xF];						// lookup first part of hex value and add to hexptr
-			*hexptr++ = hex[(*messagebuffer) & 0xF];						// lookup second part of a hex value and add to hexptr
+			*hexptr++ = hex[(*bufptr >> 4) & 0xF];                                                  // lookup first part of hex value and add to hexptr
+			*hexptr++ = hex[(*bufptr) & 0xF];                                                       // lookup second part of a hex value and add to hexptr
 			*hexptr++ = ' ';									// add space to hexptr
 			if ((col + 1) % 8 == 0) {
 				*hexptr++ = ' ';								// group by blocks of eight
 			}
-			*chrptr++ = isprint(*messagebuffer) ? *messagebuffer : '.';				// add character or . to chrptr
-			messagebuffer += 1;									// instead *messagebuffer++ to circumvent unused warning
+			*chrptr++ = isprint(*bufptr) ? *bufptr : '.';                                        // add character or . to chrptr
+			bufptr++;
 		}
 		hexcolumnlength = (numcolumns * 3) + (numcolumns / 8) - 1;					// numcolums + block spaces - 1
 		pbx_str_append(&output_buf, 0, VERBOSE_PREFIX_1 "%08X - %-*.*s - %s\n", cur, hexcolumnlength, hexcolumnlength, hexout, chrout);

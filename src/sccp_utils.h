@@ -25,7 +25,7 @@
 
 __BEGIN_C_EXTERN__
 
-SCCP_API void SCCP_CALL sccp_dump_packet(unsigned char *messagebuffer, int len);
+SCCP_API void SCCP_CALL sccp_dump_packet(const unsigned char * const messagebuffer, int len);
 SCCP_API void SCCP_CALL sccp_dump_msg(const sccp_msg_t * const msg);
 SCCP_API void SCCP_CALL sccp_addons_clear(devicePtr d);
 SCCP_API void SCCP_CALL sccp_safe_sleep(int ms);

@@ -354,14 +354,13 @@ static int session_dissect_header(sccp_session_t * s, sccp_header_t * header, st
 			}
 			result = msginfo->size + SCCP_PACKET_HEADER;
 			*msgInfoPtr = msginfo;
-			break;
 		}
 	} while (0);
 
 	return result;
 }
 
-static gcc_inline int session_buffer2msg(sccp_session_t * s, unsigned char *buffer, int lenAccordingToPacketHeader, sccp_msg_t *msg) 
+static gcc_inline int session_buffer2msg(sccp_session_t * s, const unsigned char * const buffer, int lenAccordingToPacketHeader, sccp_msg_t * msg)
 {
 	int res = -5;
 	sccp_header_t msg_header = {0};
@@ -378,7 +377,7 @@ static gcc_inline int session_buffer2msg(sccp_session_t * s, unsigned char *buff
 	}
 	if (dont_expect(lenAccordingToPacketHeader > lenAccordingToOurProtocolSpec)) {					// show out discarded bytes
 		pbx_log(LOG_WARNING, "%s: (session_dissect_msg) Incoming message is bigger(%d) than known size(%d). Packet looks like!\n", DEV_ID_LOG(s->device), lenAccordingToPacketHeader, lenAccordingToOurProtocolSpec);
-		buffer[lenAccordingToPacketHeader + 1] = '\0';								// terminate buffer
+		// buffer[lenAccordingToPacketHeader + 1] = '\0';								// terminate buffer
 		sccp_dump_packet(buffer, lenAccordingToPacketHeader);
 	}
 	
@@ -402,7 +401,7 @@ static gcc_inline int session_buffer2msg(sccp_session_t * s, unsigned char *buff
 	return res;
 }
 
-static gcc_inline int process_buffer(sccp_session_t * s, sccp_msg_t *msg, unsigned char *buffer, size_t *len)
+static gcc_inline int process_buffer(sccp_session_t * s, sccp_msg_t * msg, unsigned char * const buffer, size_t * len)
 {
 	int res = 0;
 	while (*len >= SCCP_PACKET_HEADER && *len <= SCCP_MAX_PACKET * 2) {										// We have at least SCCP_PACKET_HEADER, so we have the payload length
@@ -804,14 +803,14 @@ void *sccp_session_device_thread(void *session)
 		} else if (res > 0) {										/* poll data processing */
 			if(fds[0].revents & POLLIN || fds[0].revents & POLLPRI) {                               /* POLLIN | POLLPRI */
 				// sccp_log_and((DEBUGCAT_SOCKET + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "%s: Session New Data Arriving at buffer position:%lu\n", DEV_ID_LOG(s->device), recv_len);
-				int result = s->srvcontext->transport->recv(&s->sc, recv_buffer + recv_len, (SCCP_MAX_PACKET * 2) - recv_len, 0);
+				int result       = s->srvcontext->transport->recv(&s->sc, recv_buffer + recv_len, (ARRAY_LEN(recv_buffer) * sizeof(unsigned char)) - recv_len, 0);
 				s->lastKeepAlive = time(0);
 				if (result <= 0) {
 					if (result < 0 || (errno != EINTR || errno != EAGAIN)) {
 						socket_get_error(s, __FILE__, __LINE__, __PRETTY_FUNCTION__);
 						break;
-					}				
-				} else if (!((recv_len += result) && ((SCCP_MAX_PACKET * 2) - recv_len) && process_buffer(s, &msg, recv_buffer, &recv_len) == 0)) {
+					}
+				} else if (!((recv_len += result) && ((ARRAY_LEN(recv_buffer) * sizeof(unsigned char)) - recv_len) && process_buffer(s, &msg, recv_buffer, &recv_len) == 0)) {
 					pbx_log(LOG_ERROR, "%s: (netsock_device_thread) Received a packet or message (with result:%d) which we could not handle, giving up session: %p!\n", s->designator, result, s);
 					sccp_dump_msg(&msg);
 					if (s->device) {
