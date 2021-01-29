@@ -405,7 +405,9 @@ static gcc_inline int process_buffer(sccp_session_t * s, sccp_msg_t * msg, unsig
 {
 	int res = 0;
 	while (*len >= SCCP_PACKET_HEADER && *len <= SCCP_MAX_PACKET * 2) {										// We have at least SCCP_PACKET_HEADER, so we have the payload length
-		uint32_t payload_len = letohl(*(uint32_t *)buffer) + (SCCP_PACKET_HEADER - 4);
+		uint32_t header_len;
+		memcpy(&header_len, buffer, 4);
+		uint32_t payload_len = letohl(header_len) + (SCCP_PACKET_HEADER - 4);
 		if (*len < payload_len) {
 			break;												// Too short - haven't received whole payload yet, go poll for more
 		}
