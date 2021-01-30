@@ -16,7 +16,9 @@ __BEGIN_C_EXTERN__
 SCCP_API char SCCP_VERSIONSTR[300];
 SCCP_API char SCCP_REVISIONSTR[30];
 
-typedef struct sccp_servercontext sccp_servercontext_t;
+// forward declaration (impl sccp_session.c)
+struct sccp_servercontext;
+
 /*!
  * \brief SCCP device-line subscriptionId
  * \note for addressing individual devices on shared line
@@ -60,7 +62,7 @@ struct sccp_global_vars {
 
 	char dateformat[SCCP_MAX_DATE_FORMAT];									/*!< Date Format */
 
-	sccp_servercontext_t * srvcontexts[2];
+	struct sccp_servercontext * srvcontexts[2];
 
 	struct sccp_ha *ha;											/*!< Permit or deny connections to the main socket */
 	struct sockaddr_storage bindaddr;									/*!< Bind IP Address */
