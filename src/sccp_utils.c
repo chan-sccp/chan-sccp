@@ -672,6 +672,21 @@ int __PURE__ sccp_strIsNumeric(const char *s)
 	return 0;
 }
 
+gcc_inline void sccp_camelcase(char * instr)
+{
+	boolean_t capsNext = TRUE;
+	int       i = 0, j = 0;
+	while (instr[i] != '\0') {
+		if (!isalnum(instr[i])) {
+			i++;
+			capsNext = TRUE;
+		}
+		instr[j++] = capsNext ? toupper(instr[i++]) : tolower(instr[i++]);
+		capsNext   = FALSE;
+	}
+	instr[j] = '\0';
+}
+
 /*!
  * \brief Free a list of Host Access Rules
  * \param ha The head of the list of HAs to free

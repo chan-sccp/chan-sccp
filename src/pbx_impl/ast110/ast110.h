@@ -42,60 +42,40 @@ char *pbx_getformatname_multiple(char *buf, size_t size, struct ast_format_cap *
 			}                                         \
 		})
 
-#	define CLI_AMI_CAMEL_PARAM(param, camelParam)                                                                                                                         \
-		({                                                                                                                                                             \
-			char * current = (param);                                                                                                                              \
-			char * ptr = (camelParam);                                                                                                                             \
-			int CapsNext = 0;                                                                                                                                      \
-			while (*current) {                                                                                                                                     \
-				if ((*current >= 48 && *current <= 57 /*num*/) || (*current >= 65 && *current <= 90 /*A-Z*/) || (*current >= 97 && *current <= 122 /*a-z*/)) { \
-					if (CapsNext)                                                                                                                          \
-						*ptr++ = toupper (*current++);                                                                                                 \
-					else                                                                                                                                   \
-						*ptr++ = *current++;                                                                                                           \
-					CapsNext = 0;                                                                                                                          \
-				} else {                                                                                                                                       \
-					CapsNext = 1;                                                                                                                          \
-					current++;                                                                                                                             \
-				}                                                                                                                                              \
-			}                                                                                                                                                      \
-			*ptr = '\0';                                                                                                                                           \
+#	define CLI_AMI_OUTPUT_PARAM(param, width, fmt, ...)                                                                                                                                                                    \
+		({                                                                                                                                                                                                              \
+			if (NULL != (s)) {                                                                                                                                                                                      \
+				char camelParam[] = param;                                                                                                                                                                      \
+				sccp_camelcase(camelParam);                                                                                                                                                                     \
+				astman_append((s), "%s: " fmt "\r\n", (camelParam), __VA_ARGS__);                                                                                                                               \
+				local_line_total++;                                                                                                                                                                             \
+			} else {                                                                                                                                                                                                \
+				ast_cli((fd), "%-*.*s %s " fmt "\n", (width), (width), (param), ":", __VA_ARGS__);                                                                                                              \
+			}                                                                                                                                                                                                       \
 		})
 
-#	define CLI_AMI_OUTPUT_PARAM(param, width, fmt, ...)                                                        \
-		({                                                                                                  \
-			if (NULL != (s)) {                                                                          \
-				char camelParam[width + 1];                                                         \
-				CLI_AMI_CAMEL_PARAM ((param), (camelParam));                                        \
-				astman_append ((s), "%s: " fmt "\r\n", (camelParam), __VA_ARGS__);                  \
-				local_line_total++;                                                                 \
-			} else {                                                                                    \
-				ast_cli ((fd), "%-*.*s %s " fmt "\n", (width), (width), (param), ":", __VA_ARGS__); \
-			}                                                                                           \
+#	define CLI_AMI_OUTPUT_BOOL(param, width, value)                                                                                                                                                                        \
+		({                                                                                                                                                                                                              \
+			if (NULL != (s)) {                                                                                                                                                                                      \
+				char camelParam[] = param;                                                                                                                                                                      \
+				sccp_camelcase(camelParam);                                                                                                                                                                     \
+				astman_append((s), "%s: %s\r\n", (camelParam), ((value) ? "on" : "off"));                                                                                                                       \
+				local_line_total++;                                                                                                                                                                             \
+			} else {                                                                                                                                                                                                \
+				ast_cli((fd), "%-*.*s %s %s\n", (width), (width), (param), ":", ((value) ? "on" : "off"));                                                                                                      \
+			}                                                                                                                                                                                                       \
 		})
 
-#	define CLI_AMI_OUTPUT_BOOL(param, width, value)                                                                    \
-		({                                                                                                          \
-			if (NULL != (s)) {                                                                                  \
-				char camelParam[width + 1];                                                                 \
-				CLI_AMI_CAMEL_PARAM ((param), (camelParam));                                                \
-				astman_append ((s), "%s: %s\r\n", (camelParam), ((value) ? "on" : "off"));                  \
-				local_line_total++;                                                                         \
-			} else {                                                                                            \
-				ast_cli ((fd), "%-*.*s %s %s\n", (width), (width), (param), ":", ((value) ? "on" : "off")); \
-			}                                                                                                   \
-		})
-
-#	define CLI_AMI_OUTPUT_YES_NO(param, width, value)                                                                  \
-		({                                                                                                          \
-			if (NULL != (s)) {                                                                                  \
-				char camelParam[width + 1];                                                                 \
-				CLI_AMI_CAMEL_PARAM ((param), (camelParam));                                                \
-				astman_append ((s), "%s: %s\r\n", (camelParam), ((value) ? "yes" : "no"));                  \
-				local_line_total++;                                                                         \
-			} else {                                                                                            \
-				ast_cli ((fd), "%-*.*s %s %s\n", (width), (width), (param), ":", ((value) ? "yes" : "no")); \
-			}                                                                                                   \
+#	define CLI_AMI_OUTPUT_YES_NO(param, width, value)                                                                                                                                                                      \
+		({                                                                                                                                                                                                              \
+			if (NULL != (s)) {                                                                                                                                                                                      \
+				char camelParam[] = param;                                                                                                                                                                      \
+				sccp_camelcase(camelParam);                                                                                                                                                                     \
+				astman_append((s), "%s: %s\r\n", (camelParam), ((value) ? "yes" : "no"));                                                                                                                       \
+				local_line_total++;                                                                                                                                                                             \
+			} else {                                                                                                                                                                                                \
+				ast_cli((fd), "%-*.*s %s %s\n", (width), (width), (param), ":", ((value) ? "yes" : "no"));                                                                                                      \
+			}                                                                                                                                                                                                       \
 		})
 
 #	define _CLI_AMI_RETURN_ERROR(fd, s, m, line, fmt, ...)                                 \

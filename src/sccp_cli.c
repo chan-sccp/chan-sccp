@@ -2365,7 +2365,6 @@ CLI_AMI_ENTRY(show_refcount, sccp_show_refcount, "Show all Refcount Entries", cl
 static int sccp_show_softkeysets(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
 	uint8_t i = 0;
-	uint8_t v_count = 0;
 	uint8_t c = 0;
 	int local_line_total = 0;
 
@@ -2377,25 +2376,25 @@ static int sccp_show_softkeysets(int fd, sccp_cli_totals_t *totals, struct manse
 #define CLI_AMI_TABLE_LIST_LOCK SCCP_LIST_LOCK
 #define CLI_AMI_TABLE_LIST_ITERATOR SCCP_LIST_TRAVERSE
 #define CLI_AMI_TABLE_LIST_UNLOCK SCCP_LIST_UNLOCK
-#define CLI_AMI_TABLE_BEFORE_ITERATION												\
-		v_count = sizeof(softkeyset->modes) / sizeof(softkey_modes);							\
-		for (i = 0; i < v_count; i++) {											\
-			const uint8_t *b = softkeyset->modes[i].ptr;								\
-			for (c = 0; c < softkeyset->modes[i].count; c++) {
+#define CLI_AMI_TABLE_BEFORE_ITERATION                                                                                                                                                                                          \
+	for (i = 0; i < sizeof(softkeyset->modes) / sizeof(softkey_modes); i++) {                                                                                                                                               \
+		for (c = 0; c < softkeyset->modes[i].count; c++) {                                                                                                                                                              \
+			const char * label = label2str(softkeyset->modes[i].ptr[c]);
 
-#define CLI_AMI_TABLE_AFTER_ITERATION												\
-			}													\
-		}
-#define CLI_AMI_TABLE_FIELDS														\
-				CLI_AMI_TABLE_FIELD(Set,		"-15.15",	s,	15,	softkeyset->name)		\
-				CLI_AMI_TABLE_FIELD(Mode,		"-12.12",	s,	12,	skinny_keymode2str((skinny_keymode_t)i))	\
-				CLI_AMI_TABLE_FIELD(Description,	"-40.40",	s,	40,	skinny_keymode2longstr((skinny_keymode_t)i))	\
-				CLI_AMI_TABLE_FIELD(LblID,		"-5",		d,	5,	c)				\
-				CLI_AMI_TABLE_UTF8_FIELD(Label,	      "-15.15",	s,	15,     label2str(b[c]))
+#define CLI_AMI_TABLE_AFTER_ITERATION                                                                                                                                                                                           \
+	}                                                                                                                                                                                                                       \
+	}
+#define CLI_AMI_TABLE_FIELDS                                                                                                                                                                                                    \
+	CLI_AMI_TABLE_FIELD(Set, "-15.15", s, 15, softkeyset->name)                                                                                                                                                             \
+	CLI_AMI_TABLE_FIELD(Mode, "-12.12", s, 12, skinny_keymode2str((skinny_keymode_t)i))                                                                                                                                     \
+	CLI_AMI_TABLE_FIELD(Description, "-40.40", s, 40, skinny_keymode2longstr((skinny_keymode_t)i))                                                                                                                          \
+	CLI_AMI_TABLE_FIELD(Lbl_ID, "-5", d, 5, c)                                                                                                                                                                              \
+	CLI_AMI_TABLE_UTF8_FIELD(Label, "-15.15", s, 15, label)
 #include "sccp_cli_table.h"
 
 	if (s) {
 		totals->lines = local_line_total;
+		totals->tables = 1;
 	}
 	return RESULT_SUCCESS;
 }

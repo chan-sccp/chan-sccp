@@ -88,7 +88,7 @@ SCCP_INLINE SCCP_CALL boolean_t sccp_strlen_zero(const char *data);
 SCCP_INLINE SCCP_CALL boolean_t sccp_strequals(const char *data1, const char *data2);
 SCCP_INLINE SCCP_CALL boolean_t sccp_strcaseequals(const char *data1, const char *data2);
 SCCP_API int __PURE__ SCCP_CALL sccp_strIsNumeric(const char *s);
-
+SCCP_INLINE SCCP_CALL void             sccp_camelcase(char * instr);
 SCCP_API void SCCP_CALL sccp_free_ha(struct sccp_ha *ha);
 SCCP_API int SCCP_CALL sccp_apply_ha(const struct sccp_ha *ha, const struct sockaddr_storage *addr);
 SCCP_API int SCCP_CALL sccp_apply_ha_default(const struct sccp_ha *ha, const struct sockaddr_storage *addr, int defaultValue);
