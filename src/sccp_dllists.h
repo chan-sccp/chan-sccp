@@ -11,17 +11,63 @@
  */
 #pragma once
 
+#if CS_LOCK_DEBUG
 /* Lock Macro for Lists */
-#define SCCP_LIST_LOCK(x)    pbx_mutex_lock(&(x)->lock)
-#define SCCP_LIST_UNLOCK(x)  pbx_mutex_unlock(&(x)->lock)
-#define SCCP_LIST_TRYLOCK(x) pbx_mutex_trylock(&(x)->lock)
+#	define SCCP_LIST_LOCK(x)                                                                                                                                                                                               \
+		({                                                                                                                                                                                                              \
+			pbx_log(LOG_NOTICE, "LOCK:%s", #x);                                                                                                                                                                     \
+			pbx_mutex_lock(&(x)->lock);                                                                                                                                                                             \
+		})
+#	define SCCP_LIST_UNLOCK(x)                                                                                                                                                                                             \
+		({                                                                                                                                                                                                              \
+			pbx_log(LOG_NOTICE, "UNLOCK:%s", #x);                                                                                                                                                                   \
+			pbx_mutex_unlock(&(x)->lock);                                                                                                                                                                           \
+		})
+#	define SCCP_LIST_TRYLOCK(x)                                                                                                                                                                                            \
+		({                                                                                                                                                                                                              \
+			pbx_log(LOG_NOTICE, "TRYLOCK:%s", #x);                                                                                                                                                                  \
+			pbx_mutex_trylock(&(x)->lock);                                                                                                                                                                          \
+		})
 
 /* Lock Macro for read/write Lists */
-#define SCCP_RWLIST_RDLOCK(x)    pbx_rwlock_rdlock(&(x)->lock)
-#define SCCP_RWLIST_WRLOCK(x)    pbx_rwlock_wrlock(&(x)->lock)
-#define SCCP_RWLIST_UNLOCK(x)    pbx_rwlock_unlock(&(x)->lock)
-#define SCCP_RWLIST_TRYRDLOCK(x) pbx_rwlock_tryrdlock(&(x)->lock)
-#define SCCP_RWLIST_TRYWRLOCK(x) pbx_rwlock_trywrlock(&(x)->lock)
+#	define SCCP_RWLIST_RDLOCK(x)                                                                                                                                                                                           \
+		({                                                                                                                                                                                                              \
+			pbx_log(LOG_NOTICE, "RDLOCK:%s", #x);                                                                                                                                                                   \
+			pbx_rwlock_rdlock(&(x)->lock);                                                                                                                                                                          \
+		})
+#	define SCCP_RWLIST_WRLOCK(x)                                                                                                                                                                                           \
+		({                                                                                                                                                                                                              \
+			pbx_log(LOG_NOTICE, "WRLOCK:%s", #x);                                                                                                                                                                   \
+			pbx_rwlock_wrlock(&(x)->lock);                                                                                                                                                                          \
+		})
+#	define SCCP_RWLIST_UNLOCK(x)                                                                                                                                                                                           \
+		({                                                                                                                                                                                                              \
+			pbx_log(LOG_NOTICE, "UNLOCK:%s", #x);                                                                                                                                                                   \
+			pbx_rwlock_unlock(&(x)->lock);                                                                                                                                                                          \
+		})
+#	define SCCP_RWLIST_TRYRDLOCK(x)                                                                                                                                                                                        \
+		({                                                                                                                                                                                                              \
+			pbx_log(LOG_NOTICE, "TRYRDLOCK:%s", #x);                                                                                                                                                                \
+			pbx_rwlock_tryrdlock(&(x)->lock);                                                                                                                                                                       \
+		})
+#	define SCCP_RWLIST_TRYWRLOCK(x)                                                                                                                                                                                        \
+		({                                                                                                                                                                                                              \
+			pbx_log(LOG_NOTICE, "TRYWRLOCK:%s", #x);                                                                                                                                                                \
+			pbx_rwlock_trywrlock(&(x)->lock);                                                                                                                                                                       \
+		})
+#else
+/* Lock Macro for Lists */
+#	define SCCP_LIST_LOCK(x)        ({ pbx_mutex_lock(&(x)->lock); })
+#	define SCCP_LIST_UNLOCK(x)      ({ pbx_mutex_unlock(&(x)->lock); })
+#	define SCCP_LIST_TRYLOCK(x)     ({ pbx_mutex_trylock(&(x)->lock); })
+
+/* Lock Macro for read/write Lists */
+#	define SCCP_RWLIST_RDLOCK(x)    ({ pbx_rwlock_rdlock(&(x)->lock); })
+#	define SCCP_RWLIST_WRLOCK(x)    ({ pbx_rwlock_wrlock(&(x)->lock); })
+#	define SCCP_RWLIST_UNLOCK(x)    ({ pbx_rwlock_unlock(&(x)->lock); })
+#	define SCCP_RWLIST_TRYRDLOCK(x) ({ pbx_rwlock_tryrdlock(&(x)->lock); })
+#	define SCCP_RWLIST_TRYWRLOCK(x) ({ pbx_rwlock_trywrlock(&(x)->lock); })
+#endif
 
 /* Main list head */
 #define SCCP_LIST_HEAD(name, type)                                                                                                                                                                                              \

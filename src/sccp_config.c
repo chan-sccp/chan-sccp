@@ -518,8 +518,8 @@ EXIT:
  *
  * \todo add errormsg return to sccpConfigOption->converter_f: so we can have a fixed format the returned errors to the user
  */
-static sccp_configurationchange_t sccp_config_object_setValue(void * const obj, PBX_VARIABLE_TYPE * cat_root, const char * name, const char * value, int lineno, const sccp_config_segment_t segment, boolean_t * SetEntries,
-							      boolean_t default_run)
+static sccp_configurationchange_t sccp_config_object_setValue(void * const obj, PBX_VARIABLE_TYPE * const cat_root, const char * name, const char * value, int lineno, const sccp_config_segment_t segment,
+                                                              boolean_t * SetEntries, boolean_t default_run)
 {
 	const SCCPConfigSegment *sccpConfigSegment = sccp_find_segment(segment);
 	if (!sccpConfigSegment) {
@@ -2492,11 +2492,11 @@ static void sccp_config_buildDevice(sccp_device_t * d, PBX_VARIABLE_TYPE * varia
  * \callergraph
  * 
  */
-sccp_configurationchange_t sccp_config_applyGlobalConfiguration(PBX_VARIABLE_TYPE * v)
+sccp_configurationchange_t sccp_config_applyGlobalConfiguration(PBX_VARIABLE_TYPE * const cat_root)
 {
 	unsigned int  res = SCCP_CONFIG_NOUPDATENEEDED;
 	boolean_t SetEntries[ARRAY_LEN(sccpGlobalConfigOptions)] = { FALSE };
-	PBX_VARIABLE_TYPE *cat_root = v;
+	PBX_VARIABLE_TYPE * v                                              = (PBX_VARIABLE_TYPE *)cat_root;
 
 	for (; v; v = v->next) {
 		res |= sccp_config_object_setValue(sccp_globals, cat_root, v->name, v->value, v->lineno, SCCP_CONFIG_GLOBAL_SEGMENT, SetEntries, FALSE);
@@ -2900,11 +2900,11 @@ boolean_t sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
  * \callergraph
  * 
  */
-sccp_configurationchange_t sccp_config_applyLineConfiguration(linePtr l, PBX_VARIABLE_TYPE * v)
+sccp_configurationchange_t sccp_config_applyLineConfiguration(linePtr l, PBX_VARIABLE_TYPE * const cat_root)
 {
 	unsigned int res = SCCP_CONFIG_NOUPDATENEEDED;
 	boolean_t SetEntries[ARRAY_LEN(sccpLineConfigOptions)] = { FALSE };
-	PBX_VARIABLE_TYPE *cat_root = v;
+	PBX_VARIABLE_TYPE * v                                            = (PBX_VARIABLE_TYPE *)cat_root;
 	if(!l) {
 		pbx_log(LOG_ERROR, "SCCP: (sccp_config_applyLineConfiguration) called without valid line ptr\n");
 		return SCCP_CONFIG_ERROR;
@@ -2937,11 +2937,11 @@ sccp_configurationchange_t sccp_config_applyLineConfiguration(linePtr l, PBX_VAR
  * \callergraph
  * 
  */
-sccp_configurationchange_t sccp_config_applyDeviceConfiguration(devicePtr d, PBX_VARIABLE_TYPE * v)
+sccp_configurationchange_t sccp_config_applyDeviceConfiguration(devicePtr d, PBX_VARIABLE_TYPE * const cat_root)
 {
 	unsigned int res = SCCP_CONFIG_NOUPDATENEEDED;
 	boolean_t SetEntries[ARRAY_LEN(sccpDeviceConfigOptions)] = { FALSE };
-	PBX_VARIABLE_TYPE *cat_root = v;
+	PBX_VARIABLE_TYPE * v                                              = (PBX_VARIABLE_TYPE *)cat_root;
 	if(!d) {
 		pbx_log(LOG_ERROR, "SCCP: (sccp_config_applyDeviceConfiguration) called without valid device ptr\n");
 		return SCCP_CONFIG_ERROR;

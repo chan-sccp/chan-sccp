@@ -106,14 +106,13 @@ void sccp_line_post_reload(void)
  */
 linePtr sccp_line_create(const char * name)
 {
-	sccp_line_t *l = NULL;
-
-	if ((l = sccp_line_find_byname(name, FALSE))) {
+	sccp_line_t * l = SCCP_RWLIST_FIND(&GLOB(lines), sccp_line_t, tmpl, list, (sccp_strcaseequals(tmpl->name, name)), TRUE, __FILE__, __LINE__, __PRETTY_FUNCTION__);
+	if (l) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Line '%s' already exists.\n", name);
-		sccp_line_release(&l);						/* explicit release of found line */
+		sccp_line_release(&l);                                        // explicit release of found line
 		return NULL;
 	}
-	
+
 	l = (sccp_line_t *) sccp_refcount_object_alloc(sizeof(sccp_line_t), SCCP_REF_LINE, name, __sccp_line_destroy);
 	if (!l) {
 		pbx_log(LOG_ERROR, SS_Memory_Allocation_Error, name);
@@ -136,23 +135,26 @@ linePtr sccp_line_create(const char * name)
  * \note needs to be called with a retained line
  * \note adds a retained line to the list (refcount + 1)
  */
+static void sccp_line_addToGlobals_unlocked(constLinePtr line)
+{
+	sccp_line_t * l = sccp_line_retain(line);
+	SCCP_RWLIST_INSERT_SORTALPHA(&GLOB(lines), l, list, cid_num);
+	sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "Added line '%s' to Glob(lines)\n", l->name);
+
+	sccp_event_t * event = sccp_event_allocate(SCCP_EVENT_LINEINSTANCE_CREATED);
+	if (event) {
+		event->lineInstance.line = sccp_line_retain(l);
+		sccp_event_fire(event);
+	}
+}
+
 void sccp_line_addToGlobals(constLinePtr line)
 {
 	AUTO_RELEASE(sccp_line_t, l , sccp_line_retain(line));
 	if (l) {
-		/* add to list */
 		SCCP_RWLIST_WRLOCK(&GLOB(lines));
-		sccp_line_retain(l);										/* add retained line to the list */
-		SCCP_RWLIST_INSERT_SORTALPHA(&GLOB(lines), l, list, cid_num);
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Added line '%s' to Glob(lines)\n", l->name);
+		sccp_line_addToGlobals_unlocked(l);
 		SCCP_RWLIST_UNLOCK(&GLOB(lines));
-
-		/* emit event */
-		sccp_event_t *event = sccp_event_allocate(SCCP_EVENT_LINEINSTANCE_CREATED);
-		if (event) {
-			event->lineInstance.line = sccp_line_retain(l);
-			sccp_event_fire(event);
-		}
 	} else {
 		pbx_log(LOG_ERROR, "Adding null to global line list is not allowed!\n");
 	}
@@ -195,6 +197,7 @@ void *sccp_create_hotline(void)
 	}
 	memset(GLOB(hotline), 0, sizeof(sccp_hotline_t));
 
+	SCCP_RWLIST_WRLOCK(&GLOB(lines));
 	AUTO_RELEASE(sccp_line_t, hotline , sccp_line_create("Hotline"));
 	if (hotline) {
 #ifdef CS_SCCP_REALTIME
@@ -205,8 +208,9 @@ void *sccp_create_hotline(void)
 		sccp_copy_string(hotline->cid_name, "hotline", sizeof(hotline->cid_name));
 		sccp_copy_string(hotline->cid_num, "hotline", sizeof(hotline->cid_name));
 		*(sccp_line_t **)&(GLOB(hotline)->line) = sccp_line_retain(hotline);                                        // retain line inside hotline (const cast to emplace)
-		sccp_line_addToGlobals(hotline);								// retain line inside GlobalsList
+		sccp_line_addToGlobals_unlocked(hotline);                                                                   // retain line inside GlobalsList
 	}
+	SCCP_RWLIST_UNLOCK(&GLOB(lines));
 	return NULL;
 }
 
@@ -581,12 +585,56 @@ void sccp_line_setMWI(constLinePtr l, int newmsgs, int oldmsgs)
 }
 /*=================================================================================== FIND FUNCTIONS ==============*/
 
+#ifdef CS_SCCP_REALTIME
+/*!
+ * \brief Find Line via Realtime
+ *
+ * \callgraph
+ * \callergraph
+ */
+static linePtr sccp_line_findcreate_realtime_byname(const char * name)
+{
+	sccp_line_t *l = NULL;
+	PBX_VARIABLE_TYPE * v_root = NULL;
+
+	if (sccp_strlen_zero(GLOB(realtimelinetable)) || sccp_strlen_zero(name)) {
+		return NULL;
+	}
+
+	do {
+		if ((v_root = pbx_load_realtime(GLOB(realtimelinetable), "name", name, NULL))) {
+			PBX_VARIABLE_TYPE * variable = v_root;
+			SCCP_RWLIST_WRLOCK(&GLOB(lines));
+			l = SCCP_RWLIST_FIND(&GLOB(lines), sccp_line_t, tmpl, list, (sccp_strcaseequals(tmpl->name, name)), TRUE, __FILE__, __LINE__, __PRETTY_FUNCTION__);
+			if (l) {
+				sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "SCCP: Line '%s' already exists.\n", name);
+				sccp_line_release(&l);
+				l = NULL;
+				break;
+			}
+			sccp_log((DEBUGCAT_LINE))(VERBOSE_PREFIX_4 "SCCP: creating realtime line '%s'\n", name);
+			if (!(l = sccp_line_create(name))) {
+				pbx_log(LOG_ERROR, "SCCP: Unable to build realtime line '%s'\n", name);
+				SCCP_RWLIST_UNLOCK(&GLOB(lines));
+				break;
+			}
+			sccp_config_applyLineConfiguration(l, variable);
+			l->realtime = TRUE;
+			pbx_variables_destroy(v_root);
+			sccp_line_addToGlobals_unlocked(l);
+			SCCP_RWLIST_UNLOCK(&GLOB(lines));
+		}
+	} while (0);
+	return l;
+}
+#endif
+
 /*!
  * \brief Find Line by Name
  *
  * \callgraph
  * \callergraph
- * 
+ *
  */
 linePtr sccp_line_find_byname(const char * name, uint8_t useRealtime)
 {
@@ -597,75 +645,16 @@ linePtr sccp_line_find_byname(const char * name, uint8_t useRealtime)
 	SCCP_RWLIST_UNLOCK(&GLOB(lines));
 #ifdef CS_SCCP_REALTIME
 	if (!l && useRealtime) {
-		l = sccp_line_find_realtime_byname(name);
+		l = sccp_line_findcreate_realtime_byname(name);
 	}
 #endif
 
 	if (!l) {
-		sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "SCCP: Line '%s' not found.\n", name);
+		sccp_log((DEBUGCAT_LINE))(VERBOSE_PREFIX_3 "SCCP: Line '%s' not found.\n", name);
 		return NULL;
 	}
 	return l;
 }
-
-#ifdef CS_SCCP_REALTIME
-
-/*!
- * \brief Find Line via Realtime
- *
- * \callgraph
- * \callergraph
- */
-#if DEBUG
-/*!
- * \param name Line Name
- * \param filename Debug FileName
- * \param lineno Debug LineNumber
- * \param func Debug Function Name
- * \return SCCP Line
- */
-linePtr __sccp_line_find_realtime_byname(const char * name, const char * filename, int lineno, const char * func)
-#	else
-/*!
- * \param name Line Name
- * \return SCCP Line
- */
-linePtr sccp_line_find_realtime_byname(const char * name)
-#	endif
-{
-	sccp_line_t *l = NULL;
-	PBX_VARIABLE_TYPE *v = NULL, *variable = NULL;
-
-	if (sccp_strlen_zero(GLOB(realtimelinetable)) || sccp_strlen_zero(name)) {
-		return NULL;
-	}
-
-	if (sccp_strlen_zero(name)) {
-		sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "SCCP: Not allowed to search for line with name ''\n");
-		return NULL;
-	}
-
-	if ((variable = pbx_load_realtime(GLOB(realtimelinetable), "name", name, NULL))) {
-		v = variable;
-		sccp_log((DEBUGCAT_LINE + DEBUGCAT_REALTIME)) (VERBOSE_PREFIX_3 "SCCP: Line '%s' found in realtime table '%s'\n", name, GLOB(realtimelinetable));
-
-		sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_4 "SCCP: creating realtime line '%s'\n", name);
-
-		if ((l = sccp_line_create(name))) {								/* already retained */
-			sccp_config_applyLineConfiguration(l, variable);
-			l->realtime = TRUE;
-			sccp_line_addToGlobals(l);								// can return previous instance on doubles
-			pbx_variables_destroy(v);
-		} else {
-			pbx_log(LOG_ERROR, "SCCP: Unable to build realtime line '%s'\n", name);
-		}
-		return l;
-	}
-
-	sccp_log((DEBUGCAT_LINE + DEBUGCAT_REALTIME)) (VERBOSE_PREFIX_3 "SCCP: Line '%s' not found in realtime table '%s'\n", name, GLOB(realtimelinetable));
-	return NULL;
-}
-#endif
 
 /*!
  * \brief Find Line by Instance on device

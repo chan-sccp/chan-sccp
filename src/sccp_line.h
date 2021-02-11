@@ -139,17 +139,9 @@ SCCP_API linePtr SCCP_CALL __sccp_line_find_byid(constDevicePtr d, uint16_t inst
 
 #	define sccp_line_find_byButtonIndex(_x, _y) __sccp_line_find_byButtonIndex(_x, _y, __FILE__, __LINE__, __PRETTY_FUNCTION__)
 SCCP_API linePtr SCCP_CALL __sccp_line_find_byButtonIndex(constDevicePtr d, uint16_t buttonIndex, const char * filename, int lineno, const char * func);
-#	ifdef CS_SCCP_REALTIME
-#		define sccp_line_find_realtime_byname(_x) __sccp_line_find_realtime_byname(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__)
-SCCP_API linePtr SCCP_CALL __sccp_line_find_realtime_byname(const char * name, const char * filename, int lineno, const char * func);
-#	endif                                                                                                  // CS_SCCP_REALTIME
 #else														// DEBUG
 SCCP_API linePtr SCCP_CALL sccp_line_find_byid(constDevicePtr d, uint16_t instance);
 SCCP_API linePtr SCCP_CALL sccp_line_find_byButtonIndex(constDevicePtr d, uint16_t buttonIndex);
-
-#	ifdef CS_SCCP_REALTIME
-SCCP_API linePtr SCCP_CALL sccp_line_find_realtime_byname(const char * name);
-#	endif                                                                                                  // CS_SCCP_REALTIME
 #endif														// DEBUG
 
 __END_C_EXTERN__
