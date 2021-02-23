@@ -24,18 +24,28 @@ For building and installation instructions please see the INSTALL file.
 ### Table of Contents
 
 * [Table of Contents](#table-of-contents)
-* [Prerequisites](#Prerequisites)
-* [Building from source](#Building-from-source)
-* [Configuring](#Configuring)
-* [Build and Install](#Build-and-Install)
-* [Required Asterisk Modules](#Required-Asterisk-Modules)
-* [Binaries](#Binaries)
 * [Wiki](#Wiki)
-* [Mailinglist](#Mailinglist)
 * [Chat](#Chat)
+* [Quick Start](#Quick-Start)
+  * [Prerequisites](#Prerequisites)
+  * [Building from source](#Building-from-source)
+  * [Configuring](#Configuring)
+  * [Build and Install](#Build-and-Install)
+  * [Required Asterisk Modules](#Required-Asterisk-Modules)
+* [Binaries](#Binaries)
+* [Mailinglist](#Mailinglist)
 * [Donate](#Donate)
 * [License](#License)
 
+### Wiki
+You can find more information and documentation on our [![Wiki](https://img.shields.io/badge/Wiki-new-blue.svg)](https://github.com/chan-sccp/chan-sccp/wiki/).
+
+### Chat
+Engage with our members and developer directly via
+[![Gitter](https://badges.gitter.im/chan-sccp/chan-sccp.svg)](https://gitter.im/chan-sccp/chan-sccp?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge).
+Looking forward to seeing you there.
+
+## Quick Start
 ### Prerequisites
 Make sure you have the following installed on your system:
 - c-compiler:
@@ -140,9 +150,6 @@ We provide prebuild binaries for:
     - [openSUSE-Factory_ARM](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-18/openSUSE_Factory_ARM/) (aarch64,armv6l,armv7l)
     - [openSUSE_Factory_PPC](https://download.opensuse.org/repositories/home:/chan-sccp-b:/asterisk-18/openSUSE_Factory_PPC/) (ppc64,ppc64le)
 
-### Wiki
-You can find more information and documentation on our [![Wiki](https://img.shields.io/badge/Wiki-new-blue.svg)](https://github.com/chan-sccp/chan-sccp/wiki/)
-
 ### Mailinglist
 
 - chan-sccp Discussion: 
@@ -155,9 +162,6 @@ You can find more information and documentation on our [![Wiki](https://img.shie
   - [Archive](https://sourceforge.net/p/chan-sccp-b/mailman/chan-sccp-b-releases)
   - [Search](https://sourceforge.net/p/chan-sccp-b/mailman/search/?mail_list=chan-sccp-b-releases) 
   
-### Chat
-[![Gitter](https://badges.gitter.im/chan-sccp/chan-sccp.svg)](https://gitter.im/chan-sccp/chan-sccp?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
-
 ### Donate
 If you like our project, then please consider to 
 [![donation](https://www.paypalobjects.com/webstatic/en_US/btn/btn_donate_pp_142x27.png)](https://www.paypal.com/cgi-bin/webscr?item_name=Donation+to+Chan-SCCP+channel+driver+for+Asterisk&locale.x=en_US&cmd=_donations&business=chan.sccp.b.pp%40gmail.com)
