@@ -39,9 +39,11 @@ For building and installation instructions please see the INSTALL file.
 
 ### Wiki
 You can find more information and documentation on our [![Wiki](https://img.shields.io/badge/Wiki-new-blue.svg)](https://github.com/chan-sccp/chan-sccp/wiki/).
+The wiki contains detailed guides on how to setup and configure chan-sccp, using it directly with plain asterisk or integration into FreePBX.
+You can also find dialplan snippets and usefull hints and tips on our wiki.
 
 ### Chat
-Engage with our members and developer directly via
+Engage with our members and developers directly via:
 [![Gitter](https://badges.gitter.im/chan-sccp/chan-sccp.svg)](https://gitter.im/chan-sccp/chan-sccp?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge).
 Looking forward to seeing you there.
 
