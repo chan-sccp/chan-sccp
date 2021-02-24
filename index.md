@@ -18,11 +18,12 @@ For more information, please see the [Wiki](#Wiki) below.
 ### Table of Contents
 
 * [Table of Contents](#table-of-contents)
-* [Wiki](#Wiki)
-* [Chat](#Chat)
-* [Mailinglist](#Mailinglist)
-* [Donate](#Donate)
-* [License](#License)
+* [Wiki](#wiki)
+* [Chat](#chat)
+* [Sources](#sources)
+* [Mailinglist](#mailinglist)
+* [Donate](#donate)
+* [License](#license)
 
 ### Wiki
 You can find more information and documentation on our [![Wiki](https://img.shields.io/badge/Wiki-new-blue.svg)](https://github.com/chan-sccp/chan-sccp/wiki/).
@@ -33,6 +34,9 @@ You can also find dialplan snippets and usefull hints and tips on our wiki.
 Engage with our members and developers directly via:
 [![Gitter](https://badges.gitter.im/chan-sccp/chan-sccp.svg)](https://gitter.im/chan-sccp/chan-sccp?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge).
 Looking forward to seeing you there.
+
+### Sources
+The sources for this project can be found on our [github repo page](https://github.com/chan-sccp/chan-sccp).
 
 ### Mailinglist
 
