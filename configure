@@ -23445,9 +23445,6 @@ $as_echo "$am_cv_func_iconv_works" >&6; }
 
 $as_echo "#define HAVE_ICONV 1" >>confdefs.h
 
-
-$as_echo "#define CS_HAVE_ICONV 1" >>confdefs.h
-
   fi
   if test "$am_cv_lib_iconv" = yes; then
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking how to link with libiconv" >&5
@@ -23511,10 +23508,6 @@ cat >>confdefs.h <<_ACEOF
 #define ICONV_CONST $am_cv_proto_iconv_arg1
 _ACEOF
 
-
-  else
-
-$as_echo "#define ICONV_CONST \"\"" >>confdefs.h
 
   fi
 

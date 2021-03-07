@@ -219,8 +219,6 @@ AC_DEFUN([AM_ICONV_LINK],
   if test "$am_func_iconv" = yes; then
     AC_DEFINE([HAVE_ICONV], [1],
       [Define if you have the iconv() function and it works.])
-    AC_DEFINE([CS_HAVE_ICONV], [1],
-      [Define if you have the iconv() function and it works.])
   fi
   if test "$am_cv_lib_iconv" = yes; then
     AC_MSG_CHECKING([how to link with libiconv])
@@ -291,8 +289,6 @@ size_t iconv();
          ICONV_CONST="const"
        fi
       ])
-  else
-    AC_DEFINE([ICONV_CONST], "", [Define as empty if iconv not found/supported.])
   fi
 ])
 

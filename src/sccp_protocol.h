@@ -2514,6 +2514,7 @@ typedef union {
 			uint32_t lel_none;
 
 			struct { /* this one seems to be empty */
+				uint8_t dummy; /*!< Dummy, this is just for addressing */
 			} videoFastUpdatePicture;
 
 			struct {
