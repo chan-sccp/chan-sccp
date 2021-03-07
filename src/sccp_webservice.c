@@ -295,12 +295,12 @@ static int parse_outputfmt(PBX_VARIABLE_TYPE * request_params, PBX_VARIABLE_TYPE
 /*
 static int parse_request_params()
 {
-        return 0;
+	return 0;
 }
 
 static int parse_request_uri()
 {
-        return 0;
+	return 0;
 }
 */
 
@@ -324,14 +324,14 @@ static __attribute__((malloc)) char * searchWebDirForFile(const char * filename,
 /*
 static int addTranslation(PBX_VARIABLE_TYPE *request_params)
 {
-        int res = -1;
-        char *translationFilename = searchWebDirForFile("translations", SCCP_XML_OUTPUTFMT_NULL, "xml");
-        if (translationFilename) {
-                //append_variable(request_params, "translationFile", pbx_strdup(translationFilename));
-                //sccp_free(translationFilename);
-                sccp_append_variable(request_params, "translationFile", translationFilename);
-        }
-        return res;
+	int res = -1;
+	char *translationFilename = searchWebDirForFile("translations", SCCP_XML_OUTPUTFMT_NULL, "xml");
+	if (translationFilename) {
+		//append_variable(request_params, "translationFile", pbx_strdup(translationFilename));
+		//sccp_free(translationFilename);
+		sccp_append_variable(request_params, "translationFile", translationFilename);
+	}
+	return res;
 }
 */
 
@@ -403,31 +403,31 @@ static int request_parser(struct ast_tcptls_session_instance * ser, enum ast_htt
 		struct ast_tm  now;
 		ast_strftime(timebuf, sizeof(timebuf), "%a, %d %b %Y %H:%M:%S GMT", ast_localtime(&nowtv, &now, "GMT"));
 		ast_str_set(&http_header, 0,
-		            "Content-type: %s\r\n"
-		            "Cache-Control: no-cache;\r\n"
-		            "Set-Cookie: sccp_id=\"%08x\"; Version=1; Max-Age=%d\r\n"
-		            "Pragma: SuppressEvents\r\n"
-		            "Last-Modified: %s\r\n",
-		            outputfmt2contenttype[outputfmt], 1, cookie_timeout, timebuf);
+			    "Content-type: %s\r\n"
+			    "Cache-Control: no-cache;\r\n"
+			    "Set-Cookie: sccp_id=\"%08x\"; Version=1; Max-Age=%d\r\n"
+			    "Pragma: SuppressEvents\r\n"
+			    "Last-Modified: %s\r\n",
+			    outputfmt2contenttype[outputfmt], 1, cookie_timeout, timebuf);
 		// sccp_log(DEBUGCAT_WEBSERVICE) (VERBOSE_PREFIX_3 "SCCP: (request_parser) Returning Header:'%s'\n", pbx_str_buffer(http_header));
 		/*
 		if (handler->outputfmt == SCCP_XML_OUTPUTFMT_XML && handler->outputfmt != outputfmt && iXML.applyStyleSheet) {
-		        addTranslation(request_params);
-		        if (process_side == ServerSide) {
-		                char *stylesheetFilename = findStylesheet(handler, outputfmt);
-		                if (stylesheetFilename) {
-		                        xmlDoc *xmldoc = iXML.createDoc();
-		                        if (!iXML.applyStyleSheet(xmldoc, stylesheetFilename, locale, outputfmt, request_params)) {
-		                                ast_http_error(ser, 500, "Server Error", "Internal Server Error\n(sccp_webservice_parser) stylesheet could not be found\n");
-		                                break;
-		                        }
-		                        sccp_free(stylesheetFilename);
-		                } else {
-		                        pbx_log(LOG_ERROR, "Stylesheet could not be found\n");
-		                        ast_http_error(ser, 500, "Server Error", "Internal Server Error\nstylesheet could not be found\n");
-		                        break;
-		                }
-		        }
+			addTranslation(request_params);
+			if (process_side == ServerSide) {
+				char *stylesheetFilename = findStylesheet(handler, outputfmt);
+				if (stylesheetFilename) {
+					xmlDoc *xmldoc = iXML.createDoc();
+					if (!iXML.applyStyleSheet(xmldoc, stylesheetFilename, locale, outputfmt, request_params)) {
+						ast_http_error(ser, 500, "Server Error", "Internal Server Error\n(sccp_webservice_parser) stylesheet could not be found\n");
+						break;
+					}
+					sccp_free(stylesheetFilename);
+				} else {
+					pbx_log(LOG_ERROR, "Stylesheet could not be found\n");
+					ast_http_error(ser, 500, "Server Error", "Internal Server Error\nstylesheet could not be found\n");
+					break;
+				}
+			}
 		}
 		*/
 
@@ -473,7 +473,7 @@ static struct ast_http_uri sccp_webservice_uri = {
 };
 
 static int sccp_webservice_xslt_callback(struct ast_tcptls_session_instance * ser, const struct ast_http_uri * urih, const char * uri, enum ast_http_method method, struct ast_variable * get_vars,
-                                         struct ast_variable * headers)
+					 struct ast_variable * headers)
 {
 	char *           path  = NULL;
 	const char *     ftype = NULL;
@@ -568,10 +568,10 @@ static int sccp_webservice_xslt_callback(struct ast_tcptls_session_instance * se
 	}
 
 	ast_str_set(&http_header, 0,
-	            "Content-type: %s\r\n"
-	            "ETag: %s\r\n"
-	            "Last-Modified: %s\r\n",
-	            mtype, etag, timebuf);
+		    "Content-type: %s\r\n"
+		    "ETag: %s\r\n"
+		    "Last-Modified: %s\r\n",
+		    mtype, etag, timebuf);
 
 	/* ast_http_send() frees http_header, so we don't need to do it before returning */
 	sccp_log(DEBUGCAT_WEBSERVICE)(VERBOSE_PREFIX_3 "Service '%s' => '%s' (%s)\n", uri, path, mtype);
@@ -671,11 +671,11 @@ static boolean_t sccp_webservice_xmltest(const char * const uri, PBX_VARIABLE_TY
 	sccp_log(DEBUGCAT_WEBSERVICE)(VERBOSE_PREFIX_3 "SCCP: (sccp_webservice_test) Test Webservice\n");
 
 	/*
-	        Process_XSLT_t process_side = parse_useragent(headers);
-	        sccp_xml_outputfmt_t outputfmt = SCCP_XML_OUTPUTFMT_XHTML;
-	        parse_outputfmt(params, headers, &outputfmt);
-	        const char *locale = NULL;
-	        parse_request_headers(headers, locale);
+		Process_XSLT_t process_side = parse_useragent(headers);
+		sccp_xml_outputfmt_t outputfmt = SCCP_XML_OUTPUTFMT_XHTML;
+		parse_outputfmt(params, headers, &outputfmt);
+		const char *locale = NULL;
+		parse_request_headers(headers, locale);
 	*/
 	PBX_VARIABLE_TYPE * v = NULL;
 
@@ -705,24 +705,24 @@ static boolean_t sccp_webservice_xmltest(const char * const uri, PBX_VARIABLE_TY
 	}
 
 	/*
-	        if (process_side == ServerSide) {
-	                // <?xml-stylesheet type='text/xsl' href='/Styles/Contoso.xslt' media='all'?>
-	                char *stylesheetFilename = findStylesheet(uri, outputfmt);
-	                if (stylesheetFilename) {
-	                        xmlNode *templ= iXML.createNode("xslt-template");
-	                        iXML.addProperty(templ, "href", "%s", stylesheetFilename);
-	                        iXML.setRootElement(doc, templ);
-	                        sccp_free(stylesheetFilename);
-	                }
-	                if (!iXML.applyStyleSheet(doc, params)) {
-	                        pbx_log(LOG_ERROR, "Applying Stylesheet failed\n");
-	                        res = FALSE;
-	                }
-	        } else {
-	                xmlNode *templ= iXML.createNode("xslt-template");
-	                iXML.addProperty(templ, "href", "%s/%s.xsl", "path", "uri");
-	                iXML.setRootElement(doc, templ);
-	        }
+		if (process_side == ServerSide) {
+			// <?xml-stylesheet type='text/xsl' href='/Styles/Contoso.xslt' media='all'?>
+			char *stylesheetFilename = findStylesheet(uri, outputfmt);
+			if (stylesheetFilename) {
+				xmlNode *templ= iXML.createNode("xslt-template");
+				iXML.addProperty(templ, "href", "%s", stylesheetFilename);
+				iXML.setRootElement(doc, templ);
+				sccp_free(stylesheetFilename);
+			}
+			if (!iXML.applyStyleSheet(doc, params)) {
+				pbx_log(LOG_ERROR, "Applying Stylesheet failed\n");
+				res = FALSE;
+			}
+		} else {
+			xmlNode *templ= iXML.createNode("xslt-template");
+			iXML.addProperty(templ, "href", "%s/%s.xsl", "path", "uri");
+			iXML.setRootElement(doc, templ);
+		}
 	*/
 	char * resultstr = NULL;
 	if ((res |= xmlPostProcess(doc, uri, params, headers, &resultstr))) {

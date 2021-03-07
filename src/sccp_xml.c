@@ -104,24 +104,24 @@ static __attribute__((malloc)) char * dump(xmlDoc * const doc, boolean_t indent)
 #	if defined(HAVE_LIBXSLT) && defined(HAVE_LIBEXSLT_EXSLT_H)
 /*
 static const char * const outputfmt_ext[] = {
-        [SCCP_XML_OUTPUTFMT_NULL] = "",
-        [SCCP_XML_OUTPUTFMT_HTML] = "html",
-        [SCCP_XML_OUTPUTFMT_XML] =  "xml",
-        [SCCP_XML_OUTPUTFMT_CXML] = "cxml",
-        [SCCP_XML_OUTPUTFMT_AJAX] = "ajax",
-        [SCCP_XML_OUTPUTFMT_TXT] = "txt",
+	[SCCP_XML_OUTPUTFMT_NULL] = "",
+	[SCCP_XML_OUTPUTFMT_HTML] = "html",
+	[SCCP_XML_OUTPUTFMT_XML] =  "xml",
+	[SCCP_XML_OUTPUTFMT_CXML] = "cxml",
+	[SCCP_XML_OUTPUTFMT_AJAX] = "ajax",
+	[SCCP_XML_OUTPUTFMT_TXT] = "txt",
 };
 
 static __attribute__ ((malloc)) char * searchWebDirForFile(const char *filename, sccp_xml_outputfmt_t outputfmt, const char *extension)
 {
-        char filepath[PATH_MAX] = "";
-        snprintf(filepath, sizeof(filepath), PBX_VARLIB "/%s_%s.%s", filename, outputfmt ? outputfmt_ext[outputfmt] : "", extension);
-        if (access(filepath, F_OK ) == -1) {
-                pbx_log(LOG_ERROR, "\nSCCP: (sccp_xml_searchWebDirForFile) file: '%s' could not be found\n", filepath);
-                filepath[0] = '\0';
-                return NULL;
-        }
-        return strdup(filepath);
+	char filepath[PATH_MAX] = "";
+	snprintf(filepath, sizeof(filepath), PBX_VARLIB "/%s_%s.%s", filename, outputfmt ? outputfmt_ext[outputfmt] : "", extension);
+	if (access(filepath, F_OK ) == -1) {
+		pbx_log(LOG_ERROR, "\nSCCP: (sccp_xml_searchWebDirForFile) file: '%s' could not be found\n", filepath);
+		filepath[0] = '\0';
+		return NULL;
+	}
+	return strdup(filepath);
 }
 */
 
@@ -159,8 +159,8 @@ static boolean_t applyStyleSheet(xmlDoc * const doc, PBX_VARIABLE_TYPE * pbx_par
 
 	xsltStylesheetPtr xslt = xsltLoadStylesheetPI(doc);
 	if (xslt) {
-		// xmlSubstituteEntitiesDefault(1);						/* coverity: CID 200164 (#1 of 1): unsafe_xml_parse_config (UNSAFE_XML_PARSE_CONFIG)unsafe_xml_parse_config: Passing 1 (value: 1) to
-		// xmlSubstituteEntitiesDefault(int) will allow entity substitution which can allow malicious entities to be substituted.*/
+		// xmlSubstituteEntitiesDefault(1);						/* coverity: CID 200164 (#1 of 1): unsafe_xml_parse_config (UNSAFE_XML_PARSE_CONFIG)unsafe_xml_parse_config: Passing 1 (value: 1)
+		// to xmlSubstituteEntitiesDefault(int) will allow entity substitution which can allow malicious entities to be substituted.*/
 		xmlLoadExtDtdDefaultValue = 1;
 		nbparams                  = convertPbxVar2XsltParams(pbx_params, params, nbparams);                                        // still needed ?
 		xmlDocPtr newdoc          = xsltApplyStylesheet(xslt, doc, params);
