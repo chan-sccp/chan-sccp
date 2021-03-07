@@ -143,15 +143,16 @@ SpaceBeforeSquareBrackets: false
 SpaceInEmptyBlock: false
 SpaceInEmptyParentheses: false
 SpacesBeforeTrailingComments: 40
-SpacesInAngles:  false
+#SpacesInLineCommentPrefix: 40
+SpacesInAngles: false
 SpacesInCStyleCastParentheses: false
 SpacesInConditionalStatement: false
 SpacesInContainerLiterals: false
 SpacesInParentheses: false
 SpacesInSquareBrackets: false
-Standard:        Latest
+Standard: Latest
 StatementMacros: []
-TabWidth:        8
+TabWidth: 8
 TypenameMacros: [
   'SCCP_LIST_HEAD ', 
   'SCCP_RWLIST_HEAD', 
@@ -159,6 +160,7 @@ TypenameMacros: [
   'SCCP_RWLIST_ENTRY', 
   'SCCP_API', 
   'SCCP_CALL', 
+  'AUTO_RELEASE',
   'sccp_push_result_t', 
   'boolean_t', 
   'sessionPtr', 
@@ -177,6 +179,6 @@ TypenameMacros: [
   'constMessagePtr',
 ]
 UseCRLF: false
-#UseTab:  ForContinuationAndIndentation
-UseTab:  AlignWithSpaces
+UseTab: ForContinuationAndIndentation
+#UseTab: AlignWithSpaces
 WhitespaceSensitiveMacros: []
