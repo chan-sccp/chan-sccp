@@ -829,13 +829,9 @@ static int sccp_astwrap_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *da
 		case AST_CONTROL_PVT_CAUSE_CODE:
 			{
 				/*! \todo This would also be a good moment to update the c->requestHangup to requestQueueHangup */
-				int hangupcause = ast_channel_hangupcause(ast);
-				sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE))(VERBOSE_PREFIX_3 "%s: hangup cause set: %d\n", c->designator, hangupcause);
+				// int hangupcause = ast_channel_hangupcause(ast);
+				// sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: hangup cause set: %d\n", c->designator, hangupcause);
 				// res = -1;
-				if (ast_check_hangup_locked(ast)) {
-					pbx_log(LOG_NOTICE, "SCCP: (astwrap_indicate) pvt_cause_code hangup\n");
-					sccp_channel_endcall(c);
-				}
 				inband_if_receivechannel = TRUE;
 			}
 			break;
@@ -940,9 +936,6 @@ static PBX_FRAME_TYPE *sccp_astwrap_rtp_read(PBX_CHANNEL_TYPE * ast)
 				ast_set_write_format(ast, ast_channel_writeformat(ast));
 			}
 		}
-	} else if (ast_check_hangup_locked(ast)) {
-		pbx_log(LOG_NOTICE, "SCCP: (rtp_read) processing requested hangup\n");
-		sccp_channel_endcall(c);
 	}
 
 	/* Only allow audio through if they sent progress, or if the channel is actually answered */
@@ -976,6 +969,7 @@ static int sccp_astwrap_rtp_write(PBX_CHANNEL_TYPE * ast, PBX_FRAME_TYPE * frame
 	if (!(c = CS_AST_CHANNEL_PVT(ast))) {									// not following the refcount rules... channel is already retained
 		return -1;
 	}
+
 	switch (frame->frametype) {
 		case AST_FRAME_VOICE:
 			// checking for samples to transmit
