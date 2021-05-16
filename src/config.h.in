@@ -334,6 +334,9 @@
 /* Compiler supports nested functions */
 #undef GCC_NESTED
 
+/* bfd_section_size 2-args version */
+#undef HAVE_1_ARG_BFD_SECTION_SIZE
+
 /* Define if pointers to integers require aligned access */
 #undef HAVE_ALIGNED_ACCESS_REQUIRED
 
@@ -386,8 +389,27 @@
    */
 #undef HAVE_CMPXCHG16B
 
+/* Define to 1 if you have the `cplus_demangle' function. */
+#undef HAVE_CPLUS_DEMANGLE
+
 /* Define to 1 if you have the <ctype.h> header file. */
 #undef HAVE_CTYPE_H
+
+/* Define to 1 if you have the declaration of `bfd_get_section_flags', and to
+   0 if you don't. */
+#undef HAVE_DECL_BFD_GET_SECTION_FLAGS
+
+/* Define to 1 if you have the declaration of `bfd_get_section_vma', and to 0
+   if you don't. */
+#undef HAVE_DECL_BFD_GET_SECTION_VMA
+
+/* Define to 1 if you have the declaration of `bfd_section_flags', and to 0 if
+   you don't. */
+#undef HAVE_DECL_BFD_SECTION_FLAGS
+
+/* Define to 1 if you have the declaration of `bfd_section_vma', and to 0 if
+   you don't. */
+#undef HAVE_DECL_BFD_SECTION_VMA
 
 /* Define to 1 if you have the declaration of `cygwin_conv_path', and to 0 if
    you don't. */
@@ -396,6 +418,9 @@
 /* Define to 1 if you have the declaration of `tzname', and to 0 if you don't.
    */
 #undef HAVE_DECL_TZNAME
+
+/* Enable detailed backtrace */
+#undef HAVE_DETAILED_BACKTRACE
 
 /* Define to 1 if you have the <dirent.h> header file. */
 #undef HAVE_DIRENT_H
@@ -672,6 +697,9 @@
 
 /* Define to 1 if you have the `strlcpy' function. */
 #undef HAVE_STRLCPY
+
+/* Define to 1 if the system has the type `struct dl_phdr_info'. */
+#undef HAVE_STRUCT_DL_PHDR_INFO
 
 /* Define to 1 if `tm_zone' is a member of `struct tm'. */
 #undef HAVE_STRUCT_TM_TM_ZONE

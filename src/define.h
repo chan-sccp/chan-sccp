@@ -253,12 +253,7 @@ typedef struct pbx_rwlock_info pbx_rwlock_t;
 #define snprintf(...) ({int __snprres = __snprintf(__VA_ARGS__); if (__snprres < 0) {pbx_log(LOG_WARNING, "snprintf returned error\n");};__snprres;})
 #endif
 
-#if defined(__GNUC__)
-#define RAII(vartype, varname, initval, dtor)										\
-    auto void _dtor_ ## varname (vartype * v);										\
-    void _dtor_ ## varname (vartype * v) { dtor(*v); }									\
-    vartype varname __attribute__((cleanup(_dtor_ ## varname))) = (initval)
-#elif defined(__clang__) 
+#if defined(__clang__) 
 #  if __has_extension(blocks)
 typedef void (^sccp_raii_cleanup_block_t)(void);
 static inline void sccp_raii_cleanup_block(sccp_raii_cleanup_block_t *b) { (*b)(); }
@@ -267,6 +262,11 @@ static inline void sccp_raii_cleanup_block(sccp_raii_cleanup_block_t *b) { (*b)(
     sccp_raii_cleanup_block_t _raii_cleanup_ ## varname __attribute__((cleanup(sccp_raii_cleanup_block),unused)) = 	\
         ^{ {(void)dtor(varname);} }
 #  endif
+#elif defined(__GNUC__)
+#define RAII(vartype, varname, initval, dtor)										\
+    auto void _dtor_ ## varname (vartype * v);										\
+    void _dtor_ ## varname (vartype * v) { dtor(*v); }									\
+    vartype varname __attribute__((cleanup(_dtor_ ## varname))) = (initval)
 #endif
 
 #if !defined(RAII)

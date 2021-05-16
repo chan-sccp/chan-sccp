@@ -1577,7 +1577,7 @@ int sccp_random(void)
 	return (int)pbx_random();
 }
 
-const char * sccp_retrieve_str_variable_byKey(PBX_VARIABLE_TYPE *params, const char *key)
+const char * __PURE__ sccp_retrieve_str_variable_byKey(PBX_VARIABLE_TYPE * params, const char * key)
 {
 	PBX_VARIABLE_TYPE * param = NULL;
 	for(param = params;param;param = param->next) {
@@ -1726,8 +1726,14 @@ static void __attribute__((destructor)) sccp_unregister_tests(void)
 #endif
 
 #ifdef DEBUG
-#if ASTERISK_VERSION_GROUP < 112 
-#if HAVE_EXECINFO_H
+#	if defined(HAVE_BFD_H) && defined(HAVE_DETAILED_BACKTRACE)
+#		if HAVE_DECL_BFD_GET_SECTION_FLAGS
+#			define ucs_debug_bfd_section_flags(_abfd, _section) bfd_get_section_flags(_abfd, _section)
+#		elif HAVE_DECL_BFD_SECTION_FLAGS
+#			define ucs_debug_bfd_section_flags(_abfd, _section) bfd_section_flags(_section)
+#		endif
+#		if ASTERISK_VERSION_GROUP < 112
+#			if HAVE_EXECINFO_H
 static char **__sccp_bt_get_symbols(void **addresses, size_t num_frames)
 {
 	char ** strings = NULL;
@@ -1790,9 +1796,7 @@ static char **__sccp_bt_get_symbols(void **addresses, size_t num_frames)
 			}
 
 			for (section = bfdobj->sections; section; section = section->next) {
-				if (!(bfd_get_section_flags(bfdobj, section) & SEC_ALLOC) ||
-					section->vma > offset ||
-					section->size + section->vma < offset) {
+				if (!(ucs_debug_bfd_section_flags(bfdobj, section) & SEC_ALLOC) || section->vma > offset || section->size + section->vma < offset) {
 					continue;
 				}
 
@@ -1934,5 +1938,11 @@ void sccp_do_backtrace()
 	}
 #endif	// HAVE_EXECINFO_H
 }
-#endif  // DEBUG
+#	else
+void sccp_do_backtrace()
+{
+	// not implemented
+}
+#	endif                                        // HAVE_BFD_H && HAVE_DETAILED_BACKTRACE
+#endif                                                // DEBUG
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

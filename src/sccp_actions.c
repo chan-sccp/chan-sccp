@@ -2648,10 +2648,13 @@ void sccp_handle_soft_key_template_req(constSessionPtr s, devicePtr d, constMess
 			case SKINNY_LBL_JOIN:
 				/* fall through */
 			case SKINNY_LBL_CONFLIST:
-				if(!d->allow_conference) {
+				if (!d->allow_conference) {
 					break;
 				}
-				[[fallthrough]];
+#endif
+				/* fall through */
+#if !defined(__clang)
+				__attribute__((fallthrough));
 #endif
 			default:
 				msg_out->data.SoftKeyTemplateResMessage.definition[i].softKeyLabel[0] = (char)128;		/* adding "\200" upfront to indicate that we are using an embedded/xml label */
@@ -3072,7 +3075,7 @@ void handle_keypad_button(constSessionPtr s, devicePtr d, constMessagePtr msg_in
 				break;
 			}
 			// fallthrough to lineInstance only method (channel could not be found on lineInstance), reported in issue #340
-			[[fallthrough]];
+			/* fall through */
 		case SCCP_CILI_HAS_LINEINSTANCE:
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: SCCP (handle_keypad) only lineinstance\n", DEV_ID_LOG(d));
 			if((l = sccp_line_find_byid(d, lineInstance)) /*ref_replace*/) {

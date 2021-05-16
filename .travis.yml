@@ -1,7 +1,7 @@
 language: c
 
 dist: 
- - xenial
+ - bionic
 
 # Setup Build Matrix
 compiler: 
@@ -22,11 +22,10 @@ env:
     # The next declaration is the encrypted COVERITY_SCAN_TOKEN, created using: travis encrypt COVERITY_SCAN_TOKEN="xxxxxxx-xxxxxxx" -r dkgroot/chan-sccp-b
     - secure: "ambC8BbKKCJRW/6iwwNS7xfcAg2X00jZsK0McvwpFUEBylxypUni2aBdOpOyMcUGd5hQJS16XbcObeBCim2ZYnyAUzR2LKoFZroGVbwN83OhLGJ83cSXgiDbzKUxuBKTwonUocB7HxWuFJLN1OXb9gucwQNWbLC2VuV5tTsp/NY="
   matrix:
-    - REPOS=xenial   # TLS
-    - REPOS=coverity # Xenial TLS
+    #- REPOS=xenial   # TLS
+    - REPOS=coverity # bionic TLS
     - REPOS=bionic   # TLS
-    #- REPOS=cosmic
-    - REPOS=disco    # Current
+    - REPOS=focal
 
 matrix:
   allow_failures:
@@ -38,10 +37,10 @@ before_install:
  - if [ "${REPOS}" != "coverity" ]; 
    then
      sudo apt-get update -qq;
-     sudo apt-get install -qq libblocksruntime0 libblocksruntime-dev libpj2 libpjmedia2 libpjnath2 libpjproject-dev libpjsip2 libpjsua2 asterisk asterisk-dev asterisk-config asterisk-modules asterisk-dbg binutils.dev libc6-dev gettext  autoconf automake m4 autotools-dev libltdl-dev;
+     sudo apt-get install -qq libblocksruntime0 libblocksruntime-dev libpj2 libpjmedia2 libpjnath2 libpjproject-dev libpjsip2 libpjsua2 asterisk asterisk-dev asterisk-config asterisk-modules binutils.dev libc6-dev gettext  autoconf automake m4 autotools-dev libltdl-dev;
    else
      sudo apt-get update -qq;
-     sudo apt-get install -qq libblocksruntime0 libblocksruntime-dev libpj2 libpjmedia2 libpjnath2 libpjproject-dev libpjsip2 libpjsua2 asterisk asterisk-dev asterisk-config asterisk-modules asterisk-dbg binutils.dev libc6-dev gettext  autoconf automake m4 autotools-dev libltdl-dev;
+     sudo apt-get install -qq libblocksruntime0 libblocksruntime-dev libpj2 libpjmedia2 libpjnath2 libpjproject-dev libpjsip2 libpjsua2 asterisk asterisk-dev asterisk-config asterisk-modules binutils.dev libc6-dev gettext  autoconf automake m4 autotools-dev libltdl-dev;
      if [ "x${CC}" == "xclang" ] && [ "x${TRAVIS_BRANCH}" == "xdevelop" ]; then 
       eval "$COVERITY_SCAN_BUILD" || exit 0;
      fi;

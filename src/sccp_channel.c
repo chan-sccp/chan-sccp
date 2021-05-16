@@ -159,7 +159,7 @@ static void makeProgress(channelPtr c)
 	}
 }
 
-boolean_t sccp_channel_isAnswering(constChannelPtr c)
+boolean_t __PURE__ sccp_channel_isAnswering(constChannelPtr c)
 {
 	return c && c->privateData ? c->privateData->isAnswering : TRUE;
 }
@@ -3005,7 +3005,7 @@ boolean_t sccp_channel_setPreferredCodec(channelPtr c, const char * data)
 	return TRUE;
 }
 
-sccp_video_mode_t sccp_channel_getVideoMode(constChannelPtr c)
+sccp_video_mode_t __PURE__ sccp_channel_getVideoMode(constChannelPtr c)
 {
 #if CS_SCCP_VIDEO
 	// sccp_log(DEBUGCAT_CHANNEL)(VERBOSE_PREFIX_3 "%s: (getVideoMode) current video mode:%s\n", c->designator, sccp_video_mode2str(c->videomode));
