@@ -35,13 +35,13 @@ extern "C" {
 #if !defined(SCCP_API)
 #if defined __STDC__ && defined __STDC_VERSION__ && __STDC_VERSION__ >= 199901L && defined(__GNUC__)
 #  if !defined(__clang__)
-#    define gcc_inline __inline__
+#    define gcc_inline inline
 #  else
-#    define gcc_inline
+#    define gcc_inline inline
 #  endif
 #  define SCCP_API extern __attribute__((__visibility__("hidden")))
 #  define SCCP_API_VISIBLE extern __attribute__((__visibility__("default")))
-#  define SCCP_INLINE SCCP_API gcc_inline
+#  define SCCP_INLINE SCCP_API
 #  define SCCP_CALL 
 #define __PURE__ __attribute__((pure))
 #define __CONST__ __attribute__((const))
@@ -49,7 +49,7 @@ extern "C" {
 #  define gcc_inline
 #  define SCCP_API extern
 #  define SCCP_API_VISIBLE extern
-#  define SCCP_INLINE SCCP_API gcc_inline
+#  define SCCP_INLINE SCCP_API
 #  define SCCP_CALL 
 #define __PURE__ 
 #define __CONST__ 
@@ -253,21 +253,29 @@ typedef struct pbx_rwlock_info pbx_rwlock_t;
 #define snprintf(...) ({int __snprres = __snprintf(__VA_ARGS__); if (__snprres < 0) {pbx_log(LOG_WARNING, "snprintf returned error\n");};__snprres;})
 #endif
 
-#if defined(__clang__)
+#if defined(__GNUC__)
+#define RAII(vartype, varname, initval, dtor)										\
+    auto void _dtor_ ## varname (vartype * v);										\
+    void _dtor_ ## varname (vartype * v) { dtor(*v); }									\
+    vartype varname __attribute__((cleanup(_dtor_ ## varname))) = (initval)
+#elif defined(__clang__) 
+#  if __has_extension(blocks)
 typedef void (^sccp_raii_cleanup_block_t)(void);
 static inline void sccp_raii_cleanup_block(sccp_raii_cleanup_block_t *b) { (*b)(); }
 #define RAII(vartype, varname, initval, dtor)										\
     __block vartype varname = (initval);										\
     sccp_raii_cleanup_block_t _raii_cleanup_ ## varname __attribute__((cleanup(sccp_raii_cleanup_block),unused)) = 	\
         ^{ {(void)dtor(varname);} }
-#elif defined(__GNUC__)
-#define RAII(vartype, varname, initval, dtor)										\
-    auto void _dtor_ ## varname (vartype * v);										\
-    void _dtor_ ## varname (vartype * v) { dtor(*v); }									\
-    vartype varname __attribute__((cleanup(_dtor_ ## varname))) = (initval)
-#else
+#  endif
+#endif
+
+#if !defined(RAII)
+#  if defined(NO_RAII)
+#define RAII(vartype, varname, initval, dtor) vartype varname = (initval)
+#  else
     #error "Cannot compile Asterisk: unknown and unsupported compiler."
-#endif /* #if __GNUC__ */
+#  endif
+#endif
 
 #define container_of(ptr, type, member) ({                      							\
         const typeof( ((type *)0)->member ) *__mptr = (const typeof( ((type *)0)->member ) *)(ptr);    			\

@@ -170,7 +170,9 @@ AC_DEFUN([CS_SETUP_ENVIRONMENT], [
 	AC_LANG_SAVE
 	AC_LANG_C
 	AC_DISABLE_STATIC
-	AS_IF(	[test -z "`${CC} -std=gnu11 -fgnu89-inline -dM -E - </dev/null 2>&1 |grep 'unrecognized command line option'`" && test $? == 0],		[CFLAGS_saved="$CFLAGS_saved -std=gnu11 -fgnu89-inline"],
+	AS_IF(
+		[test -z "`${CC} -std=gnu2c -fgnu89-inline -dM -E - </dev/null 2>&1 |grep 'unrecognized command line option'`" && test $? == 0],		[CFLAGS_saved="$CFLAGS_saved -std=gnu2x -fgnu89-inline"],
+		[test -z "`${CC} -std=gnu11 -fgnu89-inline -dM -E - </dev/null 2>&1 |grep 'unrecognized command line option'`" && test $? == 0],		[CFLAGS_saved="$CFLAGS_saved -std=gnu11 -fgnu89-inline"],
 		[test -n "`${CC} -std=gnu99 -fgnu89-inline -Wno-ignored-qualifiers -dM -E - </dev/null 2>&1 |grep '__STDC_VERSION__ 1999'`" && test $? == 0],	[CFLAGS_saved="$CFLAGS_saved -std=gnu99 -fgnu89-inline -Wno-ignored-qualifiers"],
 		[test -n "`${CC} -std=gnu99 -fgnu89-inline -Wno-return-type -dM -E - </dev/null 2>&1 |grep '__STDC_VERSION__ 1999'`" && test $? == 0],		[CFLAGS_saved="$CFLAGS_saved -std=gnu99 -fgnu89-inline -Wno-return-type"],
 		[test -n "`${CC} -std=gnu89 -Wno-return-type -dM -E - </dev/null 2>&1 |grep '__STDC__ 1'`" && test $? == 0], 					[CFLAGS_saved="$CFLAGS_saved -std=gnu89 -Wno-return-type";CC_works=0],
@@ -543,65 +545,124 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 			AC_LANG_SAVE
 			AC_LANG_C
 			AX_APPEND_COMPILE_FLAGS([ dnl
-				-Wall dnl
-				-Wno-long-long dnl
-				-Wno-missing-field-initializers dnl
-				-Wmissing-declarations dnl
-				-Wnested-externs dnl
-				-Wnonnull dnl
-				-Wnonnull-compare dnl
-				-Wnull-dereference dnl
-				-Wcast-align dnl
-				-Wold-style-definition dnl
-				-Wformat-security dnl
-				-Wstrict-aliasing dnl
-				-Wmissing-format-attribute dnl
-				-Wmissing-noreturn dnl
-				-Wmissing-include-dirs dnl
-				-Winit-self dnl
-				-Warray-bounds dnl
-				-Wimplicit-function-declaration dnl
-				-Wreturn-type dnl
-				-Wsign-compare dnl
-				-Wstrict-prototypes dnl
-				-Wmissing-prototypes dnl
-				-Wempty-body dnl
-				-Wmissing-parameter-type dnl
-				-Woverride-init dnl
-				-Wtype-limits dnl
-				-Wuninitialized dnl 
-				-Wshift-negative-value dnl
-				-Wendif-labels dnl
-				-Wformat-security dnl
-				-Waddress dnl
-				-Wno-pointer-sign dnl
-				-Wold-style-definition,  dnl
-				-Wstrict-prototypes dnl
-				-Werror=implicit dnl
-				-Wunused dnl
-				-Wunused-const-variable dnl
-				-Wunused-function dnl
-				-Wunused-label dnl
-				-Wunused-local-typedefs dnl
-				-Wpragmas dnl
-				-Wno-overlength-strings dnl
-				-Wheader-guard dnl
-				-Wattributes dnl
-				-Wdiv-by-zero dnl
-				-Wmisleading-indentation dnl
-				-Wswitch dnl
+				-fexcess-precision=fast dnl
+				-fno-delete-null-pointer-checks dnl
+				-fPIE dnl
+				-fPIE -pie dnl
 				-fstack-protector-all dnl
 				-fvisibility=hidden dnl
 				-fvisibility-inlines-hidden dnl
-				-fexcess-precision=fast dnl
-				-fvisibility=hidden dnl
 				-fwrapv dnl
-				-fno-delete-null-pointer-checks dnl
-				-xldscope=hidden dnl
+				-Wall dnl
+				-Waddress dnl
+dnl				-Waggregate-return dnl
+				-Waggressive-loop-optimizations dnl
+				-Wanalyzer-double-fclose dnl
+				-Wanalyzer-double-free dnl
+				-Wanalyzer-exposure-through-output-file dnl
+				-Wanalyzer-file-leak dnl
+				-Wanalyzer-free-of-non-heap dnl
+				-Wanalyzer-malloc-leak dnl
+				-Wanalyzer-null-argument dnl
+				-Wanalyzer-null-dereference dnl
+				-Wanalyzer-possible-null-argument dnl
+				-Wanalyzer-possible-null-dereference dnl
+				-Wanalyzer-stale-setjmp-buffer dnl
+				-Wanalyzer-tainted-array-index dnl
+				-Wanalyzer-too-complex dnl
+				-Wanalyzer-unsafe-call-within-signal-handler dnl
+				-Wanalyzer-use-after-free dnl
+				-Wanalyzer-use-of-pointer-in-stale-stack-frame dnl
+				-Warray-bounds dnl
+				-Wattribute-alias dnl
+				-Wattributes dnl
+				-Wattribute-warning dnl
+				-Wcannot-profile dnl
+				-Wcast-align dnl
+				-Wcoverage-mismatch dnl
+				-Wdeprecated-declarations dnl
+				-Wdisabled-optimization dnl
+				-Wdiv-by-zero dnl
+				-Wempty-body dnl
+				-Wendif-labels dnl
+				-Werror=implicit dnl
+				-Wfatal-errors dnl
+				-Wformat-security dnl
+				-Wfree-nonheap-object dnl
+				-Wheader-guard dnl
+				-Whsa dnl
+				-Wimplicit-fallthrough dnl
+				-Wimplicit-function-declaration dnl
+				-Winit-self dnl
+dnl				-Winline dnl
+				-Winvalid-memory-model dnl
 				-Wl,--as-needed dnl
-				-fPIE dnl
-				-fPIE -pie dnl
+				-Wlto-type-mismatch dnl
+				-Wmisleading-indentation dnl
+				-Wmissing-declarations dnl
+				-Wmissing-format-attribute dnl
+				-Wmissing-include-dirs dnl
+				-Wmissing-noreturn dnl
+				-Wmissing-noreturn dnl
+				-Wmissing-parameter-type dnl
+				-Wmissing-profile dnl
+				-Wmissing-prototypes dnl
+				-Wnested-externs dnl
 				-Wno-format-truncation dnl
+				-Wno-frame-larger-than dnl
+				-Wno-larger-than dnl
+				-Wno-long-long dnl
+				-Wno-missing-field-initializers dnl
+				-Wnonnull-compare dnl
+				-Wnonnull dnl
+				-Wno-overlength-strings dnl
+				-Wno-pointer-sign dnl
+				-Wno-stack-usage dnl
+				-Wnull-dereference dnl
+				-Wodr dnl
+				-Wold-style-definition dnl
+				-Woverflow dnl
+				-Woverride-init dnl
+				-Wpacked dnl
+dnl				-Wpadded dnl
+				-Wpragmas dnl
+				-Wreturn-local-addr dnl
+				-Wreturn-type dnl
+				-Wshadow=compatible-local dnl
+				-Wshadow dnl
+				-Wshadow=global dnl
+				-Wshadow-local dnl
+				-Wshadow=local dnl
+				-Wshift-negative-value dnl
+				-Wsign-compare dnl
+dnl				-Wstack-protector dnl
+				-Wstrict-aliasing dnl
+				-Wstrict-overflow dnl
+				-Wstrict-prototypes dnl
+				-Wsuggest-attribute=cold dnl
+				-Wsuggest-attribute=const dnl
+				-Wsuggest-attribute=malloc dnl
+				-Wsuggest-attribute=noreturn dnl
+				-Wsuggest-attribute=pure dnl
+				-Wsuggest-final-methods dnl
+				-Wsuggest-final-types dnl
+				-Wswitch dnl
+				-Wswitch-unreachable dnl
+				-Wtrampolines dnl
+				-Wtype-limits dnl
+				-Wuninitialized dnl 
+				-Wunreachable-code dnl
+				-Wunsafe-loop-optimizations dnl
+				-Wunused-but-set-parameter dnl
+				-Wunused-but-set-variable dnl
+				-Wunused-const-variable dnl
+				-Wunused dnl
+				-Wunused-function dnl
+				-Wunused-label dnl
+				-Wunused-local-typedefs dnl
+				-Wunused-value dnl
+				-Wvector-operation-performance dnl
+				-xldscope=hidden dnl
 			], SUPPORTED_CFLAGS)
 		])
 		AS_IF([test "X${USE_MAINTAINER_MODE}" = "Xyes"], [
