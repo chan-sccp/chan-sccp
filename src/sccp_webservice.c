@@ -271,7 +271,7 @@ static handler_t * get_request_handler(PBX_VARIABLE_TYPE * request_params)
 
 static int parse_request_headers(PBX_VARIABLE_TYPE * request_headers, const char * locale)
 {
-	locale = sccp_retrieve_str_variable_byKey(request_headers, "Accept-Language");
+	//locale = sccp_retrieve_str_variable_byKey(request_headers, "Accept-Language");
 
 	return 0;
 }
