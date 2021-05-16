@@ -563,6 +563,8 @@ static void __sccp_indicate_remote_device(constDevicePtr device, channelPtr c, l
 						remoteDevice->indicate->remoteHold (remoteDevice, lineInstance, callid, SKINNY_CALLPRIORITY_NORMAL, stateVisibility);
 						iCallInfo.Send (ci, callid, calltype, lineInstance, remoteDevice, TRUE);
 					}
+
+					break;
 				default:
 					break;
 
