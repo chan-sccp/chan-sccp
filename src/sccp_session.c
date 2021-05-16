@@ -981,7 +981,9 @@ static void * accept_thread(void * data)
 	sccp_session_t *s = NULL;
 	socklen_t length = (socklen_t)(sizeof(struct sockaddr_storage));
 
-	for (;;) {
+	while (GLOB(module_running)) {
+		pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
+		pthread_testcancel();
 		memset(&new_sc, 0, sizeof(new_sc));
 		context->transport->accept(&context->sc, (struct sockaddr *)&incoming, &length, &new_sc);
 		if(new_sc.fd < 0) {
@@ -990,6 +992,7 @@ static void * accept_thread(void * data)
 			continue;
 		}
 
+		pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
 		sccp_netsock_setoptions(new_sc.fd, /*reuse*/ -1, /*linger*/ 0, /*keepalive*/ -1, /*sndtimeout*/ -1, /*rcvtimeout*/ 0);
 
 		if (!sccp_session_new_socket_allowed(&incoming)) {
@@ -1037,8 +1040,9 @@ void sccp_session_stop_accept_thread(sccp_servercontext_t * context)
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Stopping Accepting Thread\n");
 	pbx_rwlock_wrlock(&GLOB(lock));
 	if(context->accept_tid && (context->accept_tid != AST_PTHREADT_STOP)) {
-		pthread_cancel(context->accept_tid);
-		pthread_kill(context->accept_tid, SIGURG);
+		if (pthread_cancel(context->accept_tid) != 0) {
+			pthread_kill(context->accept_tid, SIGURG);
+		}
 		pthread_join(context->accept_tid, NULL);
 	}
 	context->accept_tid = AST_PTHREADT_STOP;
