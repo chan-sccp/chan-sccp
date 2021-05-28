@@ -2653,9 +2653,6 @@ void sccp_handle_soft_key_template_req(constSessionPtr s, devicePtr d, constMess
 				}
 #endif
 				/* fall through */
-#if !defined(__clang)
-				__attribute__((fallthrough));
-#endif
 			default:
 				msg_out->data.SoftKeyTemplateResMessage.definition[i].softKeyLabel[0] = (char)128;		/* adding "\200" upfront to indicate that we are using an embedded/xml label */
 				msg_out->data.SoftKeyTemplateResMessage.definition[i].softKeyLabel[1] = softkeysmap[i];

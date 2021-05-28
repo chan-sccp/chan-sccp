@@ -590,7 +590,7 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 				-Wfree-nonheap-object dnl
 				-Wheader-guard dnl
 				-Whsa dnl
-				-Wimplicit-fallthrough dnl
+				dnl -Wimplicit-fallthrough dnl
 				-Wimplicit-function-declaration dnl
 				-Winit-self dnl
 				-Winvalid-memory-model dnl

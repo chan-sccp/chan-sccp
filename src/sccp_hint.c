@@ -1159,7 +1159,7 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 
 				case SCCP_CHANNELSTATE_RINGING:
 					status = SKINNY_BLF_STATUS_ALERTING;	/* ringin */
-										/* fallthrough */
+										/* fall through */
 
 				default:
 					if (sccp_hint_isCIDavailabe(d, subscriber->positionOnDevice) == TRUE) {
