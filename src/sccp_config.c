@@ -1678,7 +1678,7 @@ sccp_value_changed_t sccp_config_parse_deny_permit(void * const dest, const size
 		}
 		errors |= error;
 	}
-	if (!error) {
+	if (errors == 0) {
 		// compare ha elements
 		struct ast_str *ha_buf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
 		struct ast_str *prev_ha_buf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
