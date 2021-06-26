@@ -1,10 +1,10 @@
-dnl COPYRIGHT: chan-sccp-b.sourceforge.net group 2009
+dnl COPYRIGHT:	http://chan-sccp.github.io/chan-sccp/ group 2009
 dnl CREATED BY: Created by Diederik de Groot
 dnl LICENSE: This program is free software and may be modified and distributed under the terms of the GNU Public License.
 dnl          See the LICENSE file at the top of the source tree.
 dnl NOTE: Process this file with autoconf to produce a configure script.
 AC_PREREQ([2.64])
-AC_INIT([Chan_SCCP],m4_esyscmd([cat .version |tr -d '\n']),[https://sourceforge.net/projects/chan-sccp-b/],[Chan_SCCP])
+AC_INIT([Chan_SCCP],m4_esyscmd([cat .version |tr -d '\n']),[https://github.com/chan-sccp/chan-sccp/issues],[Chan_SCCP])
 
 MIN_ASTERISK_VERSION=106
 MAX_ASTERISK_VERSION=113

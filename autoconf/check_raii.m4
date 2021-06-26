@@ -1,5 +1,10 @@
-dnl check RAII requirements
+dnl FILE: check_raii.m4
+dnl COPYRIGHT: http://chan-sccp.github.io/chan-sccp/ group 2009
+dnl CREATED BY: Created by Diederik de Groot
+dnl LICENSE: This program is free software and may be modified and distributed under the terms of the GNU Public License version 3.
+dnl          See the LICENSE file at the top of the source tree.
 dnl
+dnl check RAII requirements
 dnl gcc / llvm-gcc: -fnested-functions
 dnl clang : -fblocks / -fblocks and -lBlocksRuntime"
 AC_DEFUN([CS_CHECK_RAII], [

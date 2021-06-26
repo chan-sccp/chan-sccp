@@ -209,8 +209,8 @@ am__DIST_COMMON = $(srcdir)/Makefile.in $(top_srcdir)/amdoxygen.am \
 	$(top_srcdir)/src/pbx_impl/ast${ASTERISK_VER_GROUP}/Makefile.in \
 	AUTHORS COPYING ChangeLog INSTALL NEWS autoconf/compile \
 	autoconf/config.guess autoconf/config.rpath \
-	autoconf/config.sub autoconf/depcomp autoconf/install-sh \
-	autoconf/ltmain.sh autoconf/missing
+	autoconf/config.sub autoconf/install-sh autoconf/ltmain.sh \
+	autoconf/missing
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 top_distdir = $(distdir)
 am__remove_distdir = \
@@ -539,7 +539,7 @@ top_srcdir = @top_srcdir@
 
 
 # FILE:			AutoMake Makefile for chan-sccp
-# COPYRIGHT:		chan-sccp-b.sourceforge.net group 2009
+# COPYRIGHT:		http://chan-sccp.github.io/chan-sccp/ group 2009
 # CREATED BY:		Diederik de Groot <ddegroot@sourceforge.net>
 # LICENSE:		This program is free software and may be modified and distributed under the terms of the GNU Public License.
 # 			See the LICENSE file at the top of the source tree.

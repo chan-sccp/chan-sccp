@@ -1,4 +1,4 @@
-
+dnl FILE: acx_pthead.m4
 dnl @synopsis ACX_PTHREAD([ACTION-IF-FOUND[, ACTION-IF-NOT-FOUND]])
 dnl
 dnl @summary figure out how to build C programs using POSIX threads

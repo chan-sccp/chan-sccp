@@ -1,10 +1,6 @@
-
-# -*- Autoconf -*-
-#
-# Copyright (c)      2010  Sandia Corporation
-#
-# Largely stolen from Qthreads
-#
+dnl FILE: check_atomics.m4
+dnl COPYRIGHT: Copyright (c) 2010 Sandia Corporation
+dnl CREATED BY: Largely stolen from Qthreads
 
 # SCCP_CHECK_ATOMICS([action-if-found], [action-if-not-found])
 # ------------------------------------------------------------------------------
