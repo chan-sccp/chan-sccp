@@ -113,7 +113,7 @@ struct sccp_global_vars {
 	boolean_t cfwdnoanswer;                                                                                 /*!< Call Forward on No-Answer Support (Boolean, default=on) */
 	uint16_t cfwdnoanswer_timeout;                                                                          /*!< Call Forward on No-Answer timeout */
 	char *meetmeopts;											/*!< Meetme Options to be Used */
-#if CS_HAVE_ICONV
+#if HAVE_ICONV
 	char *iconvcodepage;											/*!< Iconv Codepage to use during conversion from UTF-8, for old phone models */
 #endif	
 	sccp_group_t callgroup;											/*!< Call Group */

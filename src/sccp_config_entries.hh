@@ -142,7 +142,7 @@ static const SCCPConfigOption sccpGlobalConfigOptions[]={
 	{"jbenable", 			G_OBJ_REF(global_jbconf),	 	TYPE_PARSER(sccp_config_parse_jbflags_enable),					SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"no",				"Enables the use of a jitterbuffer on the receiving side of a sccp channel.\n"
 																																					"An enabled jitterbuffer will be used only if the sending side can create and the receiving side can not accept jitter.\n"
 																																					"The sccp channel can accept jitter, thus a jitterbuffer on the receive sccp side will beused only if it is forced and enabled.\n"},
-#if CS_HAVE_ICONV
+#if HAVE_ICONV
 	{"phonecodepage", 		G_OBJ_REF(iconvcodepage), 		TYPE_STRINGPTR,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"ISO8859-1",			"Translation codepage for old phones, used to convert labels/buttonnames/descriptions from UTF-8 to this codepage, on pre-java phones. DEFAULT:ISO8859-1\n"},
 #endif
 	{"jbforce", 			G_OBJ_REF(global_jbconf),		TYPE_PARSER(sccp_config_parse_jbflags_force),					SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"no",				"Forces the use of a jitterbuffer on the receive side of a sccp channel. Setting this to yes, will disable direcrtp\n"},
@@ -265,7 +265,7 @@ static const SCCPConfigOption sccpDeviceConfigOptions[] = {
 	{"conf_mute_on_entry",		D_OBJ_REF(conf_mute_on_entry),		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"no",				"Mute new participants from the start. Not supported on 7936/7937 conference phones."},
 	{"conf_show_conflist",		D_OBJ_REF(conf_show_conflist),		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"yes",				"Automatically show conference list to the moderator. Not supported on 7936/7937 conference phones."},
 #endif
-#if CS_HAVE_ICONV
+#if HAVE_ICONV
 	{"phonecodepage", 		D_OBJ_REF(iconvcodepage), 		TYPE_STRINGPTR,									SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"Translation codepage for old phones, used to convert labels/buttonnames/descriptions from UTF-8 to this codepage, on pre-java phones. DEFAULT:ISO8859-1\n"},
 #endif
 	{"backgroundImage",		D_OBJ_REF(backgroundImage),		TYPE_STRINGPTR,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"Set the Background Image after device registered. Image must be set as URI to a http served file."},
