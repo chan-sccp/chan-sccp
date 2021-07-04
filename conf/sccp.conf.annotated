@@ -1,9 +1,8 @@
 ;!
 ;! Automatically generated configuration file
-;! Filename: sccp.conf.annotate (/usr/local/asterisk-13-branch/etc/asterisk/sccp.conf.annotate)
+;! Filename: sccp.conf.annotated (/usr/local/asterisk-18-branch/etc/asterisk/sccp.conf.annotated)
 ;! Generator: sccp config generate
-;! Creation Date: Fri Oct 25 13:19:42 2019
-;!
+;! Creation Date: Jul  4 08:53:21;!
 
 ;!
 ;! This file is only provided to show a possible parameters and their defaults.
@@ -27,7 +26,10 @@
 ;context = default                                                                ; (REQUIRED) pbx dialplan context
 ;dateformat = M/D/Y                                                               ; (SIZE: 7) M-D-Y in any order. Use M/D/YA (for 12h format)
 ;bindaddr = 0.0.0.0                                                               ; (REQUIRED) replace with the ip address of the asterisk server (RTP important param)
-;port = 2000                                                                      ; listen on port 2000 (Skinny, default)
+;port = 2000                                                                      ; port to listen on (Skinny default:2000)
+;secbindaddr = 0.0.0.0                                                            ; ip-address to use for for secure ssl/tls connections
+;secport = 2443                                                                   ; secure port to list on (Skinny default:2443)
+certfile = ""                                                                     ; security certificate file (search path:Asterisk etc directory). If this field starts with '/' the absolute path will be used.
 disallow = all
 allow = ulaw,alaw                                                                 ; (MULTI-ENTRY) First disallow all codecs, for example 'all', then allow codecs in order of preference (Multiple lines allowed)
 deny = 0.0.0.0/0.0.0.0
@@ -47,7 +49,7 @@ externhost = ""                                                                 
 ;recorddigittimeoutchar = no                                                      ; You can force the channel to dial with this char in the dialing state
 ;simulate_enbloc = yes                                                            ; Use simulated enbloc dialing to speedup connection when dialing while onhook (older phones)
 ;ringtype = outside                                                               ; Ringtype for incoming calls (default='outside')
-                                                                                  ; (POSSIBLE VALUES: ["Ring Off","Inside","Outside","Feature","Silent/FlashOnly","Urgent","Bellcore1","Bellcore2","Bellcore3","Bellcore4","Bellcore5"])
+                                                                                  ; (POSSIBLE VALUES: ["Off","Inside","Outside","Feature","Silent","Urgent","Bellcore1","Bellcore2","Bellcore3","Bellcore4","Bellcore5"])
 ;autoanswer_ring_time = 1                                                         ; Ringing time in seconds for the autoanswer.
 ;autoanswer_tone = Zip                                                            ; Autoanswer confirmation tone. For a complete list of tones: `grep SKINNY_TONE_ sccp_enum.in.`
                                                                                   ; not all the tones can be played in a connected state, so you have to try.
@@ -80,9 +82,8 @@ externhost = ""                                                                 
 ;echocancel = yes                                                                 ; sets the phone echocancel for all devices
 ;silencesuppression = no                                                          ; sets the silence suppression for all devices
                                                                                   ; we don't have to trust the phone ip address, but the ip address of the connection
-;earlyrtp = progress                                                              ; valid options: none, offhook, immediate, dial, ringout and progress.
-                                                                                  ; The audio stream will be open in the 'progress' state by default. Immediate forces overlap dialing.
-                                                                                  ; (POSSIBLE VALUES: ["Immediate","OffHook","Dialing","Ringout","Progress","None"])
+;earlyrtp = yes                                                                   ; valid options: yes / no.Deprecated options: none, offhook, immediate, dial, ringout and progress. 'none' maps to 'no' and the rest maps to 'yes'.
+                                                                                  ; The audio stream will be open in the 'true' state by default.
 ;dndFeature = on                                                                  ; Turn on the dnd softkey for all devices. Valid values are 'off', 'on'.
 ;private = yes                                                                    ; permit the private function softkey
 ;mwilamp = on                                                                     ; Set the MWI lamp style when MWI active to on, off, wink, flash or blink
@@ -104,6 +105,8 @@ pickupgroup = ""                                                                
 directed_pickup = ""                                                              ; enable/disable Pickup button to do directed pickup from a specific extension.
 directed_pickup_context = ""                                                      ; context where direct pickup search for extensions. If not set, the current context of the picking line will be used.
 ;pickup_modeanswer = yes                                                          ; Automatically Answer when using Directed Pickup. (default=on)
+namedcallgroup = ""                                                               ; sets the named caller groups
+namedpickupgroup = ""                                                             ; sets the named pickup groups (can pickup calls from remote phones which are in this callgroup
 ;callhistory_answered_elsewhere = Ignore                                          ; Where to store callinfo for calls answered on a remote device. Options: Ignore, Missed Calls (or Placed Calls, Received Calls which are less usefull)
                                                                                   ; (POSSIBLE VALUES: ["Ignore","Placed Calls","Received Calls","Missed Calls","Unknown"])
 ;amaflags = default                                                               ; Sets the default AMA flag code stored in the CDR record
@@ -186,9 +189,8 @@ video_cos = ""                                                                  
 nat = ""                                                                          ; Device NAT support. Currently nat is automatically detected in most cases.
                                                                                   ; (POSSIBLE VALUES: ["Auto","Off","(Auto)Off","On","(Auto)On"])
 directrtp = ""                                                                    ; This option allow devices to do direct RTP sessions.
-earlyrtp = ""                                                                     ; valid options: none, offhook, immediate, dial, ringout and progress.
-                                                                                  ; The audio stream will be open in the 'progress' state by default. Immediate forces overlap dialing.
-                                                                                  ; (POSSIBLE VALUES: ["Immediate","OffHook","Dialing","Ringout","Progress","None"])
+earlyrtp = ""                                                                     ; valid options: yes / no.Deprecated options: none, offhook, immediate, dial, ringout and progress. 'none' maps to 'no' and the rest maps to 'yes'.
+                                                                                  ; The audio stream will be open in the 'true' state by default.
 private = ""                                                                      ; permit the private function softkey for this device
 privacy = ""                                                                      ; full = disable hints notification on devices, on = hints showed depending on privacy key, off = hints always showed
 mwilamp = ""                                                                      ; Set the MWI lamp style when MWI active to on, off, wink, flash or blink
@@ -206,7 +208,7 @@ allowoverlap = ""                                                               
 setvar = ""                                                                       ; (MULTI-ENTRY) extra variables to be set on line initialization multiple entries possible (for example the sip number to use when dialing outside)
                                                                                   ; format setvar=param=value, for example setvar=sipno=12345678
 permithost = ""                                                                   ; (MULTI-ENTRY) permit/deny but by resolved hostname
-addon = ""                                                                        ; One of 7914, 7915, 7916
+addon = ""                                                                        ; (MULTI-ENTRY) One or Two of 7914, 7915, 7916
 button = ""                                                                       ; (MULTI-ENTRY) Buttons come in the following flavours (empty, line, speeddial, service, feature).
                                                                                   ; Examples (read the documentation for more examples/combinations):
                                                                                   ;  - button = line,1234
@@ -217,10 +219,14 @@ button = ""                                                                     
                                                                                   ;  - button = line,98099@+12:Phone2@ButtonLabel!silent           ; same as the previous line
                                                                                   ;  - button = line,98099@=12:Phone2!silent                       ; overwrite line-cid instead of appending
                                                                                   ;  - button = speeddial,Phone 2 Line 1, 98021, 98021@hints
-                                                                                  ;  - button = feature,cfwdall,1234
                                                                                   ;  - button = feature,PDefault,ParkingLot,default                ; feature, name, feature_type, parkinglotContext[, OptionalArguments]
                                                                                   ;  - button = feature,PDefault,ParkingLot,default,RetrieveSingle ; Automatically retrieve the parked call if there is only one. <= this is the default when no optional arguments are specified
                                                                                   ;  - button = feature,PDefault,ParkingLot,default,AlwaysShowMenu ; Force the menu even if there is only one call
+                                                                                  ;  - button = feature,cfwdall,1234
+                                                                                  ;                              ; feature, label, feature_type=cfwdall, exten
+                                                                                  ;  - button = feature,TriStateDND,DND                            ; feature, label, feature_type=DND
+                                                                                  ;  - button = feature,BusyDND,DND,busy                           ; feature, label, feature_type=DND, busy
+                                                                                  ;  - button = feature,SilentDND,DND,silent                       ; feature, label, feature_type=DND, silent
 ;allowRinginNotification = no                                                     ; allow ringin notification for hinted extensions. experimental configuration param that may be removed in further version
 ;conf_allow = yes                                                                 ; Allow the use of conference
 ;conf_music_on_hold_class = default                                               ; Play music on hold of this class when no moderator is listening on the conference. If set to an empty string, no music on hold will be played.
@@ -275,7 +281,8 @@ disallow = ""
 allow = ""                                                                        ; (MULTI-ENTRY) Same as entry in [general] section
 parkinglot = ""                                                                   ; parkinglot assigned to this line
 trnsfvm = ""                                                                      ; extension to redirect the caller to for voice mail
-;initial_dialtone_tone = Inside Dial Tone                                          ; dialtone produced when going offhook
+;initial_dialtone_tone = Inside Dial Tone                                         ; initial dialtone when lifting receiver
+                                                                                  ; (POSSIBLE VALUES: ["Silence","DTMF 1","DTMF 2","DTMF 3","DTMF 4","DTMF 5","DTMF 6","DTMF 7","DTMF 8","DTMF 9","DTMF 0","DTMF Star","DTMF Pound","DTMF A","DTMF B","DTMF C","DTMF D","Inside Dial Tone","Outside Dial Tone","Line Busy Tone","Alerting Tone","Reorder Tone","Recorder Warning Tone","Recorder Detected Tone","Reverting Tone","Receiver OffHook Tone","Partial Dial Tone","No Such Number Tone","Busy Verification Tone","Call Waiting Tone","Confirmation Tone","Camp On Indication Tone","Recall Dial Tone","Zip Zip","Zip","Beep Bonk","Music Tone","Hold Tone","Test Tone","DT Monitor Warning Tone","Add Call Waiting","Priority Call Wait","Recall Dial","Barg In","Distinct Alert","Priority Alert","Reminder Ring","Precedence RingBank","Pre-EmptionTone","MF1","MF2","MF3","MF4","MF5","MF6","MF7","MF8","MF9","MF0","MFKP1","MFST","MFKP2","MFSTP","MFST3P","MILLIWATT","MILLIWATT TEST","HIGH TONE","FLASH OVERRIDE","FLASH","PRIORITY","IMMEDIATE","PRE-AMP WARN","2105 HZ","2600 HZ","440 HZ","300 HZ","MLPP Pala","MLPP Ica","MLPP Vca","MLPP Bpa","MLPP Bnea","MLPP Upa","No Tone","Meetme Greeting Tone","Meetme Number Invalid Tone","Meetme Number Failed Tone","Meetme Enter Pin Tone","Meetme Invalid Pin Tone","Meetme Failed Pin Tone","Meetme CFB Failed Tone","Meetme Enter Access Code Tone","Meetme Access Code Invalid Tone","Meetme Access Code Failed Tone"])
 secondary_dialtone_digits = ""                                                    ; digits to indicate an external line to user (secondary dialtone) (max 9 digits)
 ;secondary_dialtone_tone = Outside Dial Tone                                      ; outside dialtone frequency
                                                                                   ; (POSSIBLE VALUES: ["Silence","DTMF 1","DTMF 2","DTMF 3","DTMF 4","DTMF 5","DTMF 6","DTMF 7","DTMF 8","DTMF 9","DTMF 0","DTMF Star","DTMF Pound","DTMF A","DTMF B","DTMF C","DTMF D","Inside Dial Tone","Outside Dial Tone","Line Busy Tone","Alerting Tone","Reorder Tone","Recorder Warning Tone","Recorder Detected Tone","Reverting Tone","Receiver OffHook Tone","Partial Dial Tone","No Such Number Tone","Busy Verification Tone","Call Waiting Tone","Confirmation Tone","Camp On Indication Tone","Recall Dial Tone","Zip Zip","Zip","Beep Bonk","Music Tone","Hold Tone","Test Tone","DT Monitor Warning Tone","Add Call Waiting","Priority Call Wait","Recall Dial","Barg In","Distinct Alert","Priority Alert","Reminder Ring","Precedence RingBank","Pre-EmptionTone","MF1","MF2","MF3","MF4","MF5","MF6","MF7","MF8","MF9","MF0","MFKP1","MFST","MFKP2","MFSTP","MFST3P","MILLIWATT","MILLIWATT TEST","HIGH TONE","FLASH OVERRIDE","FLASH","PRIORITY","IMMEDIATE","PRE-AMP WARN","2105 HZ","2600 HZ","440 HZ","300 HZ","MLPP Pala","MLPP Ica","MLPP Vca","MLPP Bpa","MLPP Bnea","MLPP Upa","No Tone","Meetme Greeting Tone","Meetme Number Invalid Tone","Meetme Number Failed Tone","Meetme Enter Pin Tone","Meetme Invalid Pin Tone","Meetme Failed Pin Tone","Meetme CFB Failed Tone","Meetme Enter Access Code Tone","Meetme Access Code Invalid Tone","Meetme Access Code Failed Tone"])
@@ -294,7 +301,7 @@ regexten = ""                                                                   
 ;[mysoftkeyset]
 ;type = softkeyset                                                                ; (SIZE: -1) This should be set to softkeyset
 ;onhook = redial, newcall, cfwdall, cfwdbusy, cfwdnoanswer, pickup, gpickup, dnd, private         ; (SIZE: 15) displayed when we are on hook
-;connected = hold, endcall, park, vidmode, select, cfwdall, cfwdbusy, idivert, monitor      ; (SIZE: 15) displayed when we have a connected call
+;connected = hold, endcall, transfer, idivert, conf, conflist, park, monitor, vidmode     ; (SIZE: 15) displayed when we have a connected call
 ;onhold = resume, newcall, endcall, transfer, conflist, select, dirtrfr, idivert, meetme        ; (SIZE: 15) displayed when we have a call on hold
 ;ringin = answer, endcall, transvm, idivert                                       ; (SIZE: 15) displayed when we have an incoming call
 ;offhook = redial, endcall, private, cfwdall, cfwdbusy, cfwdnoanswer, pickup, gpickup, meetme, barg                   ; (SIZE: 15) displayed when the phone is taken off hook
@@ -304,7 +311,7 @@ regexten = ""                                                                   
 ;ringout = empty, endcall, transfer                                               ; (SIZE: 15) displayed when We are calling someone
 ;offhookfeat = resume, newcall, endcall                                           ; (SIZE: 15) displayed wenn we went offhook using a feature
 ;onhint = redial, newcall, pickup, gpickup                                        ; (SIZE: 15) displayed when a hint is activated
-;onstealable = redial, newcall, barge, intrcpt, cfwdall, pickup, gpickup, dnd     ; (SIZE: 15) displayed when there is a call we could steal on one of the neighboring phones
+;onstealable = redial, newcall, barge, intrcpt                                    ; (SIZE: 15) displayed when there is a call we could steal on one of the neighboring phones
 ;holdconf = resume, newcall, endcall, join                                        ; (SIZE: 15) displayed when we are a conference moderator, have the conference on hold and have another active call
 uriaction = ""                                                                    ; (MULTI-ENTRY) (SIZE: 7) softkey uri action to replace default handling. Format: uriaction = softkeyname, uri[,uri...]
                                                                                   ; . URI can be an embedded cisco action (like Key:Service, Play:1041.raw) or a URLIf uri is a url the following parameters will be added to it: devicename, linename, channelname, callid, linkedid, uniqueid, appid, transactionid

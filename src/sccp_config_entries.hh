@@ -93,8 +93,9 @@ static const SCCPConfigOption sccpGlobalConfigOptions[]={
 	{"silencesuppression", 		G_OBJ_REF(silencesuppression), 		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"no",				"sets the silence suppression for all devices\n"
 																																					"we don't have to trust the phone ip address, but the ip address of the connection\n"},
 	{"trustphoneip", 		G_OBJ_REF(trustphoneip), 		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_OBSOLETE,					SCCP_CONFIG_NOUPDATENEEDED,		"no",				"(OBSOLETE) The phone has a ip address. It could be private, so if the phone is behind NAT.\n"},
-	{"earlyrtp", 			G_OBJ_REF(earlyrtp), 			TYPE_PARSER(sccp_config_parse_earlyrtp),					SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"yes",				"valid options: none, offhook, immediate, dial, ringout and progress.\n"
-																																					"The audio stream will be open in the 'progress' state by default. Immediate forces overlap dialing.\n"},
+	{"earlyrtp", 			G_OBJ_REF(earlyrtp), 			TYPE_PARSER(sccp_config_parse_earlyrtp),					SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"yes",				"valid options: yes / no."
+																																					"Deprecated options: none, offhook, immediate, dial, ringout and progress. 'none' maps to 'no' and the rest maps to 'yes'.\n"
+																																					"The audio stream will be open in the 'true' state by default.\n"},
 	{"dnd", 			G_OBJ_REF(dndFeature), 			TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_OBSOLETE,					SCCP_CONFIG_NOUPDATENEEDED,		"on",				"(OBSOLETE) Turn on the dnd softkey for all devices. Valid values are 'off', 'on' (replaced by in favor of 'dndFeature').\n"},
 	{"dndFeature",			G_OBJ_REF(dndFeature), 			TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"on",				"Turn on the dnd softkey for all devices. Valid values are 'off', 'on'.\n"},
 	{"private", 			G_OBJ_REF(privacy), 			TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"yes",				"permit the private function softkey\n"},
@@ -213,8 +214,9 @@ static const SCCPConfigOption sccpDeviceConfigOptions[] = {
 																																					"we don't have to trust the phone ip address, but the ip address of the connection.\n"},
 	{"nat", 			D_OBJ_REF(nat), 			TYPE_ENUM(sccp,nat),								SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"Device NAT support. Currently nat is automatically detected in most cases.\n"},
 	{"directrtp", 			D_OBJ_REF(directrtp), 			TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"This option allow devices to do direct RTP sessions.\n"},
-	{"earlyrtp", 			D_OBJ_REF(earlyrtp), 			TYPE_PARSER(sccp_config_parse_earlyrtp),					SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"valid options: none, offhook, immediate, dial, ringout and progress.\n"
-																																					"The audio stream will be open in the 'progress' state by default. Immediate forces overlap dialing.\n"},
+	{"earlyrtp", 			D_OBJ_REF(earlyrtp), 			TYPE_PARSER(sccp_config_parse_earlyrtp),					SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"valid options: yes / no."
+																																					"Deprecated options: none, offhook, immediate, dial, ringout and progress. 'none' maps to 'no' and the rest maps to 'yes'.\n"
+																																					"The audio stream will be open in the 'true' state by default.\n"},
 	{"private", 			D_OBJ_REF(privacyFeature.enabled), 	TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"permit the private function softkey for this device\n"},
 	{"privacy", 			D_OBJ_REF(privacyFeature),	 	TYPE_PARSER(sccp_config_parse_privacyFeature),					SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"full = disable hints notification on devices, on = hints showed depending on privacy key, off = hints always showed\n"},
 	{"mwilamp",			D_OBJ_REF(mwilamp), 			TYPE_ENUM(skinny,lampmode),							SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"Set the MWI lamp style when MWI active to on, off, wink, flash or blink\n"},
