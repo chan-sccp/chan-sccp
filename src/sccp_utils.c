@@ -1331,7 +1331,6 @@ AST_TEST_DEFINE(chan_sccp_acl_invalid_tests)
 			res = AST_TEST_FAIL;
 		}
 	}
-	sccp_free_ha(ha);
 	ha = NULL;
 
 	return res;

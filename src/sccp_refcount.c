@@ -921,8 +921,8 @@ gcc_inline void sccp_refcount_autorelease(void *refptr)
 #if CS_TEST_FRAMEWORK
 #include <asterisk/test.h>
 #define NUM_LOOPS 50
-#define NUM_OBJECTS 5000
-#define NUM_THREADS 10
+#		define NUM_OBJECTS 500
+#		define NUM_THREADS 10
 struct refcount_test {
 	char *str;
 	int id;
@@ -955,7 +955,7 @@ static void *refcount_test_thread(void *data)
 	pbx_log(LOG_NOTICE, "%d: Thread running...\n", threadid);
 	for(uint loop = 0; loop < NUM_LOOPS; loop++) {
 		for (objloop = 0; objloop < NUM_OBJECTS; objloop++) {
-			random_object = rand() % NUM_OBJECTS;
+			random_object = sccp_random() % NUM_OBJECTS;
 			if ((obj = (struct refcount_test *)sccp_refcount_retain(object[random_object], __FILE__, __LINE__, __PRETTY_FUNCTION__))) {
 				if ((obj1 = (struct refcount_test *)sccp_refcount_retain(obj, __FILE__, __LINE__, __PRETTY_FUNCTION__))) {
 					obj1 = (struct refcount_test *)sccp_refcount_release((const void ** const) & obj1, __FILE__, __LINE__, __PRETTY_FUNCTION__);
@@ -1000,7 +1000,7 @@ AST_TEST_DEFINE(sccp_refcount_tests)
 	switch(cmd) {
 		case TEST_INIT:
 			info->name = "refcount";
-			info->category = "/channels/chan_sccp/";
+			info->category    = "/channels/chan_sccp/refcount/";
 			info->summary = "chan-sccp-b refcount test";
 			info->description = "chan-sccp-b refcount tests";
 			return AST_TEST_NOT_RUN;
@@ -1012,8 +1012,8 @@ AST_TEST_DEFINE(sccp_refcount_tests)
 	int loop = 0;
 	char id[23];
 	enum ast_test_result_state test_result[NUM_THREADS] = {AST_TEST_PASS};
-	
-	object = (struct refcount_test **)sccp_malloc(sizeof(struct refcount_test) * NUM_OBJECTS);
+
+	object = sccp_malloc(sizeof(struct refcount_test) * NUM_OBJECTS);
 
 	pbx_test_status_update(test, "Executing chan-sccp-b refcount tests...\n");
 	pbx_test_status_update(test, "Create %d objects to work on...\n", NUM_OBJECTS);

@@ -397,11 +397,12 @@ int sccp_threadpool_jobqueue_count(sccp_threadpool_t * tp_p)
 
 #if CS_TEST_FRAMEWORK
 #include <asterisk/test.h>
-#define NUM_WORK 50
-#define test_category "/channels/chan_sccp/threadpool/"
+#	include "sccp_utils.h"
+#	define NUM_WORK      50
+#	define test_category "/channels/chan_sccp/threadpool/"
 static void *sccp_cli_threadpool_test_thread(void *data)
 {
-	uint num_loops = rand() % 10000;
+	uint num_loops = sccp_random() % 10000;
 	for(uint loop = 0; loop < num_loops; loop++) {
 		usleep(1);
 	}

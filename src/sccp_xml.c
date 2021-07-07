@@ -298,7 +298,6 @@ AST_TEST_DEFINE(sccp_xml_test)
 	sccp_free(result);
 
 	iXML.destroyDoc(&doc);
-	pbx_test_validate(test, doc == NULL);
 
 	return AST_TEST_PASS;
 }
