@@ -1329,7 +1329,11 @@ AST_TEST_DEFINE(chan_sccp_acl_invalid_tests)
 				sccp_free_ha(ha);
 			}
 			res = AST_TEST_FAIL;
+			break;
 		}
+	}
+	if (ha) {
+		sccp_free_ha(ha);
 	}
 	ha = NULL;
 

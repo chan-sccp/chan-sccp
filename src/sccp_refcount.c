@@ -1013,7 +1013,7 @@ AST_TEST_DEFINE(sccp_refcount_tests)
 	char id[23];
 	enum ast_test_result_state test_result[NUM_THREADS] = {AST_TEST_PASS};
 
-	object = sccp_malloc(sizeof(struct refcount_test) * NUM_OBJECTS);
+	object = sccp_malloc(sizeof(struct refcount_test *) * NUM_OBJECTS);
 
 	pbx_test_status_update(test, "Executing chan-sccp-b refcount tests...\n");
 	pbx_test_status_update(test, "Create %d objects to work on...\n", NUM_OBJECTS);
