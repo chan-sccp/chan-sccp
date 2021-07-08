@@ -1325,9 +1325,6 @@ AST_TEST_DEFINE(chan_sccp_acl_invalid_tests)
 		ha = sccp_append_ha("permit", invalid_acls[i], ha, &error);
 		if (ha || !error) {
 			pbx_test_status_update(test, "ACL %s accepted even though it is total garbage.\n", invalid_acls[i]);
-			if (ha) {
-				sccp_free_ha(ha);
-			}
 			res = AST_TEST_FAIL;
 			break;
 		}
