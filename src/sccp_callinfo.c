@@ -706,7 +706,10 @@ AST_TEST_DEFINE(sccp_callinfo_tests)
 
 	pbx_test_status_update(test, "Callinfo Setter add OrigCalledParty...\n");
 	changes = 0;
-	changes = iCallInfo.SetOrigCalledParty(citest, "origname", "orignumber", "origvm", 4);
+	const char ocp_name[StationMaxNameSize]  = "origname";
+	const char ocp_num[StationMaxDirnumSize] = "orignumber";
+	const char ocp_vm[StationMaxDirnumSize]  = "origvm";
+	changes                                  = iCallInfo.SetOrigCalledParty(citest, ocp_name, ocp_num, ocp_vm, 4);
 	pbx_test_validate(test, changes == 4);
 
 	pbx_test_status_update(test, "Callinfo Getter OrigCalledParty...\n");

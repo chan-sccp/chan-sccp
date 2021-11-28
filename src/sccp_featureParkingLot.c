@@ -421,7 +421,7 @@ static char * const getParkingLotCXML(sccp_parkinglot_t *pl, int protocolversion
 		}
 		pbx_str_append(&buf, 0, "<Title>Parked Calls</Title>");
 		pbx_str_append(&buf, 0, "<Prompt>Choose a ParkingLot Slot</Prompt>");
-		for(uint8_t idx = 0; idx < SCCP_VECTOR_SIZE(&pl->slots); idx++) {
+		for (size_t idx = 0; idx < SCCP_VECTOR_SIZE(&pl->slots); idx++) {
 			plslot_t *slot = SCCP_VECTOR_GET_ADDR(&pl->slots, idx);
 			pbx_str_append(&buf, 0, "<MenuItem>");
 			const char *connected_line = !sccp_strcaseequals(slot->connectedline_name, "<unknown>") ? slot->connectedline_name : slot->from;
@@ -499,7 +499,7 @@ static void hideVisualParkingLot(const char *parkinglot, constDevicePtr d, uint8
 	RAII(sccp_parkinglot_t *, pl, findCreateParkinglot(parkinglot, TRUE), sccp_parkinglot_unlock);
 	if (pl) {
 		sccp_log(DEBUGCAT_PARKINGLOT)(VERBOSE_PREFIX_1 "%s: (hideVisualParkingLot) device:%s, instance:%d, size:%d\n", parkinglot, d->id, instance, (int)SCCP_VECTOR_SIZE(&pl->observers));
-		for(uint8_t idx = 0; idx < SCCP_VECTOR_SIZE(&pl->observers); idx++) {
+		for (size_t idx = 0; idx < SCCP_VECTOR_SIZE(&pl->observers); idx++) {
 			plobserver_t *observer = SCCP_VECTOR_GET_ADDR(&pl->observers, idx);
 			if (observer->device == d && observer->instance == instance) {
 				__hideVisualParkingLot(pl, d, observer);
@@ -512,7 +512,7 @@ static void _notifyHelper(plobserver_t *observer, sccp_parkinglot_t *pl, constDe
 {
 	uint32_t iconstate = 0;
 	sccp_buttonconfig_t *config = NULL;
-	int numslots = SCCP_VECTOR_SIZE(&pl->slots);
+	size_t               numslots  = SCCP_VECTOR_SIZE(&pl->slots);
 	if (device->protocolversion < 15) {
 		sccp_device_setLamp(device, SKINNY_STIMULUS_PARKINGLOT, 0, numslots ? SKINNY_LAMP_ON : SKINNY_LAMP_OFF);
 		iconstate = numslots ? ICONSTATE_OLD_ON : ICONSTATE_OLD_OFF;
@@ -543,15 +543,13 @@ static void _notifyHelper(plobserver_t *observer, sccp_parkinglot_t *pl, constDe
 static void notifyDevice(constDevicePtr device, const sccp_buttonconfig_t * const buttonConfig)
 {
 	pbx_assert(device != NULL && buttonConfig != NULL);
-	uint8_t idx = 0;
-	//uint32_t iconstate = 0;
 	plobserver_t *observer = NULL;
 
 	if(!sccp_strlen_zero(buttonConfig->button.feature.options)) {
 		sccp_log(DEBUGCAT_PARKINGLOT)(VERBOSE_PREFIX_1 "%s: (notifyDevice) notifyDevice:%s\n", buttonConfig->button.feature.options, device->id);
 		RAII(sccp_parkinglot_t *, pl, findCreateParkinglot(buttonConfig->button.feature.options, TRUE), sccp_parkinglot_unlock);
 		if (pl) {
-			for (idx = 0; idx < SCCP_VECTOR_SIZE(&pl->observers); idx++) {
+			for (size_t idx = 0; idx < SCCP_VECTOR_SIZE(&pl->observers); idx++) {
 				observer = SCCP_VECTOR_GET_ADDR(&pl->observers, idx);
 				if (observer && observer->device == device) {
 					_notifyHelper(observer, pl, device);
@@ -566,10 +564,9 @@ static void notifyLocked(sccp_parkinglot_t *pl)
 	pbx_assert(pl != NULL);
 
 	sccp_log(DEBUGCAT_PARKINGLOT)(VERBOSE_PREFIX_1 "%s: (notify)\n", pl->context);
-	uint8_t idx = 0;
 	plobserver_t *observer = NULL;
 
-	for (idx = 0; idx < SCCP_VECTOR_SIZE(&pl->observers); idx++) {
+	for (size_t idx = 0; idx < SCCP_VECTOR_SIZE(&pl->observers); idx++) {
 		observer = SCCP_VECTOR_GET_ADDR(&pl->observers, idx);
 		if (observer) {
 			AUTO_RELEASE(sccp_device_t, device , sccp_device_retain(observer->device));
@@ -667,8 +664,7 @@ static void handleButtonPress(constDevicePtr d, const sccp_buttonconfig_t * cons
 					}
 				} else {
 					sccp_log(DEBUGCAT_PARKINGLOT)(VERBOSE_PREFIX_1 "%s: (handleButtonPress) multiple slots occupied -> Show Visual ParkingLot\n", buttonConfig->button.feature.options);
-					uint8_t idx = 0;
-					for (idx = 0; idx < SCCP_VECTOR_SIZE(&pl->observers); idx++) {
+					for (size_t idx = 0; idx < SCCP_VECTOR_SIZE(&pl->observers); idx++) {
 						plobserver_t *observer = SCCP_VECTOR_GET_ADDR(&pl->observers, idx);
 						if(observer->device == d && observer->instance == buttonConfig->instance) {
 							__showVisualParkingLot(pl, d, observer);
