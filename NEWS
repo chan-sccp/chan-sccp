@@ -1,3 +1,18 @@
+Version: v4.3.4_DEV
+==========================
+
+ - Enhancements:
+   - Support for asterisk-19
+
+ - Resolved issues:
+   - Configure script handling
+   - Config file handling
+   - Iconv Handling
+
+ - Minor Bug Fixes:
+   - Config parser
+   - CodeQL / Coverity Fixes
+
 Version: v4.3.2_DEV (zeta)
 ==========================
 

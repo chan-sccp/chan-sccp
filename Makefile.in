@@ -126,6 +126,11 @@ am__aclocal_m4_deps = $(top_srcdir)/autoconf/acinclude.m4 \
 	$(top_srcdir)/autoconf/check_atomics.m4 \
 	$(top_srcdir)/autoconf/check_raii.m4 \
 	$(top_srcdir)/autoconf/extra.m4 \
+	$(top_srcdir)/autoconf/host-cpu-c-abi.m4 \
+	$(top_srcdir)/autoconf/iconv.m4 \
+	$(top_srcdir)/autoconf/lib-ld.m4 \
+	$(top_srcdir)/autoconf/lib-link.m4 \
+	$(top_srcdir)/autoconf/lib-prefix.m4 \
 	$(top_srcdir)/autoconf/libtool.m4 \
 	$(top_srcdir)/autoconf/ltoptions.m4 \
 	$(top_srcdir)/autoconf/ltsugar.m4 \

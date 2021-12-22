@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 export PATH=`git rev-parse --git-dir`/../tools/:$PATH
-git clang-format-13 --extensions c,h -v
+git clang-format-14 --extensions c,h -v
 rc=$?
 if [[ $rc == 33 ]]
 then

@@ -1,3 +1,19 @@
+chan-sccp (4.3.4-1) unstable; urgency=medium
+
+  * Enhancements:
+   - Support for asterisk-19
+
+  * Resolved issues:
+   - Configure script handling
+   - Config file handling
+   - Iconv Handling
+
+  * Minor Bug Fixes:
+   - Config parser
+   - CodeQL / Coverity Fixes
+
+ -- Diederik de Groot <ddegroot@users.sf.net>  Wed, 22 Dec 2021 12:12:00 +0100
+
 chan-sccp (4.3.3-12) unstable; urgency=medium
 
   * Enhancements:
