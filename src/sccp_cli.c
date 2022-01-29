@@ -929,7 +929,8 @@ static int sccp_show_devices(int fd, sccp_cli_totals_t *totals, struct mansessio
 		CLI_AMI_TABLE_FIELD(RegTime,		"25.25",	s,	25, 	regtime[0] ? regtime : "None")						\
 		CLI_AMI_TABLE_FIELD(Act,		"3.3",		s,	3, 	(d->active_channel) ? "Yes" : "No")					\
 		CLI_AMI_TABLE_FIELD(Lines, 		"-5",		d,	5, 	d->configurationStatistic.numberOfLines)				\
-		CLI_AMI_TABLE_FIELD(Nat,		"9.9",		s, 	9,	sccp_nat2str(d->nat))
+		CLI_AMI_TABLE_FIELD(Nat,		"9.9",		s, 	9,	sccp_nat2str(d->nat))							\
+		CLI_AMI_TABLE_FIELD(Type,		"5.5",		d, 	5,	d->skinny_type)
 #include "sccp_cli_table.h"
 
 	// end of table definition
