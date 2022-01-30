@@ -38,7 +38,7 @@ static const SCCPConfigOption sccpGlobalConfigOptions[]={
 	{"keepalive", 			G_OBJ_REF(keepalive), 			TYPE_UINT,									SCCP_CONFIG_FLAG_REQUIRED,					SCCP_CONFIG_NEEDDEVICERESET,		"60",				"Phone keep alive message every 60 secs. Used to check the voicemail and keep an open connection between server and phone (nat).\n"
 																										  											"Don't set any lower than 60 seconds.\n"},
 	{"context", 			G_OBJ_REF(context), 			TYPE_STRINGPTR,									SCCP_CONFIG_FLAG_REQUIRED,					SCCP_CONFIG_NEEDDEVICERESET,		"default",			"pbx dialplan context\n"},
-	{"dateformat", 			G_OBJ_REF(dateformat), 			TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		"M/D/Y",			"M-D-Y in any order. Use M/D/YA (for 12h format)\n"},
+	{"dateformat", 			G_OBJ_REF(dateformat), 			TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		"M/D/YY",			"M-D-Y in any order.Different separators can be used, like '/', '-', '.' and ' '.\nD/M/Y=(2 Digit Year,24 Hour Time), D/M/YY=(4 Digit Year, 24 Hour Time), D/M/YA=(2 Digit Year, 12 Hour Time), D/M/YYA=(4 Digit Year, 12 Hour Time)\n"},
 	{"bindaddr", 			G_OBJ_REF(bindaddr), 			TYPE_PARSER(sccp_config_parse_ipaddress),					SCCP_CONFIG_FLAG_REQUIRED,					SCCP_CONFIG_NEEDDEVICERESET,		"0.0.0.0",			"replace with the ip address of the asterisk server (RTP important param)\n"}, 
 	{"port", 			G_OBJ_REF(bindaddr),			TYPE_PARSER(sccp_config_parse_port),						SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		"2000",				"port to listen on (Skinny default:2000)\n"},
 #ifdef HAVE_OPENSSL
@@ -57,8 +57,8 @@ static const SCCPConfigOption sccpGlobalConfigOptions[]={
 	{"externip", 			G_OBJ_REF(externip), 			TYPE_PARSER(sccp_config_parse_ipaddress),					SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		"0.0.0.0",			"External IP Address of the firewall, required in case the PBX is running on a seperate host behind it. IP Address that we're going to use when setting up the RTP media stream for the pbx source address.\n"},
 	{"externhost", 			G_OBJ_REF(externhost), 			TYPE_STRINGPTR,									SCCP_CONFIG_FLAG_NONE,  					SCCP_CONFIG_NEEDDEVICERESET,		"",				"Resolve Hostname (if dynamic) that we're going to resolve when setting up the RTP media stream (only active if externip=0.0.0.0 and host is natted.)\n"},
 	{"externrefresh", 		G_OBJ_REF(externrefresh), 		TYPE_INT,									SCCP_CONFIG_FLAG_NONE,  					SCCP_CONFIG_NEEDDEVICERESET,		"60",				"Expire time in seconds for the hostname (dns resolution)\n"},
-	{"firstdigittimeout", 		G_OBJ_REF(firstdigittimeout), 		TYPE_UINT,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"16",				"Dialing timeout for the 1st digit\n"},
-	{"digittimeout", 		G_OBJ_REF(digittimeout), 		TYPE_INT,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"8",				"More digits\n"},
+	{"firstdigittimeout", 		G_OBJ_REF(firstdigittimeout), 		TYPE_UINT,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"10",				"Dialing timeout for the 1st digit\n"},
+	{"digittimeout", 		G_OBJ_REF(digittimeout), 		TYPE_INT,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"5",				"More digits\n"},
 	{"digittimeoutchar", 		G_OBJ_REF(digittimeoutchar), 		TYPE_CHAR,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"#",				"You can force the channel to dial with this char in the dialing state\n"},
 	{"recorddigittimeoutchar", 	G_OBJ_REF(recorddigittimeoutchar), 	TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"no",				"You can force the channel to dial with this char in the dialing state\n"},
 	{"simulate_enbloc",	 	G_OBJ_REF(simulate_enbloc), 		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"yes",				"Use simulated enbloc dialing to speedup connection when dialing while onhook (older phones)\n"},
