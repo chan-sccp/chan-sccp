@@ -734,8 +734,7 @@ gcc_inline void recalc_wait_time(sccp_session_t *s)
  * \callgraph
  * \callergraph
  */
-void
-*sccp_session_device_thread(void *session)
+void *sccp_session_device_thread(void *session)
 {
 	int res = 0;
 	sccp_session_t *s = (sccp_session_t *) session;
