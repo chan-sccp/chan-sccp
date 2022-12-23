@@ -300,6 +300,7 @@ typedef struct pbx_event_sub pbx_event_subscription_t;
 #define pbx_print_group ast_print_group
 #define pbx_print_namedgroup ast_print_namedgroup
 #define pbx_pthread_create ast_pthread_create
+#define pbx_pthread_create_detached ast_pthread_create_detached
 #define pbx_pthread_create_background ast_pthread_create_background
 #define pbx_pthread_create_detached_background ast_pthread_create_detached_background
 #define pbx_pthread_mutex_lock ast_pthread_mutex_lock

@@ -1009,8 +1009,10 @@ static void * accept_thread(void * data)
 		sccp_session_set_ourip(s);
 		sccp_session_addToGlobals(s);
 		recalc_wait_time(s);
-		
-		if (pbx_pthread_create(&s->session_thread, NULL, sccp_session_device_thread, s)) {
+	
+		// Create a detached thread, since the sccp_session_device_thread will not be joined from another thread
+		// Only detached threads free their stack and control structures after termination, otherwise a pthread_join is mandatory for this to take place (davidded).
+		if (pbx_pthread_create_detached(&s->session_thread, NULL, sccp_session_device_thread, s)) {
 			destroy_session(s);
 		}
 	}
