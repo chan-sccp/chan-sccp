@@ -787,7 +787,11 @@ boolean_t sccp_channel_finishHolePunch(constChannelPtr c)
 		return FALSE;
 	}
 	sccp_rtp_t * audio = (sccp_rtp_t *)&(c->rtp.audio);
-	if(c->privateData->firewall_holepunch && ((sccp_rtp_getState(audio, SCCP_RTP_TRANSMISSION) & SCCP_RTP_STATUS_ACTIVE) == SCCP_RTP_STATUS_ACTIVE)) {
+       /* Notice: Ye olde phones don't acknowledge the media transmission separately, since they only acknowledge reception in case both directions are open. */
+	   /* If phones fully support acknowledging start of media transmission, the following more strict check can be applied. Since we do not even consider
+		  this check without receiving a voice packet in the first place, it seems adequate to do away with it for compatibility. */
+       /* if(c->privateData->firewall_holepunch && ((sccp_rtp_getState(audio, SCCP_RTP_TRANSMISSION) & SCCP_RTP_STATUS_ACTIVE) == SCCP_RTP_STATUS_ACTIVE)) { */
+       if(c->privateData->firewall_holepunch) {
 		sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "%s: (%s) stop punching a hole through the firewall\n", c->designator, __func__);
 		sccp_channel_stopMediaTransmission(c, TRUE);
 		c->privateData->firewall_holepunch = FALSE;
