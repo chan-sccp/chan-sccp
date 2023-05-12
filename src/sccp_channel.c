@@ -783,6 +783,7 @@ boolean_t sccp_channel_finishHolePunch(constChannelPtr c)
 {
 	pbx_assert(c != NULL && c->privateData);
 	if(pbx_channel_state(c->owner) == AST_STATE_UP) {
+		sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "%s: (%s) abort punching a hole through the firewall (channel already up)\n", c->designator, __func__);
 		c->privateData->firewall_holepunch = FALSE;
 		return FALSE;
 	}

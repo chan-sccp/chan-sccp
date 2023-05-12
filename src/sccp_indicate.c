@@ -272,6 +272,17 @@ void __sccp_indicate (constDevicePtr maybe_device, channelPtr c, const sccp_chan
 		case SCCP_CHANNELSTATE_CONNECTED:
 			{
 				d->indicate->connected(d, lineInstance, c->callid, c->calltype, ci);
+				// Abort the holepunch if the channel gets connected while it is still active.
+				// This sometimes happens on very fast answer of a call immediately after progress.
+				// \todo Check if devices have trouble with fast closing of media transmission and re-opening it, or twice starting
+				//       media transmission. Discuss the semantics of the holepunch. How often do we need to do this, when can the
+				//       RTP ports change? It could be a more appropriate time to mark the hole as non-punched as soon as the lifetime
+				//       of RTP port validity changes and instead consider the hole-punch a one-time action while they are still valid.
+				if(c->calltype != SKINNY_CALLTYPE_INBOUND) {
+					if(d->nat >= SCCP_NAT_ON) {
+						sccp_channel_finishHolePunch(channel);
+					}
+				}
 				sccp_rtp_setCallback(&c->rtp.audio, SCCP_RTP_RECEPTION, sccp_channel_startMediaTransmission);
 				if(!sccp_rtp_getState(&c->rtp.audio, SCCP_RTP_RECEPTION)) {
 					sccp_channel_openReceiveChannel(c);
