@@ -280,7 +280,7 @@ void __sccp_indicate (constDevicePtr maybe_device, channelPtr c, const sccp_chan
 				//       of RTP port validity changes and instead consider the hole-punch a one-time action while they are still valid.
 				if(c->calltype != SKINNY_CALLTYPE_INBOUND) {
 					if(d->nat >= SCCP_NAT_ON) {
-						sccp_channel_finishHolePunch(channel);
+						sccp_channel_finishHolePunch(c);
 					}
 				}
 				sccp_rtp_setCallback(&c->rtp.audio, SCCP_RTP_RECEPTION, sccp_channel_startMediaTransmission);
