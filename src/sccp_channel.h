@@ -145,7 +145,7 @@ SCCP_API boolean_t SCCP_CALL sccp_channel_set_originalCallingparty(constChannelP
 SCCP_API void SCCP_CALL sccp_channel_set_calledparty(constChannelPtr channel, const char * name, const char * number);
 SCCP_API boolean_t SCCP_CALL sccp_channel_set_originalCalledparty(constChannelPtr channel, char * name, char * number);
 SCCP_API void SCCP_CALL sccp_channel_set_calleridPresentation(constChannelPtr channel, sccp_callerid_presentation_t presentation);
-SCCP_API boolean_t SCCP_CALL sccp_channel_finishHolePunch(constChannelPtr channel);
+SCCP_API boolean_t SCCP_CALL sccp_channel_finishHolePunch(constChannelPtr channel, boolean_t keepChannelOpen);
 SCCP_API boolean_t __PURE__ SCCP_CALL      sccp_channel_isAnswering(constChannelPtr c);
 SCCP_API void SCCP_CALL sccp_channel_openReceiveChannel(constChannelPtr channel);
 SCCP_API int SCCP_CALL sccp_channel_receiveChannelOpen(devicePtr d, channelPtr c);

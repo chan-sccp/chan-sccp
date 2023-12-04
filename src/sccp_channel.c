@@ -148,6 +148,11 @@ static void makeProgress(channelPtr c)
 	if(c->wantsEarlyRTP() && c->progressSent == sccp_always_false) {
 		sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "%s: (%s)\n", c->designator, __func__);
 		if(!sccp_rtp_getState(&c->rtp.audio, SCCP_RTP_RECEPTION)) {
+			// \todo Wouldn't this be the only place where the issueing of a holepunch is necessary in case of NAT?
+			//       In that case, opening of the receive channel for audio/video should be postponed to the arrival
+			//       of the first packet from the phone in the pbx, so finishHolePunch should call the openReceiveChannel upon being called.
+			//       This way we could make sure that the channels are only opened exactly one time when the situation of progress during NAT occurs
+			//       on an outgoing call.
 			sccp_channel_openReceiveChannel(c);
 		}
 #if CS_SCCP_VIDEO
@@ -779,7 +784,7 @@ static void sccp_channel_startHolePunch(constChannelPtr c)
 	}
 }
 
-boolean_t sccp_channel_finishHolePunch(constChannelPtr c)
+boolean_t sccp_channel_finishHolePunch(constChannelPtr c, boolean_t keepChannelOpen)
 {
 	pbx_assert(c != NULL && c->privateData);
 	if(pbx_channel_state(c->owner) == AST_STATE_UP) {
@@ -793,8 +798,12 @@ boolean_t sccp_channel_finishHolePunch(constChannelPtr c)
 		  this check without receiving a voice packet in the first place, it seems adequate to do away with it for compatibility. */
        /* if(c->privateData->firewall_holepunch && ((sccp_rtp_getState(audio, SCCP_RTP_TRANSMISSION) & SCCP_RTP_STATUS_ACTIVE) == SCCP_RTP_STATUS_ACTIVE)) { */
        if(c->privateData->firewall_holepunch) {
-		sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "%s: (%s) stop punching a hole through the firewall\n", c->designator, __func__);
-		sccp_channel_stopMediaTransmission(c, TRUE);
+		if(!keepChannelOpen) {
+			sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "%s: (%s) stop punching a hole through the firewall\n", c->designator, __func__);
+			sccp_channel_stopMediaTransmission(c, TRUE);
+		} else {
+			sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "%s: (%s) stop punching a hole through the firewall while leaving channel open\n", c->designator, __func__);
+		}
 		c->privateData->firewall_holepunch = FALSE;
 	}
 	return c->privateData->firewall_holepunch;
@@ -890,6 +899,11 @@ int sccp_channel_receiveChannelOpen(sccp_device_t *d, sccp_channel_t *c)
 		sccp_rtp_runCallback(audio, SCCP_RTP_RECEPTION, c);
 		if(c->calltype != SKINNY_CALLTYPE_INBOUND) {
 			if(d->nat >= SCCP_NAT_ON) {
+				// \todo Maybe what we need here is a simple state machine to check if we have already punched a hole once,
+				//       and then decide if punching is necessary during the lifetime of a call.
+				//       Then, it might make sense to postpone opening of the receive channel to a later time when the hole punching
+				//       is finished. This would avoid the problem that the newer phones seem to close their receive channel, too, when closing the sending channel.
+				//       This causes a lot of confusion, and the aforementioned solution seems more sensible than the workaround of letting the channel open upon finishing the holepunch.
 				sccp_channel_startHolePunch(c);
 			}
 			iPbx.queue_control(c->owner, (enum ast_control_frame_type)-1);						// 'PROD' the remote side to let them know
