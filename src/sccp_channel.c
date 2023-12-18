@@ -793,6 +793,12 @@ boolean_t sccp_channel_holePunchPending(constChannelPtr c)
 void sccp_channel_startHolePunch(constChannelPtr c)
 {
 	pbx_assert(c != NULL && c->privateData && !c->privateData->firewall_holepunch);
+
+	AUTO_RELEASE(sccp_device_t, d, sccp_channel_getDevice(c));
+	if(!d) {
+		pbx_log(LOG_ERROR, "%s: (%s) Could not retrieve device from channel\n", c->designator, __func__);
+		return;
+	}
 	//sccp_rtp_t * audio = (sccp_rtp_t *)&(c->rtp.audio);
 	/*! \todo
 		// punching is only necessary if the rtp-instance ip-address+mask differs from the rtp->phone+mask
@@ -808,7 +814,6 @@ void sccp_channel_startHolePunch(constChannelPtr c)
 	/* start audio rtp server if not already present */
 		if (!c->rtp.audio.instance && !sccp_rtp_createServer(d, c, SCCP_RTP_AUDIO)) {
 			pbx_log(LOG_WARNING, "%s: Error opening RTP instance for channel %s\n", d->id, c->designator);
-			goto error_exit;
 		}
 		sccp_channel_startMediaTransmission(c);
 	//}
