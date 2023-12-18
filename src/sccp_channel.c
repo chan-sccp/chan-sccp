@@ -813,11 +813,12 @@ void sccp_channel_startHolePunch(constChannelPtr c)
 boolean_t sccp_channel_finishHolePunch(constChannelPtr c, boolean_t keepChannelOpen)
 {
 	pbx_assert(c != NULL && c->privateData);
-	if(pbx_channel_state(c->owner) == AST_STATE_UP) {
+	/*if(pbx_channel_state(c->owner) == AST_STATE_UP) {
 		sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "%s: (%s) abort punching a hole through the firewall (channel already up)\n", c->designator, __func__);
 		c->privateData->firewall_holepunch = FALSE;
 		return FALSE;
 	}
+	*/
 	//sccp_rtp_t * audio = (sccp_rtp_t *)&(c->rtp.audio);
        /* Notice: Ye olde phones don't acknowledge the media transmission separately, since they only acknowledge reception in case both directions are open. */
 	   /* If phones fully support acknowledging start of media transmission, the following more strict check can be applied. Since we do not even consider
@@ -1033,7 +1034,7 @@ void sccp_channel_startMediaTransmission(constChannelPtr channel)
 		return;
 	}
 
-	if(!audio->instance || !sccp_rtp_getState(audio, SCCP_RTP_RECEPTION)) {
+	if((!audio->instance || !sccp_rtp_getState(audio, SCCP_RTP_RECEPTION)) && !sccp_channel_holePunchPending(channel) ) {
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: can't start rtp media transmission, maybe channel is down %s\n", channel->currentDeviceId, channel->designator);
 		sccp_channel_closeReceiveChannel(channel, FALSE);
 		return;
