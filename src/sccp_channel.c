@@ -805,6 +805,11 @@ void sccp_channel_startHolePunch(constChannelPtr c)
 	//if(!sccp_rtp_getState(audio, SCCP_RTP_TRANSMISSION) && pbx_channel_state(c->owner) != AST_STATE_UP && c->wantsEarlyRTP()) {
 		sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "%s: (%s) start Punching a hole through the firewall (if necessary)\n", c->designator, __func__);
 		c->privateData->firewall_holepunch = TRUE;
+	/* start audio rtp server if not already present */
+		if (!c->rtp.audio.instance && !sccp_rtp_createServer(d, c, SCCP_RTP_AUDIO)) {
+			pbx_log(LOG_WARNING, "%s: Error opening RTP instance for channel %s\n", d->id, c->designator);
+			goto error_exit;
+		}
 		sccp_channel_startMediaTransmission(c);
 	//}
 }
