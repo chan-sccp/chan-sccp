@@ -775,6 +775,17 @@ void sccp_channel_StatisticsRequest(constChannelPtr channel)
 	d->protocol->sendConnectionStatisticsReq(d, channel, SKINNY_STATSPROCESSING_CLEAR);
 }
 
+
+
+/*
+ * \brief returns true if a hole punch process has been started but not finished yet. necessary to decide behaviour in call logic to avoid double channel opening.
+ */
+boolean_t sccp_channel_holePunchPending(constChannelPtr c)
+{
+	pbx_assert(c != NULL && c->privateData);
+	return c->privateData->firewall_holepunch;
+}
+
 /*
  * \brief a simple way to punch a whole in the firewall by sending a short burst of packets during progress
  * transmission will be stopped again as soon as the first packet has been received from the device in astwrap_rtp_read
@@ -798,6 +809,7 @@ void sccp_channel_startHolePunch(constChannelPtr c)
 	//}
 }
 
+// When the keepChannelOpen parameter is true, then we don't do anything since we assume either everything should stay open or will be opened by following code (i.e. before a connect)
 boolean_t sccp_channel_finishHolePunch(constChannelPtr c, boolean_t keepChannelOpen)
 {
 	pbx_assert(c != NULL && c->privateData);
