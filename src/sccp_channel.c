@@ -818,6 +818,7 @@ void sccp_channel_startHolePunch(constChannelPtr c)
 		if (!c->rtp.audio.instance && !sccp_rtp_createServer(d, (channelPtr)c, SCCP_RTP_AUDIO)) {
 			pbx_log(LOG_WARNING, "%s: Error opening RTP instance for channel %s\n", d->id, c->designator);
 		}
+		sccp_channel_openReceiveChannel(c);
 		sccp_channel_startMediaTransmission(c);
 	//}
 }
