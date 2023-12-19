@@ -169,8 +169,10 @@ static void makeProgress(channelPtr c)
 			}
 		}
 #if CS_SCCP_VIDEO
-		if(!sccp_rtp_getState(&c->rtp.video, SCCP_RTP_RECEPTION) && sccp_channel_getVideoMode(c) != SCCP_VIDEO_MODE_OFF) {
-			sccp_channel_openMultiMediaReceiveChannel(c);
+		if(!sccp_channel_holePunchPending(c)) {
+			if(!sccp_rtp_getState(&c->rtp.video, SCCP_RTP_RECEPTION) && sccp_channel_getVideoMode(c) != SCCP_VIDEO_MODE_OFF) {
+				sccp_channel_openMultiMediaReceiveChannel(c);
+			}
 		}
 #endif
 		c->progressSent = sccp_always_true;
