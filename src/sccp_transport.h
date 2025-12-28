@@ -34,13 +34,13 @@ struct sccp_transport {
 	const sccp_transport_t * const (* const init)(void);
 	int (* const bind)(sccp_socket_connection_t * sc, struct sockaddr * addr, socklen_t addrlen);
 	int (* const listen)(sccp_socket_connection_t * sc, int backlog);
-	sccp_socket_connection_t * (* const accept)(sccp_socket_connection_t * in_sc, struct sockaddr *, socklen_t * len, sccp_socket_connection_t * out_sc);
+	sccp_socket_connection_t * (* const accept_connection)(sccp_socket_connection_t * in_sc, struct sockaddr *, socklen_t * len, sccp_socket_connection_t * out_sc);
 	int (* const recv)(sccp_socket_connection_t * sc, void * buf, size_t buflen, int flags);
 	// int (*const recv_timeout)(int fd, void *buf, size_t buflen, int flags, int secs);
 	int (* const send)(sccp_socket_connection_t * sc, void * buf, size_t buflen, int flags);
 	// int (*const send_timeout)(int fd, void *buf, size_t buflen, int flags, int secs);
 	int (* const shutdown)(sccp_socket_connection_t * sc, int how);
-	int (* const close)(sccp_socket_connection_t * sc);
+	int (* const close_socket)(sccp_socket_connection_t * sc);
 	const sccp_transport_t * const (* const destroy)(uint8_t h);
 };
 
