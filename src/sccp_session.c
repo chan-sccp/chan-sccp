@@ -181,7 +181,7 @@ void sccp_session_setFD(sccp_session_t * s, int fd)
 	sccp_session_lock(s);
 	if(s->sc.fd > 0) {
 		s->srvcontext->transport->shutdown(&s->sc, SHUT_RDWR);
-		s->srvcontext->transport->close(&s->sc);
+		s->srvcontext->transport->close_socket(&s->sc);
 		s->sc.fd = -1;
 	}
 	s->sc.fd = fd;
@@ -653,7 +653,7 @@ static void destroy_session(sccp_session_t * s)
 			sccp_log((DEBUGCAT_SOCKET))(VERBOSE_PREFIX_3 "SCCP: Shutdown socket %d\n", s->sc.fd);
 			s->srvcontext->transport->shutdown(&s->sc, SHUT_RDWR);
 			sccp_log((DEBUGCAT_SOCKET))(VERBOSE_PREFIX_3 "SCCP: Closing socket %d\n", s->sc.fd);
-			s->srvcontext->transport->close(&s->sc);
+			s->srvcontext->transport->close_socket(&s->sc);
 			s->sc.fd = -1;
 		}
 		sccp_session_unlock(s);
@@ -985,7 +985,7 @@ static void * accept_thread(void * data)
 		pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
 		pthread_testcancel();
 		memset(&new_sc, 0, sizeof(new_sc));
-		context->transport->accept(&context->sc, (struct sockaddr *)&incoming, &length, &new_sc);
+		context->transport->accept_connection(&context->sc, (struct sockaddr *)&incoming, &length, &new_sc);
 		if(new_sc.fd < 0) {
 			pbx_log(LOG_ERROR, "Error accepting new socket %s on acceptFD:%d\n", strerror(errno), context->sc.fd);
 			usleep(1000);
@@ -996,13 +996,13 @@ static void * accept_thread(void * data)
 		sccp_netsock_setoptions(new_sc.fd, /*reuse*/ -1, /*linger*/ 0, /*keepalive*/ -1, /*sndtimeout*/ -1, /*rcvtimeout*/ 0);
 
 		if (!sccp_session_new_socket_allowed(&incoming)) {
-			context->transport->close(&new_sc);
+			context->transport->close_socket(&new_sc);
 			continue;
 		}
 
 		s = sccp_create_session(context, &new_sc);
 		if(s == NULL) {
-			context->transport->close(&new_sc);
+			context->transport->close_socket(&new_sc);
 			continue;
 		}
 		memcpy(&s->sin, &incoming, sizeof(s->sin));
@@ -1016,10 +1016,10 @@ static void * accept_thread(void * data)
 			destroy_session(s);
 		}
 	}
-	context->transport->close(&new_sc);
+	context->transport->close_socket(&new_sc);
 	if(context->sc.fd > -1) {
 		sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "Closing Listening Port:%d\n", context->sc.fd);
-		context->transport->close(&context->sc);
+		context->transport->close_socket(&context->sc);
 		context->sc.fd = -1;
 	}
 	return 0;
@@ -1050,7 +1050,7 @@ void sccp_session_stop_accept_thread(sccp_servercontext_t * context)
 	context->accept_tid = AST_PTHREADT_STOP;
 	if(context->sc.fd > -1) {
 		sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "Closing Listening Port:%d\n", context->sc.fd);
-		context->transport->close(&context->sc);
+		context->transport->close_socket(&context->sc);
 		context->sc.fd = -1;
 	}
 	pbx_rwlock_unlock(&GLOB(lock));
@@ -1116,7 +1116,7 @@ boolean_t sccp_session_bind_and_listen(sccp_servercontext_t * context, struct so
 			sccp_netsock_setoptions(context->sc.fd, /*reuse*/ 1, /*linger*/ -1, /*keepalive*/ -1, /*sndtimeout*/ 0, /*rcvtimeout*/ 0);
 			if(context->transport->bind(&context->sc, res->ai_addr, res->ai_addrlen) < 0) {
 				pbx_log(LOG_ERROR, "Failed to bind to %s:%d: %s!\n", addrStr, port, strerror(errno));
-				context->transport->close(&context->sc);
+				context->transport->close_socket(&context->sc);
 				context->sc.fd = -1;
 				break;
 			}
@@ -1125,14 +1125,14 @@ boolean_t sccp_session_bind_and_listen(sccp_servercontext_t * context, struct so
 			ast_sockaddr_copy(&internip, storage2ast_sockaddr(bindaddr, &tmp_sa));
 			if(ast_find_ourip(&internip, &tmp_sa, 0)) {
 				ast_log(LOG_ERROR, "Unable to get own IP address\n");
-				context->transport->close(&context->sc);
+				context->transport->close_socket(&context->sc);
 				context->sc.fd = -1;
 				break;
 			}
 
 			if(listen(context->sc.fd, DEFAULT_SCCP_BACKLOG)) {
 				pbx_log(LOG_ERROR, "Failed to start listening to %s:%d: %s\n", addrStr, port, strerror(errno));
-				context->transport->close(&context->sc);
+				context->transport->close_socket(&context->sc);
 				context->sc.fd = -1;
 				break;
 			}

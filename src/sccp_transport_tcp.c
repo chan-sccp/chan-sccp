@@ -86,11 +86,11 @@ const sccp_transport_t tcptransport = {
 	.init     = tcp_init,
 	.bind     = tcp_bind,
 	.listen   = tcp_listen,
-	.accept   = tcp_accept,
+	.accept_connection = tcp_accept,
 	.recv     = tcp_recv,
 	.send     = tcp_send,
 	.shutdown = tcp_shutdown,
-	.close    = tcp_close,
+	.close_socket = tcp_close,
 	.destroy  = tcp_destroy,
 };
 

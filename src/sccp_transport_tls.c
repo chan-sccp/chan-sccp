@@ -241,11 +241,11 @@ const sccp_transport_t tlstransport = {
 	.init     = tls_init,
 	.bind     = tls_bind,
 	.listen   = tls_listen,
-	.accept   = tls_accept,
+	.accept_connection = tls_accept,
 	.recv     = tls_recv,
 	.send     = tls_send,
 	.shutdown = tls_shutdown,
-	.close    = tls_close,
+	.close_socket = tls_close,
 	.destroy  = tls_destroy,
 };
 #endif /* HAVE_LIBSSL */

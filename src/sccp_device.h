@@ -393,7 +393,7 @@ SCCP_API void SCCP_CALL sccp_dev_set_speaker(constDevicePtr d, uint8_t mode);
 SCCP_API void SCCP_CALL sccp_dev_set_microphone(devicePtr d, uint8_t mode);
 SCCP_API void SCCP_CALL sccp_dev_set_cplane(constDevicePtr device, uint8_t lineInstance, int status);
 SCCP_API void SCCP_CALL sccp_dev_deactivate_cplane(constDevicePtr d);
-SCCP_API void SCCP_CALL sccp_dev_starttone(constDevicePtr d, skinny_tone_t tone, uint8_t lineInstance, uint32_t callid, uint32_t timeout);
+SCCP_API void SCCP_CALL sccp_dev_starttone(constDevicePtr d, skinny_tone_t tone, uint8_t lineInstance, uint32_t callid, skinny_toneDirection_t direction);
 SCCP_API void SCCP_CALL sccp_dev_stoptone(constDevicePtr d, uint8_t lineInstance, uint32_t callid);
 SCCP_API void SCCP_CALL sccp_dev_clearprompt(constDevicePtr d, uint8_t lineInstance, uint32_t callid);
 SCCP_API void SCCP_CALL sccp_dev_display_debug(constDevicePtr d, const char *msg, const char *file, const int lineno, const char *pretty_function);
