@@ -2507,6 +2507,16 @@ static boolean_t sccp_astwrap_createRtpInstance(constDevicePtr d, constChannelPt
 		ast_channel_set_fd(c->owner, fd_offset, ast_rtp_instance_fd(instance, 0));		// RTP
 		ast_channel_set_fd(c->owner, fd_offset + 1, ast_rtp_instance_fd(instance, 1));		// RTCP
 	}
+
+	/* Set standard audio payload type mappings so that ast_rtp_write()
+	 * can look up the correct payload type when sending RTP packets.
+	 * Without this, Asterisk 18+ will fail with:
+	 * "Don't know how to send format <codec> packets with RTP" */
+	ast_rtp_codecs_payloads_set_m_type(ast_rtp_instance_get_codecs(instance), instance, 0);   // ulaw
+	ast_rtp_codecs_payloads_set_m_type(ast_rtp_instance_get_codecs(instance), instance, 8);   // alaw
+	ast_rtp_codecs_payloads_set_m_type(ast_rtp_instance_get_codecs(instance), instance, 9);   // g722
+	ast_rtp_codecs_payloads_set_m_type(ast_rtp_instance_get_codecs(instance), instance, 18);  // g729
+
 	ast_rtp_instance_set_prop(instance, AST_RTP_PROPERTY_RTCP, 1);
 	if (rtp->type == SCCP_RTP_AUDIO) {
 		ast_rtp_instance_set_prop(instance, AST_RTP_PROPERTY_DTMF, 1);
