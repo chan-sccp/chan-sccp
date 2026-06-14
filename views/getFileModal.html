@@ -1,0 +1,85 @@
+<!--Begin modal include-->
+<div class="modal fade get_ext_file_<?php echo $requestType;?>" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="gridSystemModalLabel"><?php echo _('Get Files From Provisioner');?></h4>
+            </div>
+            <div class="modal-body">
+                <div class="element-container">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <?php echo "Sccp_Manager will try to download {$requestType} files from Provision_Sccp on GitHub.<br>
+                                        This site, dkgroot/provision_sccp, is unrelated to Sccp_Manager, and the files found cannot be warrantied<br>
+                                        If you accept this, please select the {$requestType} that you want to try to get files for and then Get Files From Provisioner<br><br>
+                                        Please be patient - this may take some time depending on your internet link<br><br>" ?>
+                        </div>
+                    </div>
+                </div>
+                <div class="element-container">
+                    <div class="row">
+                        <div class="form-group">
+                            <div class="col-md-3">
+                              <label class="control-label" for="get_model_files"><?php echo _('Fetch Files for');?></label>
+                              <i class="fa fa-question-circle fpbx-help-icon" ></i>
+                            </div>
+                            <div class="col-md-3">
+                                <div class = "lnet form-group form-inline" data-nextid=1>
+                                    <?php
+                                    switch ($requestType) {
+                                        case 'firmware':
+                                            echo  "<select class='form-control' id='ext_device'>";
+                                            break;
+                                        case 'locale':
+                                            echo  "<select class='form-control' id='ext_locale'>";
+                                            break;
+                                        case 'country':
+                                            echo "<select class='form-control' id='ext_country'>";
+                                            break;
+                                    }
+                                    foreach ($selectArray as $key => $val) {
+                                        echo "<option value= '{$val}'";
+                                        if (($val == 'English_United_Kingdom') || ($val == 'United_Kingdom')) {
+                                            echo ' selected="selected"';
+                                        }
+                                        echo ">{$val}</option>";
+                                    }
+                                    ?>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <span id="new_model-help" class="help-block fpbx-help-block">Help.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal"><?php echo _('Cancel');?></button>
+                <button type="button" class="btn btn-primary sccp_get_ext" data-id="get_ext_files" data-type=<?php echo '"'.$requestType.'"';?> onclick="showProgress();" id="get_model_files" data-dismiss="modal"><?php echo _('Get Files from Provisioner');?></button>
+            </div>
+        </div>
+    </div>
+</div>
+<!--End modal include-->
+<!--Start progress modal include-->
+<div id="pleaseWaitDialog" class="modal" data-backdrop="static" data-keyboard="false">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1>Getting files .....please wait</h1>
+            </div>
+            <div class="modal-body">
+                <div class="progress">
+                    <div id="progress-bar" class="progress-bar progress-bar-striped progress-bar-animated active" role="progressbar" style="width:0%">
+                    </div>
+                </div>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+<!--End progress modal include-->

@@ -1,0 +1,280 @@
+;!
+;! Automatically generated configuration file
+;! Filename: sccp.conf.annotated (/usr/local/asterisk-13-branch/etc/asterisk/sccp.conf.annotated)
+;! Generator: sccp config generate
+;! Creation Date: Sun Nov  1 01:27:41 2015
+;!
+
+
+;
+; general section
+;
+[general]
+;servername = Asterisk                                                            ; (REQUIRED) show this name on the device registration
+;keepalive = 60                                                                   ; (REQUIRED) Phone keep alive message every 60 secs. Used to check the voicemail and keep an open connection between server and phone (nat).
+                                                                                  ; Don't set any lower than 60 seconds.
+;debug = core                                                                     ; (MULTI-ENTRY) console debug level or categories
+                                                                                  ; examples: debug = 11 | debug = mwi,event,core | debug = all | debug = none or 0
+                                                                                  ; possible categories:
+                                                                                  ; core, sccp, hint, rtp, device, line, action, channel, cli, config, feature, feature_button, softkey, indicate, pbx
+                                                                                  ; socket, mwi, event, adv_feature, conference, buttontemplate, speeddial, codec, realtime, lock, newcode, high, all, none
+;context = default                                                                ; (REQUIRED) pbx dialplan context
+;dateformat = M/D/Y                                                               ; (SIZE: 7) M-D-Y in any order. Use M/D/YA (for 12h format)
+;bindaddr = 0.0.0.0                                                               ; (REQUIRED) replace with the ip address of the asterisk server (RTP important param)
+;port = 2000                                                                      ; listen on port 2000 (Skinny, default)
+deny = 0.0.0.0/0.0.0.0
+permit = internal                                                                 ; (REQUIRED) (MULTI-ENTRY) Deny every address except for the only one allowed. example: '0.0.0.0/0.0.0.0'
+                                                                                  ; Accept class C 192.168.1.0 example '192.168.1.0/255.255.255.0'
+                                                                                  ; You may have multiple rules for masking traffic.
+                                                                                  ; Rules are processed from the first to the last.
+                                                                                  ; This General rule is valid for all incoming connections. It's the 1st filter.
+                                                                                  ; using 'internal' will allow the 10.0.0.0, 172.16.0.0 and 192.168.0.0 networks
+;localnet = internal                                                              ; (MULTI-ENTRY) All RFC 1918 addresses are local networks, example '192.168.1.0/255.255.255.0'
+;externip = 0.0.0.0                                                               ; External IP Address of the firewall, required in case the PBX is running on a separate host behind it. IP Address that we're going to notify in RTP media stream as the pbx source address.
+;firstdigittimeout = 16                                                           ; Dialing timeout for the 1st digit
+;digittimeout = 8                                                                 ; More digits
+;digittimeoutchar = #                                                             ; You can force the channel to dial with this char in the dialing state
+;recorddigittimeoutchar = no                                                      ; You can force the channel to dial with this char in the dialing state
+;simulate_enbloc = yes                                                            ; Use simulated enbloc dialing to speedup connection when dialing while onhook (older phones)
+;ringtype = outside								  ; Ringtype for incoming calls (default='outside')
+;autoanswer_ring_time = 1                                                         ; Ringing time in seconds for the autoanswer.
+;autoanswer_tone = 0x32                                                           ; Autoanswer confirmation tone. For a complete list of tones: grep SKINNY_TONE sccp_protocol.h
+                                                                                  ; not all the tones can be played in a connected state, so you have to try.
+;remotehangup_tone = 0x32                                                         ; Passive hangup notification. 0 for none
+;transfer_tone = 0                                                                ; Confirmation tone on transfer. Works only between SCCP devices
+;transfer_on_hangup = no                                                          ; Complete transfer on hangup, without pressing transfer a second time.
+                                                                                  ; Will complete transfer, when the transferer puts the receiver on hook, after the destination has been reached.
+                                                                                  ; To cancel the transfer, either press resume on the transferred channel, press the 'endcall' softkey, or have the receiving party hangup first.
+;dnd_tone = 0x0								          ; Use 0x2D, 0x31, 0x32, 0x33 to activate dnd incoming call indication when dnd silent is active
+;callwaiting_tone = 0x2d                                                          ; Sets to 0 to disable the callwaiting tone
+;callwaiting_interval = 0                                                         ; Callwaiting ring interval in seconds. Set to 0 to disable the callwaiting ringing interval.
+;musicclass = default                                                             ; Sets the default music on hold class
+;language = en                                                                    ; Default language setting
+;callevents = yes                                                                 ; Generate manager events when phone
+                                                                                  ; Performs events (e.g. hold)
+;accountcode = skinny                                                             ; Accountcode to ease billing
+;sccp_tos = 0x68                                                                  ; Sets the default sccp signaling packets Type of Service (TOS)  (defaults to 0x68 = 01101000 = 104 = DSCP:011010 = AF31)
+                                                                                  ; Others possible values : [CS?, AF??, EF], [0x??], [lowdelay, throughput, reliability, mincost(solaris)], none
+;sccp_cos = 4                                                                     ; sets the default sccp signaling packets Class of Service (COS).
+;audio_tos = 0xB8                                                                 ; sets the default audio/rtp packets Type of Service (TOS) (defaults to 0xb8 = 10111000 = 184 = DSCP:101110 = EF)
+;audio_cos = 6                                                                    ; sets the default audio/rtp packets Class of Service (COS).
+;video_tos = 0x88                                                                 ; sets the default video/rtp packets Type of Service (TOS) (defaults to 0x88 = 10001000 = 136 = DSCP:100010 = AF41)
+;video_cos = 5                                                                    ; sets the default video/rtp packets Class of Service (COS).
+;echocancel = yes                                                                 ; sets the phone echocancel for all devices
+;silencesuppression = no                                                          ; sets the silence suppression for all devices
+                                                                                  ; we don't have to trust the phone ip address, but the ip address of the connection
+;earlyrtp = progress                                                              ; valid options: none, offhook, immediate, dial, ringout and progress.
+                                                                                  ; The audio stream will be open in the progress and connected state by default. Immediate forces overlap dialing.
+                                                                                  ; (POSSIBLE VALUES: ["Immediate","OffHook","Dialing","Ringout","Progress","None"])
+;dndFeature = on                                                                  ; Turn on the dnd softkey for all devices. Valid values are 'off', 'on'.
+;private = yes                                                                    ; permit the private function softkey
+;mwilamp = on                                                                     ; Set the MWI lamp style when MWI active to on, off, wink, flash or blink
+                                                                                  ; (POSSIBLE VALUES: ["Off","On","Wink","Flash","Blink"])
+;mwioncall = no                                                                   ; Set the MWI on call.
+;blindtransferindication = ring                                                   ; moh or ring. the blind transfer should ring the caller or just play music on hold
+                                                                                  ; (POSSIBLE VALUES: ["RING","MOH"])
+;cfwdall = yes                                                                    ; activate the callforward ALL stuff and softkeys
+;cfwdbusy = yes                                                                   ; activate the callforward BUSY stuff and softkeys
+;cfwdnoanswer = yes                                                               ; activate the callforward NOANSWER stuff and softkeys
+;nat = auto                                                                       ; Global NAT support.
+                                                                                  ; (POSSIBLE VALUES: ["Auto","Off","(Auto)Off","On","(Auto)On"])
+;directrtp = no                                                                   ; This option allow devices to do direct RTP sessions.
+;allowoverlap = no                                                                ; Enable overlap dialing support. If enabled, starts dialing immediately and sends remaining digits as DTMF/inband.
+                                                                                  ; Use with extreme caution as it is very dialplan and provider dependent.
+callgroup = ""                                                                    ; We are in caller groups 1,3,4. Valid for all lines
+pickupgroup = ""                                                                  ; We can do call pick-p for call group 1,3,4,5. Valid for all lines
+;directed_pickup_modeanswer = yes                                                 ; Automatically Answer when using Directed Pickup.
+;amaflags = default                                                               ; Sets the default AMA flag code stored in the CDR record
+;callanswerorder = oldestfirst                                                    ; oldestfirst or lastestfirst
+                                                                                  ; (POSSIBLE VALUES: ["OldestFirst","LastFirst"])
+regcontext = ""                                                                   ; SCCP Lines will we added to this context in asterisk for Dundi lookup purposes.
+                                                                                  ; Do not set to an already created/used context. The context will be autocreated. You can share the sip/iax regcontext if you like.
+;devicetable = sccpdevice                                                         ; datebasetable for devices
+;linetable = sccpline                                                             ; datebasetable for lines
+;meetme = yes                                                                     ; enable/disable conferencing via meetme (on/off), make sure you have one of the meetme apps mentioned below activated in module.conf
+                                                                                  ; when switching meetme=on it will search for the first of these three possible meetme applications and set these defaults
+                                                                                  ;  - {'MeetMe', 'qd'},
+                                                                                  ;  - {'ConfBridge', 'Mac'},
+                                                                                  ;  - {'Konference', 'MTV'}
+;meetmeopts = qxd                                                                 ; options to send the meetme application, defaults are dependent on meetme app see the list above
+                                                                                  ; Other options (app_meetme: A,a,b,c,C,d,D,E,e,F,i,I,l,L,m,M,o,p,P,q,r,s,S,t,T,w,x,X,1) see meetme specific documentation
+;jbenable = no                                                                    ; Enables the use of a jitterbuffer on the receiving side of a sccp channel.
+                                                                                  ; An enabled jitterbuffer will be used only if the sending side can create and the receiving side can not accept jitter.
+                                                                                  ; The sccp channel can accept jitter, thus a jitterbuffer on the receive sccp side will beused only if it is forced and enabled.
+;jbforce = no                                                                     ; Forces the use of a jitterbuffer on the receive side of a sccp channel.
+;jblog = no                                                                       ; Enables jitterbuffer frame logging.
+;jbmaxsize = 200                                                                  ; Max length of the jitterbuffer in milliseconds.
+;jbresyncthreshold = 1000                                                         ; Jump in the frame timestamps over which the jitterbuffer is
+                                                                                  ; resynchronized. Useful to improve the quality of the voice, with
+                                                                                  ; big jumps in/broken timestamps, usually sent from exotic devices
+                                                                                  ; and programs.
+;jbimpl = fixed                                                                   ; (SIZE: 11) Jitterbuffer implementation, used on the receiving side of a
+                                                                                  ; sccp channel. Two implementations are currently available
+                                                                                  ; - 'fixed' (with size always equals to jbmaxsize)
+                                                                                  ; - 'adaptive' (with variable size, actually the new jb of IAX2).
+;hotline_enabled = yes                                                            ; Setting the hotline Feature on a device, will make it connect to a predefined extension as soon as the Receiver
+                                                                                  ; is picked up or the 'New Call' Button is pressed. No number has to be given. This works even on devices which
+                                                                                  ; have no entry in the config file or realtime database.
+                                                                                  ; The hotline function can be used in different circumstances, for example at a door, where you want people to be
+                                                                                  ; able to only call one number, or for unprovisioned phones to only be able to call the helpdesk to get their phone
+                                                                                  ; set up. If hotline_enabled = yes, any device which is not included in the configuration explicitly will be allowed
+                                                                                  ; to registered as a guest device. All such devices will register on a single shared line called 'hotline'.
+;hotline_context = sccp                                                           ; 
+;hotline_extension = 111                                                          ; 
+;hotline_label = hotline                                                          ; 
+;fallback = no                                                                    ; Immediately fallback to primairy/master server when it becomes available (master/slave asterisk cluster) (TokenRequest)
+                                                                                  ; Possible values are: true/false/odd/even/script.
+                                                                                  ; active/passive cluster: true on active/false on passive
+                                                                                  ; active/active cluster: even on active1/off on active2
+                                                                                  ; more complex cluster: use script. It will be called with three arguments, namely mac-address, ip-address, devicetype.
+                                                                                  ;                       and it should return 'ACK' (without the quotes) to acknowledge the token, or a value for the number of seconds to backoff and try again.
+                                                                                  ; Value can be changed online via CLI/AMI command 'sccp set fallback true/false/odd/even/script'
+;backoff_time = 60                                                                ; Time to wait before re-asking to fallback to primairy server (Token Reject Backoff Time)
+;server_priority = 1                                                              ; Server Priority for fallback: 1=Primairy, 2=Secundary, 3=Tertiary etc
+                                                                                  ; For active-active (fallback=odd/even) use 1 for both
+
+;
+; device section
+;
+[default_device](!)
+device = ""                                                                       ; (SIZE: 15) device type
+devicetype = ""                                                                   ; (SIZE: 15) device type
+description = ""                                                                  ; device description
+keepalive = ""                                                                    ; set keepalive to 60
+;tzoffset = 0                                                                     ; time zone offset
+;disallow = all
+;allow = ulaw                                                                     ; (MULTI-ENTRY) Same as entry in [general] section
+;allow = alaw
+;transfer = yes                                                                   ; enable or disable the transfer capability. It does remove the transfer softkey
+;park = yes                                                                       ; take a look to the compile how-to. Park stuff is not compiled by default.
+;cfwdall = no                                                                     ; activate the call forward stuff and soft keys
+;cfwdbusy = no                                                                    ; allow call forward when line is busy
+;cfwdnoanswer = no                                                                ; allow call forward when line if not being answered
+;dndFeature = yes                                                                 ; allow usage do not disturb button
+dnd = ""                                                                          ; allow setting dnd action for this device. Valid values are 'off', 'reject' (busy signal), 'silent' (ringer = silent) or 'user' (not used at the moment). . The value 'on' has been made obsolete in favor of 'reject'
+                                                                                  ; (POSSIBLE VALUES: ["Off","Reject","Silent","UserDefined"])
+;force_dtmfmode = auto                                                            ; auto, skinny or rfc2833. Some phone models with bad firmware do send dtmf in a messed up order and need to be forced to skinny mode.
+                                                                                  ; (POSSIBLE VALUES: ["AUTO","RFC2833","SKINNY"])
+deny = ""
+permit = ""                                                                       ; (MULTI-ENTRY) Same as entry in [general] section
+                                                                                  ; This device can register only using this ip address
+audio_tos = ""                                                                    ; sets the audio/rtp packets Type of Service (TOS) (defaults to 0xb8 = 10111000 = 184 = DSCP:101110 = EF).
+                                                                                  ; Others possible values : 0x??, lowdelay, throughput, reliability, mincost(solaris), none.
+audio_cos = ""                                                                    ; sets the audio/rtp packets Class of Service (COS)
+video_tos = ""                                                                    ; sets the video/rtp packets Type of Service (TOS) (defaults to 0x88 = 10001000 = 136 = DSCP:100010 = AF41).
+video_cos = ""                                                                    ; sets the video/rtp packets Class of Service (COS).
+nat = ""                                                                          ; Device NAT support. Currently nat is automatically detected in most cases.
+                                                                                  ; (POSSIBLE VALUES: ["Auto","Off","(Auto)Off","On","(Auto)On"])
+directrtp = ""                                                                    ; This option allow devices to do direct RTP sessions.
+earlyrtp = ""                                                                     ; valid options: none, offhook, immediate, dial, ringout and progress.
+                                                                                  ; The audio stream will be open in the progress and connected state by default. Immediate forces overlap dialing.
+                                                                                  ; (POSSIBLE VALUES: ["Immediate","OffHook","Dialing","Ringout","Progress","None"])
+private = ""                                                                      ; permit the private function softkey for this device
+privacy = ""                                                                      ; permit the private function softkey for this device
+mwilamp = ""                                                                      ; Set the MWI lamp style when MWI active to on, off, wink, flash or blink
+                                                                                  ; (POSSIBLE VALUES: ["Off","On","Wink","Flash","Blink"])
+mwioncall = ""                                                                    ; Set the MWI on call.
+meetme = ""                                                                       ; enable/disable conferencing via app_meetme (on/off)
+meetmeopts = ""                                                                   ; options to send the app_meetme application (default 'qd' = quiet,dynamic pin)
+                                                                                  ; Other options (A,a,b,c,C,d,D,E,e,F,i,I,l,L,m,M,o,p,P,q,r,s,S,t,T,w,x,X,1) see app_meetme documentation
+;softkeyset = default                                                             ; use specified softkeyset with name 'default'
+;useRedialMenu = no                                                               ; show redial phone book list instead of dialing the last number (adv_feature). Requires a Phone Service block in SEP....cnf.xml to work correct on Java phones (See conf/tftp/SEP example files)
+;directed_pickup = yes                                                            ; enable/disable Pickup button to do directed pickup from a specific extension.
+directed_pickup_context = ""                                                      ; context where direct pickup search for extensions. if not set current contect will be use.
+;directed_pickup_modeanswer = yes                                                 ; on = asterisk way, the call has been answered when picked up.
+monitor = ""                                                                      ; 
+allowoverlap = ""                                                                 ; Allow for Overlap dialing (Continue dialing after the first part of the number has already been send to the pstn)
+setvar = ""                                                                       ; (MULTI-ENTRY) extra variables to be set on line initialization multiple entries possible (for example the sip number to use when dialing outside)
+                                                                                  ; format setvar=param=value, for example setvar=sipno=12345678
+permithost = ""                                                                   ; (MULTI-ENTRY) permit/deny but by resolved hostname
+addon = ""                                                                        ; One of 7914, 7915, 7916
+button = ""                                                                       ; (MULTI-ENTRY) Buttons come in the following flavours (empty, line, speeddial, service, feature).
+                                                                                  ; Examples (read the documentation for more examples/combinations):
+                                                                                  ;  - button = line,1234
+                                                                                  ;  - button = line,1234,default
+                                                                                  ;  - button = empty
+                                                                                  ;  - button = line,98099@11:Phone1
+                                                                                  ;  - button = line,98099@12:Phone2#ButtonLabel!silent			; append cidnum:'12' and cidname:'Phone2' to line-ci with label 'ButtonLabel', don't ring when dialed directly
+                                                                                  ;  - button = line,98099@+12:Phone2@ButtonLabel!silent		; same as the previous line
+                                                                                  ;  - button = line,98099@=12:Phone2!silent				; overwrite line-cid instead of appending
+                                                                                  ;  - button = speeddial,Phone 2 Line 1, 98021, 98021@hints
+                                                                                  ;  - button = feature,cfwdall,1234
+                                                                                  ;  - button = feature,PDefault,ParkingLot,default			; feature, name, feature_type, parkinglotContext [,RetrieveSingle]
+                                                                                  ;  - button = feature,PDefault,ParkingLot,default,RetrieveSingle	; feature, name, feature_type, parkinglotContext [,RetrieveSingle]
+;allowRinginNotification = no                                                     ; allow ringin notification for hinted extensions. experimental configuration param that may be removed in further version
+;conf_allow = yes                                                                 ; Allow the use of conference
+;conf_play_general_announce = yes                                                 ; Playback General Announcements (like: 'You are Entering/Leaving the conference')
+;conf_play_part_announce = yes                                                    ; Playback Personal/Participant Announcements, (like: 'You have been muted / You have been kicked')
+;conf_mute_on_entry = no                                                          ; Mute new participants from the start
+;conf_music_on_hold_class = default                                               ; Play music on hold of this class when no moderator is listening on the conference. If set to an empty string, no music on hold will be played.
+;conf_show_conflist = yes                                                         ; Automatically show conference list to the moderator
+backgroundImage = ""                                                              ; Set the Background Image after device registered. Image must be set as URI to a http served file.
+ringtone = ""                                                                     ; Set the Ring Tone after device registered. Ring Tone must be set as URI to a http served file.
+imageversion = ""                                                                 ; (SIZE: 31) ImageVersion to be loaded on the device.
+
+;
+; line section
+;
+[default_line](!)
+id = ""                                                                           ; (SIZE: 7) id
+pin = ""                                                                          ; (SIZE: 7) pin
+description = ""                                                                  ; description
+context = ""                                                                      ; pbx dialing context
+defaultSubscriptionId_name = ""                                                   ; (SIZE: 79) Name used on a shared line when no name is specified on the line button for the device
+defaultSubscriptionId_number = ""                                                 ; (SIZE: 79) Number used on a shared line when no name is specified on the line button for the device
+mailbox = ""                                                                      ; Mailbox to store messages in. Format 'mailbox@context' or 'mailbox' when you use 'default' context
+vmnum = ""                                                                        ; Number to dial to get to the users Mailbox
+adhocNumber = ""                                                                  ; Adhoc Number or Private-line automatic ring down (PLAR):
+                                                                                  ; Adhoc/PLAR circuits have statically configured endpoints and do not require the user dialing to connect calls.
+                                                                                  ;  - The adhocNumber is dialed as soon as the Phone is taken off-hook or when the new-call button is pressed.
+                                                                                  ;  - The number will not be dialed when choosing a line; so when you choose a line you can enter a number manually.
+meetme = ""                                                                       ; enable/disable conferencing via meetme, make sure you have one of the meetme apps mentioned below activated in module.conf.
+                                                                                  ; When switching meetme=on it will search for the first of these three possible meetme applications and set these defaults.
+                                                                                  ; Meetme=>'qd', ConfBridge=>'Mac', Konference=>'MTV'
+meetmenum = ""                                                                    ; This extension will receive meetme requests, SCCP_MEETME_ROOM channel variable will
+                                                                                  ; contain the room number dialed into simpleswitch (this parameter is going to be removed).
+meetmeopts = ""                                                                   ; options to send the meetme application, defaults are dependent on meetme app see the list above.
+                                                                                  ; Other options (app_meetme: A,a,b,c,C,d,D,E,e,F,i,I,l,L,m,M,o,p,P,q,r,s,S,t,T,w,x,X,1) see conferencing app for specific documentation
+transfer = ""                                                                     ; per line transfer capability
+;incominglimit = 6                                                                ; allow x number of incoming calls (call waiting)
+echocancel = ""                                                                   ; sets the phone echocancel for this line
+silencesuppression = ""                                                           ; sets the silence suppression for this line
+language = ""                                                                     ; sets the language setting per line
+musicclass = ""                                                                   ; sets the music on hold class per line
+accountcode = ""                                                                  ; accountcode for this line to make billing per call possible
+amaflags = ""                                                                     ; sets the AMA flags stored in the CDR record for this line
+callgroup = ""                                                                    ; sets the caller groups this line is a member of
+pickupgroup = ""                                                                  ; sets the pickup groups this line is a member of (this phone can pickup calls from remote phones which are in this caller group
+namedcallgroup = ""                                                               ; sets the named caller groups this line is a member of (ast111)
+namedpickupgroup = ""                                                             ; sets the named pickup groups this line is a member of (this phone can pickup calls from remote phones which are in this caller group (ast111)
+parkinglot = ""                                                                   ; parkinglot assigned to this line
+trnsfvm = ""                                                                      ; extension to redirect the caller to for voice mail
+secondary_dialtone_digits = ""                                                    ; digits to indicate an external line to user (secondary dialtone) (max 9 digits)
+;secondary_dialtone_tone = 0x22                                                   ; outside dialtone frequency
+setvar = ""                                                                       ; (MULTI-ENTRY) extra variables to be set on line initialization multiple entries possible (for example the sip number to use when dialing outside)
+                                                                                  ; format setvar=param=value, for example setvar=sipno=12345678
+dnd = ""                                                                          ; allow setting dnd action for this line. Valid values are 'off', 'reject' (busy signal), 'silent' (ringer = silent) or 'user' (not used at the moment). . The value 'on' has been made obsolete in favor of 'reject'
+                                                                                  ; (POSSIBLE VALUES: ["Off","Reject","Silent","UserDefined"])
+regexten = ""                                                                     ; SCCP Lines will we added to the regcontext with this number for Dundi look up purpose
+                                                                                  ; If regexten is not filled in the line name (categoryname between []) will be used
+
+;
+; softkey section
+;
+;[mysoftkeyset]
+;type = softkeyset                                                                ; (SIZE: -1) This should be set to softkeyset
+;onhook = redial,newcall,cfwdall,dnd,pickup,gpickup,private                       ; (SIZE: 15) displayed when we are on hook
+;connected = hold,endcall,park,vidmode,select,cfwdall,cfwdbusy,idivert            ; (SIZE: 15) displayed when we have a connected call
+;onhold = resume,newcall,endcall,transfer,conflist,select,dirtrfr,idivert,meetme  ; (SIZE: 15) displayed when we have a call on hold
+;ringin = answer,endcall,transvm,idivert                                          ; (SIZE: 15) displayed when we have an incoming call
+;offhook = redial,endcall,private,cfwdall,cfwdbusy,pickup,gpickup,meetme,barge    ; (SIZE: 15) displayed when the phone is taken off hook
+;conntrans = hold,endcall,transfer,conf,park,select,dirtrfr,vidmode,meetme,cfwdall,cfwdbusy           ; (SIZE: 15) displayed when we are connected and could transfer a call
+;digitsfoll = back,endcall,dial                                                   ; (SIZE: 15) displayed when one or more digits have been entered, more are expected
+;connconf = conflist,newcall,endcall,hold,vidmode                                 ; (SIZE: 15) displayed when we are in a conference
+;ringout = empty,endcall,transfer,cfwdall,idivert                                 ; (SIZE: 15) displayed when We are calling someone
+;offhookfeat = redial,endcall                                                     ; (SIZE: 15) displayed wenn we went offhook using a feature
+;onhint = redial,newcall,pickup,gpickup,barge                                     ; (SIZE: 15) displayed when a hint is activated
+;onstealable = redial,newcall,cfwdall,pickup,gpickup,dnd,intrcpt                  ; (SIZE: 15) displayed when there is a call we could steal on one of the neighboring phones
+;holdconf = resume,newcall,endcall,join                                           ; (SIZE: 15) displayed when we are a conference moderator, have the conference on hold and have another active call
+uriaction = ""                                                                    ; (MULTI-ENTRY) (SIZE: 7) softkey uri action to replace default handling. Format: uriaction = softkeyname, uri[,uri...]
+                                                                                  ; . URI can be an embedded cisco action (like Key:Service, Play:1041.raw) or a URLIf uri is a url the following parameters will be added to it: devicename, linename, channelname, callid, linkedid, uniqueid, appid, transactionid

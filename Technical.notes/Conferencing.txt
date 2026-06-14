@@ -1,0 +1,49 @@
+Conference - NOT CONFERENCE BRIDGE !!!!! ( Sccp Conference)
+
+Conference Introduction
+
+The integrated conference solution build in chan-sccp-b is based on asterisk's ConfBridge functionality. In stead of having to memorize the confbridge voice menu and having to press DTMF keys to control your conference we have opted to include a visual Cisco-XML menu, which give you (the Moderator) the ability to Kick, Mute and Promote another user to become an additional Moderator.
+
+Note: You need to './configure --enable-conference ...' when you built the chan_sccp.so module. Note: A conference always requires at least one moderator.
+Conference Settings
+
+The standard conference settings are setup per device and contain:
+param 	default 	description
+conf_allow 	yes 	Allow the use of conference
+conf_play_general_announce 	yes 	Playback General Announcements (like: 'You are Entering/Leaving the conference')
+conf_play_part_announce 	yes 	Playback Personal/Participant Announcements, (like: 'You have been muted / You have been kicked')
+conf_mute_on_entry 	no 	Mute new participants from the start, when they enter the conference (Preventing them to talk amongst one another). The Moderator will have to UnMute a participant manually to allow them to speak. Useful in a classroom setting.
+conf_music_on_hold_class 	'default' 	Play music on hold of this class when no moderator is listening on the conference. If set to an empty string, no music on hold will be played.
+conf_show_conflist 	yes 	Automatically show conference list to the moderator
+Creating a New Conference (Conf Softkey)
+
+Using the Conference Button makes it possible to set up a Simple Conference between 3 or more participant. (The actual minimum to start a conference is 2, but that doesn't make a lot of sense now does it.)
+
+You already have 2 or more lines connected (One is active and the other(s) is/are on Hold), which you would like to put in a Conference; Simply Press the Conf Softkey Button.
+
+If you do not already have these lines connected, that call some people first and then start the conference. It does not make sense to be conferencing on your own.
+Conference List (ConfList Softkey)
+
+When conf_show_conflist=yes or you press the ConfList Softkey, you will be presented with a Cisco-XML Menu, showing you all currently connected Participant. Something like this:
+
+7970_Conference.png
+
+You can use the Softkeys underneath the menu, for example:
+Softkey 	Description
+EndConf 	Hangup all participants and end the current conference
+Kick 	Through a specific participant out of the conference (Call is hungup)
+Mute 	Do not allow a specific participant to speak (The hear a voiceprompt stating that they have been muted (if conf_play_part_announce = yes), and the mute status is displayed on their display (if they have an sccp device))
+Unmute 	Allow a specific participant to speak (The hear a voiceprompt stating that they have been unmuted (if conf_play_part_announce = yes), and the mute status is displayed on their display (if they have an sccp device)).
+Promote 	Make a specific participant a moderator as well (giving them control over the conference as well). You can leave the conference by hanging up, without the conference being terminated.
+Exit 	Leave the ConfList Menu, but remain connected to the conference. This makes it possible to put the conference onhold and invite someone new for examples. You need to press the ConfList Softkey to get back into the ConfList Menu.
+Adding another Participant after the conference has already started (Join Softkey)
+
+If you do need to add a person after having started the conference, then you need to exit the conflist menu, put the conference on hold and dial the new "future" participant, once that person has picked up, you press the join button on that new call and this new participant will be added to the conference and you will automatically resume the conference you where in before.
+
+Once the conference is started you will be presented with the conflist menu which will allow you to control the conference directly from your phone (kick / mute participant and even promote one of the participant to become a secondary moderator, so that they can take over control of the conference and you are free to leave).
+Q & A:
+The Conference Softkey just created a two person conference
+
+Question: Creating a conference call on my 7961 does not seem to work. Once I hit the Conference softbutton, it will create a conference but put me and the other person directly into the conference without giving me any way to call a third party.
+
+Solution: Just put the first person on hold, dial the second person (and a third, fourth etc) and then press the conference button. All of the calls connected to your phone will automatically be put into the conference.

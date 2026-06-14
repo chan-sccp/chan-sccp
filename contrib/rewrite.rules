@@ -1,0 +1,223 @@
+#
+# TFTPd Rewrite for SCCP_Manager Custom remaping
+#	/firmware
+#	/settings
+#	/wallpapers
+#	/ringtones
+#	/locales
+#
+# 6901 firmware (java-based)
+ri ^(APP6901SCCP)(.+\.sgn)$ firmware/6901/\1\2
+ri ^(KNL6901SCCP)(.+\.sgn)$ firmware/6901/\1\2
+ri ^(SCCP6901)(.+\.loads)$ firmware/6901/\1\2
+
+# 6911 firmware (java-based)
+ri ^(APP6911SCCP)(.+\.sgn)$ firmware/6911/\1\2
+ri ^(BFS6911SCCP)(.+\.sgn)$ firmware/6911/\1\2
+ri ^(KNL6911SCCP)(.+\.sgn)$ firmware/6911/\1\2
+ri ^(SCCP6911)(.+\.loads)$ firmware/6911/\1\2
+
+# 6921 firmware (java-based)
+ri ^(BOOT69xx)(.+\.sgn)$ firmware/6921/\1\2
+ri ^(DSP69xx)(.+\.sgn)$ firmware/6921/\1\2
+ri ^(SCCP69xx)(.+\.loads)$ firmware/6921/\1\2
+ri ^(SCCP69xx)(.+\.sgn)$ firmware/6921/\1\2
+
+# 6945 firmware (java-based)
+ri ^(SCCP6945)(.+\.sgn)$ firmware/6945/\1\2
+ri ^(SCCP6945)(.+\.loads)$ firmware/6945/\1\2
+
+# 69xx firmware (java-based)
+ri ^(BOOT69xx)(.+\.sgn)$ firmware/69xx/\1\2
+ri ^(DSP69xx)(.+\.sgn)$ firmware/69xx/\1\2
+ri ^(SCCP69xx)(.+\.loads)$ firmware/69xx/\1\2
+ri ^(SCCP69xx)(.+\.sgn)$ firmware/69xx/\1\2
+
+# 7902 firmware (ancient)
+ri ^(CP7902080002SCCP060817A.sbin)$ firmware/7902/\1
+
+# 7905 firmware (ancient)
+ri ^(CP7905080003SCCP070409A.sbin)$ firmware/7905/\1
+ri ^(CP7905080003SCCP070409A.zup)$ firmware/7905/\1
+
+# 7906_7911 firmware (java-based)
+ri ^(apps11)(.+\.sbn)$ firmware/7906/\1\2
+ri ^(cnu11)(.+\.sbn)$ firmware/7906/\1\2
+ri ^(cvm11sccp)(.+\.sbn)$ firmware/7906/\1\2
+ri ^(dsp11)(.+\.sbn)$ firmware/7906/\1\2
+ri ^(jar11sccp)(.+\.sbn)$ firmware/7906/\1\2
+ri ^(SCCP11)(.+\.loads)$ firmware/7906/\1\2
+ri ^(term06)(.+\.loads)$ firmware/7906/\1\2
+ri ^(term11)(.+\.loads)$ firmware/7906/\1\2
+
+# 7910 firmware (ancient)
+ri ^(P00405000700.bin)$ firmware/7910/\1
+ri ^(P00405000700.sbn)$ firmware/7910/\1
+
+# 7912 firmware (ancient)
+ri ^(CP7912080004SCCP080108A.sbin)$ firmware/7912/\1
+
+# 7915 firmware (ancient)
+ri ^(B015-1-0-)(.+\.SBN)$ firmware/7915/\1\2
+
+# 7916 firmware (ancient)
+ri ^(B016-1-0-)(.+\.SBN)$ firmware/7916/\1\2
+
+# 7920 firmware (ancient)
+ri ^(cmterm_7920)(.+\.bin)$ firmware/7920/\1\2
+
+# 7921_7925 firmware (ancient)
+ri ^(APPS-1.4.3.4.SBN)$ firmware/7921/\1
+ri ^(CP7921G-1.4.3.4.LOADS)$ firmware/7921/\1
+ri ^(GUI-1.4.3.4.SBN)$ firmware/7921/\1
+ri ^(SYS-1.4.3.4.SBN)$ firmware/7921/\1
+ri ^(TNUX-1.4.3.4.SBN)$ firmware/7921/\1
+ri ^(TNUXR-1.4.3.4.SBN)$ firmware/7921/\1
+ri ^(WLAN-1.4.3.4.SBN)$ firmware/7921/\1
+
+# 7926 firmware (ancient)
+ri ^(APPSS-1.4.1SR1.SBN)$ firmware/7926/\1
+ri ^(CP7926G-1.4.1SR1.LOADS)$ firmware/7926/\1
+ri ^(EA15FW-BF3-220.SBN)$ firmware/7926/\1
+ri ^(GUIS-1.4.1SR1.SBN)$ firmware/7926/\1
+ri ^(JSYSS-1.4.1SR1.SBN)$ firmware/7926/\1
+ri ^(JUIS-1.4.1SR1.SBN)$ firmware/7926/\1
+ri ^(SYSS-1.4.1SR1.SBN)$ firmware/7926/\1
+ri ^(TNUXRS-1.4.1SR1.SBN)$ firmware/7926/\1
+ri ^(TNUXS-1.4.1SR1.SBN)$ firmware/7926/\1
+ri ^(WLANS-1.4.1SR1.SBN)$ firmware/7926/\1
+
+# 7931 firmware (java-based)
+ri ^(apps31)(.+\.sbn)$ firmware/7931/\1\2
+ri ^(cnu31)(.+\.sbn)$ firmware/7931/\1\2
+ri ^(cvm31sccp)(.+\.sbn)$ firmware/7931/\1\2
+ri ^(dsp31)(.+\.sbn)$ firmware/7931/\1\2
+ri ^(jar31sccp)(.+\.sbn)$ firmware/7931/\1\2
+ri ^(SCCP31)(.+\.loads)$ firmware/7931/\1\2
+ri ^(term31)(.+\.loads)$ firmware/7931/\1\2
+
+# 7935 firmware (ancient)
+ri ^(P00503021900.bin)$ firmware/7935/\1
+
+# 7936 firmware (ancient)
+ri ^(cmterm_7936.3-3-21-0.bin)$ firmware/7936/\1
+
+# 7937 firmware (ancient)
+ri ^(apps37sccp.1-4-5-7.bin)$ firmware/7937/\1
+
+# 7940_7960 firmware (ancient)
+ri ^(P0030801SR)(.+\.bin)$ firmware/7940/\1\2
+ri ^(P0030801SR)(.+\.loads)$ firmware/7940/\1\2
+ri ^(P0030801SR)(.+\.sb2)$ firmware/7940/\1\2
+ri ^(P0030801SR)(.+\.sbn)$ firmware/7940/\1\2
+
+# 7941_7961 firmware (java-based)
+ri ^(apps41)(.+\.sbn)$ firmware/7941/\1\2
+ri ^(cnu41)(.+\.sbn)$ firmware/7941/\1\2
+ri ^(cvm41sccp)(.+\.sbn)$ firmware/7941/\1\2
+ri ^(dsp41)(.+\.sbn)$ firmware/7941/\1\2
+ri ^(jar41sccp)(.+\.sbn)$ firmware/7941/\1\2
+ri ^(SCCP41)(.+\.loads)$ firmware/7941/\1\2
+ri ^(term41)(.+\.loads)$ firmware/7941/\1\2
+ri ^(term61)(.+\.loads)$ firmware/7941/\1\2
+
+# 7942_7962 firmware (java-based)
+ri ^(apps42)(.+\.sbn)$ firmware/7942/\1\2
+ri ^(cnu42)(.+\.sbn)$ firmware/7942/\1\2
+ri ^(cvm42sccp)(.+\.sbn)$ firmware/7942/\1\2
+ri ^(dsp42)(.+\.sbn)$ firmware/7942/\1\2
+ri ^(jar42sccp)(.+\.sbn)$ firmware/7942/\1\2
+ri ^(SCCP42)(.+\.loads)$ firmware/7942/\1\2
+ri ^(term42)(.+\.loads)$ firmware/7942/\1\2
+ri ^(term62)(.+\.loads)$ firmware/7942/\1\2
+
+# 7945_7965 firmware (java-based)
+ri ^(apps45)(.+\.sbn)$ firmware/7945/\1\2
+ri ^(cnu45)(.+\.sbn)$ firmware/7945/\1\2
+ri ^(cvm45sccp)(.+\.sbn)$ firmware/7945/\1\2
+ri ^(dsp45)(.+\.sbn)$ firmware/7945/\1\2
+ri ^(jar45sccp)(.+\.sbn)$ firmware/7945/\1\2
+ri ^(SCCP45)(.+\.loads)$ firmware/7945/\1\2
+ri ^(term45)(.+\.loads)$ firmware/7945/\1\2
+ri ^(term65)(.+\.loads)$ firmware/7945/\1\2
+
+# 7970_7971 firmware (java-based)
+ri ^(apps70)(.+\.sbn)$ firmware/7970/\1\2
+ri ^(cnu70)(.+\.sbn)$ firmware/7970/\1\2
+ri ^(cvm70sccp)(.+\.sbn)$ firmware/7970/\1\2
+ri ^(dsp70)(.+\.sbn)$ firmware/7970/\1\2
+ri ^(jar70sccp)(.+\.sbn)$ firmware/7970/\1\2
+ri ^(SCCP70)(.+\.loads)$ firmware/7970/\1\2
+ri ^(term70)(.+\.loads)$ firmware/7970/\1\2
+ri ^(term71)(.+\.loads)$ firmware/7970/\1\2
+
+# 7975 firmware (java-based)
+ri ^(apps75)(.+\.sbn)$ firmware/7975/\1\2
+ri ^(cnu75)(.+\.sbn)$ firmware/7975/\1\2
+ri ^(cvm75sccp)(.+\.sbn)$ firmware/7975/\1\2
+ri ^(dsp75)(.+\.sbn)$ firmware/7975/\1\2
+ri ^(jar75sccp)(.+\.sbn)$ firmware/7975/\1\2
+ri ^(SCCP75)(.+\.loads)$ firmware/7975/\1\2
+ri ^(term75)(.+\.loads)$ firmware/7975/\1\2
+
+# 7985 firmware (ancient)
+ri ^(cmterm_7985.4-1-7-0.bin)$ firmware/7985/\1
+
+# 894x firmware (java-based)
+ri ^(BOOT894x)(.+\.sgn)$ firmware/894x/\1\2
+ri ^(SCCP894x)(.+\.sgn)$ firmware/894x/\1\2
+ri ^(SCCP894x)(.+\.loads)$ firmware/894x/\1\2
+
+# ata186/ata188 firmware (ancient)
+ri ^(ATA030204SCCP090202A.zup)$ firmware/ata186/\1
+
+# Sub-Directory Handling
+
+# settings
+ri ^(.+\.tlv)?$ settings/\1
+ri ^\/(.+\.tlv)?$ settings/\1
+ri ^((.+\.cnf.xml)(\.enc)?(\.sgn)?)$ settings/\1
+ri ^\/((.+\-cnf.xml)(\.enc)?(\.sgn)?)$ settings/\1
+ri ^\/((SPA504G-cfg.xml)(\.enc)?(\.sgn)?)$ settings/\1
+
+# Keep firmware in a separate directory (optional)
+#ri ^(.+\.loads)$ firmware/\1
+#ri ^(.+\.sbn)$ firmware/\1
+
+
+ri ^(.+)\/(.+-sccp.jar)$ locales/languages/\1/\2
+ri ^(.+)\/(.+-sip.jar)$ locales/languages/\1/\2
+ri ^(.+)\/(.+-dictionary.xml)$ locales/languages/\1/\2
+ri ^(.+)\/(.+-dictionary-ext.xml)$ locales/languages/\1/\2
+#ri ^(.+)\/(.+-tones.xml)$ locales/languages/\1/\2
+ri ^(.+)\/(.+-font.xml)$ locales/languages/\1/\2
+ri ^(.+)\/(.+-kate.xml)$ locales/languages/\1/\2
+ri ^(.+)\/(gk.+)(\.cfg)$ locales/languages/\1/\2\3
+
+ri ^(.+)\/(.+-tones.xml)$ locales/countries/\1/\2
+
+
+# Keep ring-tones in a separate directory (optional)
+ri ^([R|r]ing[L|l]ist)(\.xml|-wb\.xml)(\.sgn)?$ ringtones/ringlist.xml
+ri ^(Distinctive[R|r]ing[L|l]ist)(\.xml|-wb\.xml)(\.sgn)?$ ringtones/ringlist.xml
+ri ^(.+)(\.raw|\.rwb|\.pcm)(\.sgn)?$ ringtones/\1\2\3
+
+# Rename Desktops to wallpapers (optional)
+#ri ^Desktops/(.+)/(List\.xml)(\.sgn)?$ wallpapers/\1/\2\3
+#ri ^Desktops/(.+)/(.+\.png)(\.sgn)?$ wallpapers/\1/\2\3
+
+# Dialplan
+ri ^(dialplan.xml)$ dialplan/\1
+
+ri ^authorized_keys$ settings/authorized_keys
+
+#
+# Generic Rules
+#
+ri	^[a-z]:				# Remove "drive letters"
+rg	\\		/		# Convert backslashes to slashes
+rg	\#		@		# Convert hash marks to @ signs
+rg	/../		/..no../	# Convert /../ to /..no../
+# e	^ok/				# These are always ok
+# r	^[^/]		/tftpboot/\0	# Convert non-absolute files
+# a	\.pvt$				# Reject requests for private files

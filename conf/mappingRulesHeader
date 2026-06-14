@@ -1,0 +1,9 @@
+#
+# TFTPd Mapping Rules for SCCP_Manager Provision
+#
+# This file is maintained by Sccp_Manager, and will be overwritten by the installer
+# a copy of the original can be found at sccpManagerRewrite.rules.bu
+# For any changes to this file to be effective, the tftp server will have to be restarted.
+#
+# The rules below are provided by dkgroot/provision project https://github.com/dkgroot/provision_sccp
+#

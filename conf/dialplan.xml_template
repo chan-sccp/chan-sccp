@@ -1,0 +1,8 @@
+<dialTemplate>
+  <versionStamp>e68d54c1-0354-4b1a-aca4-adffc4b7de2f</versionStamp>
+  <TEMPLATE match="3.." timeout="1" />
+  <TEMPLATE match="..." timeout="2" />
+  <TEMPLATE match="......." timeout="2" />
+  <TEMPLATE match="0........" timeout="2" />
+  <TEMPLATE match="*" timeout="3" />
+</dialTemplate>

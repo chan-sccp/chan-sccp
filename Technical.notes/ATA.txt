@@ -1,0 +1,64 @@
+https://www.cisco.com/c/en/us/td/docs/voice_ip_comm/cata/186_188/2_15_ms/english/administration/guide/sccp/sccp/sccpaape.html
+
+Для работы Cisco ATA-186, 188
+обновление прошивки 
+--- linux 
+/sata186us.linux -any -d3 ATA030204SCCP090202A.zup
+
+Для работы Cisco ATA-186, 188  может потребоваться файл atadefault.cfg
+---------- Config 
+cfgfmt.linux atadefault.txt atadefault.cfg 
+
+
+----------------------begin atadefault.txt ---------------------
+#txt
+UIPassword:0
+UseTftp:1
+TftpURL:0
+cfgInterval:3600
+EncryptKey:0
+ToConfig:0
+upgradecode:0,0x301,0x0400,0x0200,0.0.0.0,69,0,none
+upgradelang:0,0x301,0x0400,0x0200,0.0.0.0,69,0,none
+Dhcp:1
+StaticIp:0
+StaticRoute:0
+StaticNetMask:0
+CA0orCM0:172.30.122.41:2000
+CA1orCM1:0
+CA0UID:0
+CA1UID:0
+EPID0orSID0:.
+EPID1orSID1:.
+PrfCodec:1
+LBRCodec:3
+AudioMode:0x00350035
+NumTxFrames:2
+CallerIdMethod:0x00019e60
+ConnectMode:0x90000400
+DNS1IP:0.0.0.0
+DNS2IP:0.0.0.0
+UDPTOS:0xA0
+RingCadence:2,4,25
+DialTone:2,31538,30831,1380,1740,1,0,0,0
+BusyTone:2,30467,28959,1191,1513,0,4000,4000,0
+ReorderTone:2,30467,28959,1191,1513,0,2000,2000,0
+RingBackTone:2,30831,30467,1943,2111,0,16000,32000,0
+CallWaitTone:1,30831,0,5493,0,0,2400,2400,4800
+ConfirmTone:1,30467,0,5970,0,0,480,480,1920
+MediaPort:16384
+UseMGCP:0
+MGCPPort:2427
+RetxIntvl:500
+RetxLim:7
+MGCPVer:MGCP1.0
+NPrintf:0
+TraceFlags:0x00000000
+SigTimer:0x00000064
+CodecName:PCMU,PCMA,G723,G729
+OpFlags:0x2
+VLANSetting:0x0000002b
+-----------------------end atadefault.txt ------------------
+
+
+

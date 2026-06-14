@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<device>
+  <fullConfig>true</fullConfig>
+  <deviceProtocol>SCCP</deviceProtocol>
+  <sshUserId/>
+  <sshPassword/>
+  <ipAddressMode>2</ipAddressMode>
+  <allowAutoConfig>true</allowAutoConfig>
+  <ipPreferenceModeControl>1</ipPreferenceModeControl>
+  <tzdata>
+    <tzolsonversion>2012c</tzolsonversion>
+    <tzupdater>tzupdater.jar</tzupdater>
+  </tzdata>
+  <mlppDomainId>000000</mlppDomainId>
+  <mlppIndicationStatus>Off</mlppIndicationStatus>
+  <preemption>Disabled</preemption>
+  <executiveOverridePreemptable>false</executiveOverridePreemptable>
+  <devicePool>
+    <revertPriority>0</revertPriority>
+    <name>Default</name>
+    <dateTimeSetting>
+      <name>CMLocal</name>
+      <dateTemplate>M/D/Y</dateTemplate>
+      <timeZone>Greenwich Standard Time</timeZone>
+      <olsonTimeZone>Etc/GMT</olsonTimeZone>
+    </dateTimeSetting>
+    <callManagerGroup>
+      <name>Default</name>
+      <tftpDefault>true</tftpDefault>
+      <members>
+        <member priority="0">
+          <callManager>
+            <name>asterisk</name>
+            <ipv6Addr/>
+            <description>asterisk</description>
+            <ports>
+              <ethernetPhonePort>2000</ethernetPhonePort>
+              <sipPort>5060</sipPort>
+              <securedSipPort>5061</securedSipPort>
+              <mgcpPorts>
+                <listen>2427</listen>
+                <keepAlive>2428</keepAlive>
+              </mgcpPorts>
+            </ports>
+            <processNodeName>asterisk</processNodeName>
+          </callManager>
+        </member>
+      </members>
+    </callManagerGroup>
+    <srstInfo uuid="{cd241e11-4a58-4d3d-9661-f06c912a18a3}">
+      <name>Disable</name>
+      <srstOption>Disable</srstOption>
+      <userModifiable>false</userModifiable>
+      <ipAddr1/>
+      <port1>2000</port1>
+      <ipAddr2/>
+      <port2>2000</port2>
+      <ipAddr3/>
+      <port3>2000</port3>
+      <sipIpAddr1/>
+      <sipPort1>5060</sipPort1>
+      <sipIpAddr2/>
+      <sipPort2>5060</sipPort2>
+      <sipIpAddr3/>
+      <sipPort3>5060</sipPort3>
+      <isSecure>false</isSecure>
+    </srstInfo>
+    <connectionMonitorDuration>120</connectionMonitorDuration>
+  </devicePool>
+  <commonProfile>
+    <phonePassword/>
+    <backgroundImageAccess>true</backgroundImageAccess>
+    <callLogBlfEnabled>3</callLogBlfEnabled>
+  </commonProfile>
+  <loadInformation>apps37sccp.1-4-4-0</loadInformation>
+  <vendorConfig>
+    <garp>0</garp>
+    <voiceVlanAccess>0</voiceVlanAccess>
+    <sshAccess>1</sshAccess>
+    <lldpAssetId/>
+    <voiceQualityControl>0</voiceQualityControl>
+  </vendorConfig>
+  <versionStamp>1396020461-83a09e65-e62e-4db3-9e03-e3d0cdfd7093</versionStamp>
+  <userLocale>
+    <name>English_United_States</name>
+    <uid>1</uid>
+    <langCode>en_US</langCode>
+    <version>9.0.0.0(1)</version>
+    <winCharSet>iso-8859-1</winCharSet>
+  </userLocale>
+  <networkLocale>United_States</networkLocale>
+  <networkLocaleInfo>
+    <name>United_States</name>
+    <uid>64</uid>
+    <version>9.0.0.0(1)</version>
+  </networkLocaleInfo>
+  <idleTimeout>0</idleTimeout>
+  <authenticationURL>http://asterisk:8080/ccmcip/authenticate.jsp</authenticationURL>
+  <directoryURL>http://asterisk:8080/ccmcip/xmldirectory.jsp</directoryURL>
+  <idleURL/>
+  <informationURL>http://asterisk:8080/ccmcip/GetTelecasterHelpText.jsp</informationURL>
+  <messagesURL/>
+  <proxyServerURL/>
+  <servicesURL>http://asterisk:8080/ccmcip/getservicesmenu.jsp</servicesURL>
+  <dscpForSCCPPhoneConfig>96</dscpForSCCPPhoneConfig>
+  <dscpForSCCPPhoneServices>0</dscpForSCCPPhoneServices>
+  <dscpForCm2Dvce>96</dscpForCm2Dvce>
+  <transportLayerProtocol>1</transportLayerProtocol>
+  <dndCallAlert>5</dndCallAlert>
+  <phonePersonalization>1</phonePersonalization>
+  <rollover>0</rollover>
+  <singleButtonBarge>0</singleButtonBarge>
+  <joinAcrossLines>0</joinAcrossLines>
+  <autoCallPickupEnable>false</autoCallPickupEnable>
+  <blfAudibleAlertSettingOfIdleStation>0</blfAudibleAlertSettingOfIdleStation>
+  <blfAudibleAlertSettingOfBusyStation>0</blfAudibleAlertSettingOfBusyStation>
+  <capfAuthMode>0</capfAuthMode>
+  <capfList>
+    <capf>
+      <phonePort>3804</phonePort>
+      <processNodeName>asterisk</processNodeName>
+      <ipv6Addr/>
+    </capf>
+  </capfList>
+  <certHash/>
+  <encrConfig>false</encrConfig>
+  <advertiseG722Codec>1</advertiseG722Codec>
+  <mobility>
+    <handoffdn/>
+    <dtmfdn/>
+    <ivrdn/>
+    <dtmfHoldCode>*81</dtmfHoldCode>
+    <dtmfExclusiveHoldCode>*82</dtmfExclusiveHoldCode>
+    <dtmfResumeCode>*83</dtmfResumeCode>
+    <dtmfTxfCode>*84</dtmfTxfCode>
+    <dtmfCnfCode>*85</dtmfCnfCode>
+  </mobility>
+  <userId/>
+  <phoneServices>
+    <provisioning>2</provisioning>
+    <phoneService type="1" category="0">
+      <name>Missed Calls</name>
+      <url>Application:Cisco/MissedCalls</url>
+      <vendor/>
+      <version/>
+    </phoneService>
+    <phoneService type="2" category="0">
+      <name>Voicemail</name>
+      <url>Application:Cisco/Voicemail</url>
+      <vendor/>
+      <version/>
+    </phoneService>
+    <phoneService type="1" category="0">
+      <name>Received Calls</name>
+      <url>Application:Cisco/ReceivedCalls</url>
+      <vendor/>
+      <version/>
+    </phoneService>
+    <phoneService type="1" category="0">
+      <name>Placed Calls</name>
+      <url>Application:Cisco/PlacedCalls</url>
+      <vendor/>
+      <version/>
+    </phoneService>
+    <phoneService type="1" category="0">
+      <name>Personal Directory</name>
+      <url>Application:Cisco/PersonalDirectory</url>
+      <vendor/>
+      <version/>
+    </phoneService>
+    <phoneService type="1" category="0">
+      <name>Corporate Directory</name>
+      <url>Application:Cisco/CorporateDirectory</url>
+      <vendor/>
+      <version/>
+    </phoneService>
+  </phoneServices>
+</device>

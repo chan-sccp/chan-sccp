@@ -1,0 +1,57 @@
+https://github.com/chan-sccp/chan-sccp/wiki/Adding-custom-background-images
+http://www.voicecerts.com/2011/08/changing-cisco-ip-phone-background.html
+https://silver-golem.livejournal.com/432591.html
+
+> Real Time !
+http://silver-golem.livejournal.com/431942.html
+
+General Information
+
+Cisco IP Phones support either colored or monochrom background images in various resolutions (depending on model). The background can either be set up in sccp.conf server side or the user can be enabled to select a background image from a defined list of backgrounds. The image has to be a graphic file with .PNG extension. Other requirements apply, depending on phone model (see below).
+Set background image server side
+
+Background images can be set up server side in sccp.conf for most modern Cisco IP Phones by using a parameter in the device section. This image is pushed to the phone upon every restart.
+
+[SEPXXXXXXXXX]
+...
+backgroundImage=http://PATH-TO-BACKGROUND-IMAGE/filename.png
+
+!!!> Phone personalization needs to be set to allow the server to push background or ringtones to the phone in the SEPXXXXXXXXXX.cnf.xml of each phone:
+
+------------------------------------
+<phonePersonalization>1</phonePersonalization>
+------------------------------------
+Enable user to pick a custom background image
+
+When a user is allowed to pick his own background image in the user settings (true in device section of the SEPXXXX.xml config file), the phone searches for the List.xml (case-sensitive) file in the following directories. Depending on the phone model, the required file properties are as follows:
+Phone Model 	Image Size 	Thumbnail Size 	Directory
+7906 / 7911 	95x34 		23x8 		/Desktops/95x34x1
+7941 / 7961 	320x196 	80x49 		/Desktops/320x196x4
+7942 / 7962 	320x196 	80x49 		/Desktops/320x196x4
+7945 / 7965 	320x212 	80x53 		/Desktops/320x212x16
+7970 / 7971 	320x212 	80x53 		/Desktops/320x212x12
+7975            320x216 	80x53 		/Desktops/320x216x16
+7985            800x600 	not supported 	/Desktops/800x600x16
+8941 / 8945 	640x480 	123x111 	/Desktops/640x480x24
+
+The Image file is used for the background of the phone display. An additional thumbnail is used as a preview image on the phone settings menu (on 7985 only the filename). The List.xml has to be in the above model-depending directory. The file has a Cisco IPPhoneImage syntax, example:
+
+<CiscoIPPhoneImageList>
+<ImageItem Image="TFTP:Desktops/640x480x24/sccp-tn.png"
+           URL="TFTP:Desktops/640x480x24/sccp.png"/>
+<ImageItem Image="TFTP:Desktops/640x480x24/sccp_2-tn.png"
+           URL="TFTP:Desktops/640x480x24/sccp_2.png"/>
+</CiscoIPPhoneImageList>
+
+While the resolution is fix, the phones are able to reduce the color depth if the original image uses too many colors.
+
+Note: This can also be done using the SEP....cnf.xml file
+<device>
+...
+<commonProfile>
+  <defaultBackground>TFTP/HTTP/HTTPS URL</defaultBackground>
+  <backgroundImageAccess>true/false</backgroundImageAccess>  <!-- allowing users to change the background -->
+</commonProfile>
+<phonePersonalization>1</phonePersonalization>	<!-- allowing users to change the background -->
+...
+</device>

@@ -1,0 +1,495 @@
+<?php
+// vim: set ai ts=4 sw=4 ft=php:
+// Version for SCCP Manager 13.0.X
+//
+/*  This is the driver for Sccp_manager in FreePBX.
+    It is loaded via an include, written by the installer, at
+    modules/core/functions.inc/drivers
+    and provides the following required methods. it provides the interface between
+    FreePBX extensions and sccp_manager lines
+ *
+ *          getInfo
+ *          addDevice
+ *          delDevice
+ *          getDevice - Called by core to read sccpline returning fields in data_fld
+ *          getDefaultDeviceSettings -
+ *          getDeviceDisplay - Called by functionsInc to load sccp tab using values from Device and getDevice.
+ *
+ */
+//
+namespace FreePBX\modules\Core\Drivers;
+class Sccp extends \FreePBX\modules\Core\Driver {
+	 public $xml_data;
+	  public $sccpHelpInfo;
+    // This is a map between sccpline fields and FreePBX fields.
+    // TODO: List needs to be extended. Missing fields, not necessarily all required              
+/*              adhocNumber
+                    meetme
+                meetmenum
+               meetmeopts
+                 regexten
+          directed_pickup
+  directed_pickup_context
+        pickup_modeanswer
+                 amaflags
+                  setvar
+            phonecodepage
+                  trnsfvm
+                    vmnum
+*/
+    private $data_fld = array("pin"=>'pin', "label" => 'label', "accountcode" => 'account',
+                           "context" =>'context',"incominglimit"=>'incominglimit',
+                           "callgroup"=>'callgroup',"pickupgroup"=>'pickupgroup',
+                           "transfer" => 'transfer', "echocancel" => 'echocancel',
+                           "language" => 'language', "description" => 'callerid',
+                           "cid_num" => 'cid_num', "cid_name" => 'label', "mailbox" => 'mailbox',
+                           "musicclass" => 'musicclass', "allow" => 'allow',"disallow" => 'disallow',
+                           "videomode" => 'videomode', 'pickup_modeanswer' => 'pickup_modeanswer',
+                           "dnd" => 'dnd', "silencesuppression" => 'silencesuppression',
+                           "secondary_dialtone_digits" => 'secondary_dialtone_digits',
+                           "secondary_dialtone_tone" => 'secondary_dialtone_tone',
+                           'namedcallgroup'=>'namedcallgroup', 'namedpickupgroup' => 'namedpickupgroup',
+                           'directed_pickup' => 'directed_pickup'
+                      );
+    // These are gui defaults used by freePBX for the elements in the SCCP tab in add/edit phone.
+    private $guiDefaults =array(
+                      'gui_checkset' => array( "elemname" => "",
+                                        "prompttext" => "",    //ok
+                                        "helptext" => "",
+                                        "currentvalue" => "",
+                                        "valarray" => array(),
+                                        "jsonclick" => '',
+                                        "jsvalidation" => "",   //ok
+                                        "failvalidationmsg" => "",    //ok
+                                        "canbeempty" => true,
+                                        "maxchars" => 0,
+                                        "disable" => false,      //ok
+                                        "inputgroup" => false,
+                                        "class" => "",
+                                        "cblabel" => 'Enable',
+                                        "disabled_value" => 'DEFAULT',
+                                        "check_enables" => 'true',
+                                        "cbdisable" => false,
+                                        "cbclass" => '')
+                                    );
+
+    private $line_defaults = array();
+
+    public function __construct($parent_class = null) {
+
+        $this->freepbx = $parent_class;
+        $this->database = $parent_class->Database();
+        // Get system defaults [systemdefault] and sitedefaults [data] from sccpsettings.
+        $stmt = $this->database->prepare("SELECT * FROM sccpsettings");
+        $stmt->execute();
+        $raw_settings = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        foreach ($raw_settings as $key => $valueArray) {
+            $sccpDefaults[$valueArray['keyword']] = $valueArray['systemdefault'];
+            $siteDefaults[$valueArray['keyword']] = $valueArray['data'];
+        }
+        // This will produce an array where site defaults take precedence over system defaults
+        $this->line_defaults = array_intersect_key($siteDefaults,$sccpDefaults);
+        // If have no site codecs, use system defaults - must have a codec!
+        if (empty($this->line_defaults['allow'])) {
+            $this->line_defaults['allow'] = $sccpDefaults['allow'];
+        }
+        if (empty($this->line_defaults['disallow'])) {
+            $this->line_defaults['disallow'] = $sccpDefaults['disallow'];
+        }
+        unset($raw_settings, $siteDefaults, $sccpDefaults);
+    }
+
+    public function getInfo() {
+		    return array(
+      			"rawName" => "sccp",
+      			"hardware" => "sccp_custom",
+      			"prettyName" => _("Sccp Custom Driver"),
+      			"shortName" => "SCCP",
+      			"description" => _("Sccp Device"),
+      			"Version" => "11.5",
+      			"about" => "Sccp class Base ver: 11.5, Sccp ver: default"
+        );
+    }
+
+    public function addDevice($id, $settings) {
+        // This is actually save line and is used by add and edit.
+        $add_fld = array ("name"=>'label',"outboundcid"=>'cid_num',"langcode"=>'language',"extdisplay"=>'description','devinfo_mailbox'=>'mailbox');
+        $settings['cid_num']['value'] = '';
+        $settings['cid_name']['value'] = '';
+        $settings['mailbox']['value']= '';
+
+        // Add $_REQUEST values to settings
+        if (isset($_REQUEST)){
+            foreach($add_fld as $key => $val) {
+                if (!empty($_REQUEST[$key])){
+                    $settings[$val]['value'] = $_REQUEST[$key];
+                }
+            }
+        }
+        $allow_codec = array();
+        foreach($settings as $key => $val) {
+            if (strncmp($key,'codec_',6) === 0 ) {
+                 $allow_codec[] = str_replace('codec_','',$key);
+            }
+        }
+        $settings['allow']['value'] = implode(";", $allow_codec);
+        // Reset to line defaults if no value selected
+        if (empty($settings['allow']['value'])) {
+              $settings['allow']['value'] = $this->line_defaults['allow'];
+        }
+
+	      // If set, parse outboundcid content into cid_num and cid_name sccpline fields
+        if (!empty($settings['cid_num']['value'])) {
+            $outboundcid = $settings['cid_num']['value'];
+            if (preg_match('/"(.*)"\s?<(.*)>/', $outboundcid, $matches)) {
+                $settings['cid_num']['value'] = $matches[2];
+                $settings['cid_name']['value'] = $matches[1];
+            } else if (is_integer($outboundcid)) {
+                $settings['cid_num']['value'] = $outboundcid;
+            }
+        }
+
+        if ($this->line_defaults['dndFeature'] == 'off') {
+            $settings['dnd']['value'] = 'off';
+        }
+
+        if (!empty($_REQUEST['vm']) && ($_REQUEST['vm'] =='enabled')){ // mailbox
+            if (empty($settings['mailbox']['value'])) {
+                $settings['mailbox']['value']= $id;
+            }
+        }
+
+        // only store values that have been set; if need to display a default, must show in page.
+        $sqlSet = "name='{$id}'";
+        foreach($this->data_fld as $key => $val) {
+            if (!empty($settings[$val]['value'])) {
+                $sqlSet .= ", {$key}='{$settings[$val]['value']}'";
+            }
+        }
+
+        $stmt = "INSERT INTO sccpline SET {$sqlSet} ON DUPLICATE KEY UPDATE {$sqlSet}";
+        $sth = $this->database->prepare($stmt);
+        $sth->execute();
+        /*
+        If called from SCCP Phone, redirect to SCCP Phone page on submit.
+        This was last function in add so should be safe.
+        Prefer to add in Hooks, but is not followed even if set for $currentComponent
+        Do nothing if called from QuickCreateExtension when display is not set
+        */
+        if (isset($_REQUEST['display'])) {
+            redirect("config.php?display=sccp_phone", false);
+        }
+        // Have changed something so need to reload the device
+        // TODO: are we reloading the device or reloading Asterisk
+        $this->reload_line($id);
+        return true;
+    }
+
+    public function delDevice($id) {
+        //Required by FreePBX.
+        // Delete associated default line buttons or will leave orphans
+        foreach (array($id) as $openId) {
+            $sth = $this->database->prepare("DELETE FROM sccpbuttonconfig WHERE name LIKE :openID AND buttontype = 'line'");
+            $openId = "{$openId}%";
+            $sth->bindParam(':openID', $openId);
+            $sth->execute();
+        }
+
+        $sth = $this->database->prepare("DELETE FROM sccpline WHERE name = ?");
+        $sth->execute(array($id));
+        return true;
+  	}
+
+    public function getDevice($id) {
+        // FreePBX required method
+        $sql = "SELECT name AS id, name AS name ";
+        foreach($this->data_fld as $key => $val) {
+                        $sql .= ", {$key} AS {$val}";
+        }
+        $sql .= " FROM sccpline WHERE name = '{$id}'";
+        $sth = $this->database->prepare($sql);
+        $tech = array();
+        try {
+            $sth->execute(array($id));
+            $tech = $sth->fetch(\PDO::FETCH_ASSOC);
+            $tech['dial']="SCCP/{$id}";
+        } catch(\Exception $e) {}
+        return $tech;
+    }
+
+    public function getDefaultDeviceSettings($id, $displayname, &$flag) {
+        // FreePBX required method
+        $settings = array();
+        $settingsFields = array('mailbox', 'incominglimit', 'context', 'directed_pickup_context', 'callgroup', 'pickupgroup', 'namedcallgroup',
+                            'namedpickupgroup', 'adhocNumber', 'secondary_dialtone_digits', 'secondary_dialtone_tone', 'directed_pickup', 'pickup_modeanswer',
+                            'transfer', 'echocancel', 'dnd', 'silencesuppression', 'musicclass', 'pin', 'allow', 'disallow');
+        foreach ($settingsFields as $key) {
+            $settings[$key] = array('value' => $this->line_defaults[$key], 'flag' => $flag++);
+        }
+      	return array('dial' => 'SCCP', 'settings' => $settings);
+    }
+
+    public function getDeviceDisplay($display, $deviceInfo, $currentComponent, $primarySection) {
+        global $amp_conf;
+		$videoCodecButtons = array();
+		$select = array();
+        $activeCodecs = array();
+        // load xml data to get help from same source as rest of module
+        $xml_vars = $amp_conf['AMPWEBROOT'] . '/admin/modules/sccp_manager/conf/sccpgeneral.xml.v433';
+            $this->xml_data = simplexml_load_file($xml_vars);
+        // load metainfo from chan-sccp - help information if not in xml. Only load first time as static data.
+        if (empty($this->sccpHelpInfo)) {
+            $sysConfiguration = \FreePbx::sccp_manager()->aminterface->getSCCPConfigMetaData('general');
+            foreach ($sysConfiguration['Options'] as $key => $valueArray) {
+                // Добавлена проверка на существование имени и описания
+                if (isset($valueArray['Name']) && isset($valueArray['Description'])) {
+                    foreach ($valueArray['Description'] as $descKey => $descValue) {
+                        // Инициализируем ключ массива, если он не существует
+                        if (!isset($this->sccpHelpInfo[$valueArray['Name']])) {
+                            $this->sccpHelpInfo[$valueArray['Name']] = '';
+                        }
+                        $this->sccpHelpInfo[$valueArray['Name']] .= $descValue . '<br>';
+                    }
+                }
+            }
+            unset($sysConfiguration);
+        }
+
+    		$section = _("SCCP Extension Details");
+    		$section_с = _("SCCP Codec Details");
+        $gn_category = "sccp";
+        //add sccp category
+        $currentComponent->addTabTranslation('sccp',_('SCCP'));
+
+        // get site and system defaults
+        $systemCodecs = array_fill_keys(explode(';',$this->line_defaults['allow']),true);
+        $siteAudioCodecs = array_intersect_key($systemCodecs, $this->freepbx->Codecs->getAudio());
+        $siteVideoCodecs = array_intersect_key($systemCodecs, $this->freepbx->Codecs->getVideo());
+
+        if (empty($deviceInfo['allow'])) {
+            // No allowed codecs so reset to site defaults
+            foreach ($systemCodecs as $lineCodec => $dummyVal) {
+                $activeCodecs[] = "devinfo_codec_{$lineCodec}";
+            }
+        } else {
+            // have allowed codecs for this line
+            foreach (explode(';',$deviceInfo['allow']) as $lineCodec) {
+                $activeCodecs[] = "devinfo_codec_{$lineCodec}";
+            }
+        }
+
+        // Fill Audio codecs information
+        foreach ($siteAudioCodecs as $key => $value) {
+            $audioCodecButtons[] = array('value' => "devinfo_codec_{$key}", 'text' => $key);
+        }
+        // Fill Video codecs information
+        foreach ($siteVideoCodecs as $key => $value) {
+            $videoCodecButtons[] = array('value' => "devinfo_codec_{$key}", 'text' => $key);
+        }
+
+        $tmparr['disallow'] = array('prompttext' => _('Disallowed Codecs'),
+                                'value' => $this->line_defaults['disallow'],
+                                'tt' => 'Codecs that are disallowed. Default and recommended value is all',
+                                'level' => 1,
+                                'section' => $section_с,
+                                'category' => $gn_category
+                              );
+
+        $el = array(
+            "elemname" => "devinfo_sccp_codec",
+            "prompttext" => _('Line Audio Codec:'),
+            "helptext" => _("Line Audio Codec. Uncheck all Audio and Video codecs to return to site defaults"),
+            "currentvalue" => $activeCodecs,
+            "valarray" => $audioCodecButtons,
+            "class" => $section_с,
+            "disable" => 0
+        );
+        // Override defaults with $el
+        $currentComponent->addguielem($section_с, new \gui_checkset(array_merge($this->guiDefaults['gui_checkset'],$el)), $gn_category);
+        unset($el);
+
+        $el = array(
+            "elemname" => "devinfo_sccp_vcodec",
+            "prompttext" => _('Line Video Codec:'),
+            "helptext" => _("Line Video Codec"),
+            "currentvalue" => $activeCodecs,
+            "valarray" => $videoCodecButtons,
+            "class" => $section_с,
+            "disable" => 0
+        );
+        $currentComponent->addguielem($section_с, new \gui_checkset(array_merge($this->guiDefaults['gui_checkset'],$el)), $gn_category);
+
+        $pageGroup = $this->xml_data->xpath('//page_group[@name="sccp_extension_config"]');
+        $elements = $pageGroup[0]->children();
+
+        foreach ($elements as $child) {
+            if (empty($child->help)) {
+                $child->help = 'Help is not available.';
+                $child->meta_help = '1';
+            }
+            switch ($child['type']) {
+                case 'IE':
+                    $elementID = (string)$child->input[0]->name;
+                    if (!empty($metainfo[$elementID])) {
+                        if ($child->meta_help == '1' || $child->help == 'Help!') {
+                            $child->help = $metainfo[$shortId];
+                        }
+                    }
+                    $tmparr[$elementID] = array('prompttext' => _((string)$child->label),
+                                            'value' => $this->line_defaults[$elementID],
+                                            'tt' => (string)$child->help,
+                                            'level' => 1,
+                                            'section' => $section,
+                                            'category' => $gn_category
+                                          );
+                    break;
+                case 'IS':
+                    $select = array();
+                    foreach ($child->xpath('button') as $value) {
+                    $select[] = array('value' => strtolower((string)$value->attributes()->value), 'text' => (string)$value);
+                    }
+                    $hideButton = false;
+                    if (($this->line_defaults['dndFeature'] == 'off') && ($child['id'] == 5)) {
+                        $hideButton = true;
+                    }
+                    $tmparr[(string)$child->name] = array('prompttext' => _((string)$child->label),
+                                            'value' => $this->line_defaults[(string)$child->name],
+                                            'tt' => (string)$child->help,
+                                            'select' => $select,
+                                            'level' => 1,
+                                            'disable' => $hideButton,
+                                            'hidden' => $hideButton,
+                                            'type' => 'radio',
+                                            'section' => $section,
+                                            'category' => $gn_category
+                                          );
+                    unset($select);
+                    break;
+                case 'SLD':
+                    $select = array(
+                              array( 'value' => '0x21', 'text' => 'Inside Dial Tone'),
+                              array( 'value' => '0x22', 'text' => 'Outside Dial Tone'),
+                              array( 'value' => '0x23', 'text' => 'Line Busy Tone'),
+                              array( 'value' => '0x24', 'text' => 'Alerting Tone'),
+                              array( 'value' => '0x25', 'text' => 'Reorder Tone'),
+                              array( 'value' => '0x26', 'text' => 'Recorder Warning Tone'),
+                              array( 'value' => '0x27', 'text' => 'Recorder Detected Tone'),
+                              array( 'value' => '0x28', 'text' => 'Reverting Tone'),
+                              array( 'value' => '0x29', 'text' => 'Receiver OffHook Tone'),
+                              array( 'value' => '0x2A', 'text' => 'Partial Dial Tone'),
+                              array( 'value' => '0x2B', 'text' => 'No Such Number Tone'),
+                              array( 'value' => '0x2C', 'text' => 'Busy Verification Tone'),
+                              array( 'value' => '0x2D', 'text' => 'Call Waiting Tone'),
+                              array( 'value' => '0x2E', 'text' => 'Confirmation Tone'),
+                              array( 'value' => '0x2F', 'text' => 'Camp On Indication Tone'),
+                              array( 'value' => '0x30', 'text' => 'Recall Dial Tone'),
+                              array( 'value' => '0x31', 'text' => 'Zip Zip'),
+                              array( 'value' => '0x32', 'text' => 'Zip'),
+                              array( 'value' => '0x33', 'text' => 'Beep Bonk'),
+                              array( 'value' => '0x34', 'text' => 'Music Tone'),
+                              array( 'value' => '0x35', 'text' => 'Hold Tone'),
+                              array( 'value' => '0x36', 'text' => 'Test Tone'),
+                              array( 'value' => '0x37', 'text' => 'DT Monitor Warning Tone'),
+                              array( 'value' => '0x40', 'text' => 'Add Call Waiting'),
+                              array( 'value' => '0x41', 'text' => 'Priority Call Wait'),
+                              array( 'value' => '0x42', 'text' => 'Recall Dial'),
+                              array( 'value' => '0x43', 'text' => 'Barg In'),
+                              array( 'value' => '0x44', 'text' => 'Distinct Alert'),
+                              array( 'value' => '0x45', 'text' => 'Priority Alert'),
+                              array( 'value' => '0x46', 'text' => 'Reminder Ring'),
+                              array( 'value' => '0x47', 'text' => 'Precedence RingBank'),
+                              array( 'value' => '0x48', 'text' => 'Pre-EmptionTone'),
+                              array( 'value' => '0x67', 'text' => '2105 HZ'),
+                              array( 'value' => '0x68', 'text' => '2600 HZ'),
+                              array( 'value' => '0x69', 'text' => '440 HZ'),
+                              array( 'value' => '0x6A', 'text' => '300 HZ'),
+                              array( 'value' => '0x77', 'text' => 'MLPP Pala'),
+                              array( 'value' => '0x78', 'text' => 'MLPP Ica'),
+                              array( 'value' => '0x79', 'text' => 'MLPP Vca'),
+                              array( 'value' => '0x7A', 'text' => 'MLPP Bpa'),
+                              array( 'value' => '0x7B', 'text' => 'MLPP Bnea'),
+                              array( 'value' => '0x7C', 'text' => 'MLPP Upa')
+                            );
+
+
+                    $tmparr[(string)$child->name] = array('prompttext' => _((string)$child->label),
+                                                'value' => $this->line_defaults[(string)$child->name],
+                                                'tt' => (string)$child->help,
+                                                'select' => $select,
+                                                'level' => 1,
+                                                'type' => 'select',
+                                                'section' => $section,
+                                                'category' => $gn_category
+                                              );
+                    unset($select);
+                    break;
+                                case 'SLG':
+                    $select = array(); // Инициализация
+                    $elementID = (string)$child->name;
+                    $named_group = \FreePbx::sccp_manager()->dbinterface->getNamedGroup($elementID);
+                    if (!empty($named_group[$elementID])) {
+                        foreach ($named_group[$elementID] as $val) {
+                            $select[] = array('value' => $val, 'text' => $val);
+                        }
+                    }
+                    // Disable and hide list elements if there are no valid values
+                    $tmparr[(string)$child->name] = array('prompttext' => _((string)$child->label),
+                                                'value' => $this->line_defaults[(string)$child->name],
+                                                'tt' => (string)$child->help,
+                                                'select' => $select,
+                                                'level' => 1,
+                                                'disable' => empty($named_group[$elementID][0]),
+                                                'hidden' => empty($named_group[$elementID][0]),
+                                                'section' => $section,
+                                                'category' => $gn_category
+                                              );
+                    unset($select);
+                    break;
+
+                case 'SLM':
+                    if (function_exists('music_list')){
+                        foreach (music_list() as $value) {
+                            $select[] = array('value' => $value, 'text' => _($value));
+                        }
+                    } else {
+                        $select[] = array('value' => 'default', 'text' => _('default'));
+                    }
+                    $tmparr[(string)$child->name] = array('prompttext' => _((string)$child->label),
+                                              'value' => $this->line_defaults[(string)$child->name],
+                                              'tt' => (string)$child->help,
+                                              'select' => $select,
+                                              'level' => 1,
+                                              'type' => 'select',
+                                              'section' => $section,
+                                              'category' => $gn_category
+                                            );
+                    unset($select);
+                    break;
+            }
+        }
+
+        $select[] = array('value' => 'off', 'text' => 'Off');
+        $select[] = array('value' => 'user', 'text' => 'User');
+        $select[] = array('value' => 'auto', 'text' => 'Auto');
+        $tt = _("Automatic or Manual video mode. Valid values are 'auto', 'user' or 'off'. When set to 'auto', video will automatically start if both parties have a compatible code enabled. In 'user' mode the user needs to press the vidmode softkey before video will be tried. Default:'auto'");
+        $tmparr['videomode'] = array('prompttext' => _('Video Mode '), 'value' => 'auto', 'tt' => $tt, 'select' => $select, 'level' => 1, 'type' => 'radio', 'section' => $section_с, 'category' => $gn_category);
+        unset($select);
+
+        return $tmparr;
+    }
+
+    public function reload_line($id) {
+        global $astman;
+        // TODO: Change to use amInterfaceClasses
+        $result = $astman->Command('sccp reload line ' . $id);
+        return $result;
+    }
+
+
+
+    public function getDeviceHeaders() {
+        return array(
+                'secret' => array('identifier' => _('Secret'), 'description' => sprintf(_('Secret [Enter "%s" to regenerate]'),"REGEN")),
+        );
+    }
+}

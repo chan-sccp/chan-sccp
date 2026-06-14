@@ -1,0 +1,15 @@
+git clone https://github.com/chan-sccp/chan-sccp chan-sccp_develop
+
+./configure --enable-indications --enable-conference --enable-advanced-functions --enable-distributed-devicestate
+make
+make install 
+
+load = chan_sccp.so
+noload = chan_skinny.so
+
+preload = func_db.so
+preload = res_odbc.so
+preload = res_config_odbc.so
+preload = cdr_adaptive_odbc.so
+preload = app_voicemail.so
+

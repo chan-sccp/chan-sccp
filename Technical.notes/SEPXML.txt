@@ -1,0 +1,8 @@
+http://usecallmanager.nz/sepmac-cnf-xml.html
+http://usecallmanager.nz/line-keys-xml.html
+http://usecallmanager.nz/user-locale.html
+https://www.voip-info.org/wiki/view/Asterisk+phone+cisco+79x1+xml+configuration+files+for+SIP
+https://www.voip-info.org/wiki/view/Asterisk+phone+cisco+7970+SIP
+https://www.cisco.com/c/en/us/td/docs/voice_ip_comm/cuipph/all_models/xsi/8_5_1/xsi_dev_guide/xmlobjects.html
+https://habrahabr.ru/post/176019/
+https://learningnetwork.cisco.com/thread/14585

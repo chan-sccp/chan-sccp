@@ -1,0 +1,803 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- edited with XML Spy v4.4 U (http://www.xmlspy.com) by Cisco Systems, Inc. (Cisco Systems, Inc.) -->
+<!-- Last updated 31 Dec 20 -->
+<!-- The following Cisco IP Phones implement this XML parser: 6921, 6941, 6945, 6961, 7906G, 7911G, 7921G, 7925G, 7925G-EX, 7926G, 7931G, 7941G, 7941G-GE 7942G, 7945G, 7961G, 7961G-GE, 7962G, 7965G, 7970G, 7971G-GE, 7975G, 8800 Series, 8821, 8961, 9951, and 9971.-->
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified"
+attributeFormDefault="unqualified" version="3.3.4">
+  <xsd:complexType name="CiscoIPPhoneExecuteItemType">
+    <xsd:attribute name="Priority" use="optional">
+      <xsd:simpleType>
+        <xsd:restriction base="xsd:unsignedByte">
+          <xsd:minInclusive value="0"/>
+          <xsd:maxInclusive value="2"/>
+        </xsd:restriction>
+      </xsd:simpleType>
+    </xsd:attribute>
+    <xsd:attribute name="URL" use="required">
+      <xsd:simpleType>
+        <xsd:restriction base="xsd:string">
+          <xsd:maxLength value="256"/>
+          <xsd:minLength value="1"/>
+        </xsd:restriction>
+      </xsd:simpleType>
+    </xsd:attribute>
+  </xsd:complexType>
+  <xsd:complexType name="CiscoIPPhoneResponseItemType">
+    <xsd:sequence>
+      <xsd:element name="Status" type="xsd:short"/>
+      <xsd:element name="Data">
+        <xsd:simpleType>
+          <xsd:restriction base="xsd:string">
+            <xsd:maxLength value="32"/>
+          </xsd:restriction>
+        </xsd:simpleType>
+      </xsd:element>
+      <xsd:element name="URL">
+        <xsd:simpleType>
+          <xsd:restriction base="xsd:string">
+            <xsd:maxLength value="256"/>
+          </xsd:restriction>
+        </xsd:simpleType>
+      </xsd:element>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="CiscoIPPhoneTouchAreaMenuItemType">
+    <xsd:sequence>
+      <xsd:element name="Name" minOccurs="0">
+        <xsd:simpleType>
+          <xsd:restriction base="xsd:string">
+            <xsd:minLength value="0"/>
+            <xsd:maxLength value="32"/>
+          </xsd:restriction>
+        </xsd:simpleType>
+      </xsd:element>
+      <xsd:element name="URL" minOccurs="0">
+        <xsd:simpleType>
+          <xsd:restriction base="xsd:string">
+            <xsd:minLength value="0"/>
+            <xsd:maxLength value="256"/>
+          </xsd:restriction>
+        </xsd:simpleType>
+      </xsd:element>
+      <xsd:element name="TouchArea" type="CiscoIPPhoneTouchAreaType" minOccurs="0"/>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="CiscoIPPhoneTouchAreaType">
+    <xsd:attribute name="X1" type="xsd:unsignedShort" use="required"/>
+    <xsd:attribute name="Y1" type="xsd:unsignedShort" use="required"/>
+    <xsd:attribute name="X2" type="xsd:unsignedShort" use="required"/>
+    <xsd:attribute name="Y2" type="xsd:unsignedShort" use="required"/>
+  </xsd:complexType>
+  <xsd:complexType name="CiscoIPPhoneDirectoryEntryType">
+    <xsd:sequence>
+      <xsd:element name="Name" minOccurs="0">
+        <xsd:simpleType>
+          <xsd:restriction base="xsd:string">
+            <xsd:maxLength value="32"/>
+            <xsd:minLength value="0"/>
+          </xsd:restriction>
+        </xsd:simpleType>
+      </xsd:element>
+      <xsd:element name="Telephone" minOccurs="0">
+        <xsd:simpleType>
+          <xsd:restriction base="xsd:string">
+            <xsd:maxLength value="32"/>
+            <xsd:minLength value="0"/>
+          </xsd:restriction>
+        </xsd:simpleType>
+      </xsd:element>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="CiscoIPPhoneInputItemType">
+    <xsd:sequence>
+      <xsd:element name="DisplayName" minOccurs="0">
+        <xsd:simpleType>
+          <xsd:restriction base="xsd:string">
+            <xsd:maxLength value="32"/>
+            <xsd:minLength value="0"/>
+          </xsd:restriction>
+        </xsd:simpleType>
+      </xsd:element>
+      <xsd:element name="QueryStringParam">
+        <xsd:simpleType>
+          <xsd:restriction base="xsd:string">
+            <xsd:maxLength value="32"/>
+            <xsd:minLength value="1"/>
+          </xsd:restriction>
+        </xsd:simpleType>
+      </xsd:element>
+      <xsd:element name="InputFlags">
+        <xsd:simpleType>
+          <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="A"/>
+            <xsd:enumeration value="T"/>
+            <xsd:enumeration value="N"/>
+            <xsd:enumeration value="E"/>
+            <xsd:enumeration value="U"/>
+            <xsd:enumeration value="L"/>
+            <xsd:enumeration value="AP"/>
+            <xsd:enumeration value="TP"/>
+            <xsd:enumeration value="NP"/>
+            <xsd:enumeration value="EP"/>
+            <xsd:enumeration value="UP"/>
+            <xsd:enumeration value="LP"/>
+            <xsd:enumeration value="PA"/>
+            <xsd:enumeration value="PT"/>
+            <xsd:enumeration value="PN"/>
+            <xsd:enumeration value="PE"/>
+            <xsd:enumeration value="PU"/>
+            <xsd:enumeration value="PL"/>
+          </xsd:restriction>
+        </xsd:simpleType>
+      </xsd:element>
+      <xsd:element name="DefaultValue" minOccurs="0">
+        <xsd:simpleType>
+          <xsd:restriction base="xsd:string">
+            <xsd:maxLength value="32"/>
+            <xsd:minLength value="0"/>
+          </xsd:restriction>
+        </xsd:simpleType>
+      </xsd:element>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="CiscoIPPhoneMenuItemType">
+    <xsd:sequence>
+      <xsd:element name="Name" minOccurs="0">
+        <xsd:simpleType>
+          <xsd:restriction base="xsd:string">
+            <xsd:minLength value="0"/>
+            <xsd:maxLength value="64"/>
+          </xsd:restriction>
+        </xsd:simpleType>
+      </xsd:element>
+      <xsd:element name="URL" minOccurs="0">
+        <xsd:simpleType>
+          <xsd:restriction base="xsd:string">
+            <xsd:maxLength value="256"/>
+            <xsd:minLength value="0"/>
+          </xsd:restriction>
+        </xsd:simpleType>
+      </xsd:element>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="CiscoIPPhoneIconItemType">
+    <xsd:sequence>
+      <xsd:element name="Index" type="xsd:unsignedShort"/>
+      <xsd:element name="Width">
+        <xsd:simpleType>
+          <xsd:restriction base="xsd:unsignedShort">
+            <xsd:minInclusive value="1"/>
+            <xsd:maxInclusive value="16"/>
+          </xsd:restriction>
+        </xsd:simpleType>
+      </xsd:element>
+      <xsd:element name="Height">
+        <xsd:simpleType>
+          <xsd:restriction base="xsd:unsignedShort">
+            <xsd:minInclusive value="1"/>
+            <xsd:maxInclusive value="10"/>
+          </xsd:restriction>
+        </xsd:simpleType>
+      </xsd:element>
+      <xsd:element name="Depth">
+        <xsd:simpleType>
+          <xsd:restriction base="xsd:unsignedShort">
+            <xsd:minInclusive value="1"/>
+            <xsd:maxInclusive value="2"/>
+          </xsd:restriction>
+        </xsd:simpleType>
+      </xsd:element>
+      <xsd:element name="Data" minOccurs="0">
+        <xsd:simpleType>
+          <xsd:restriction base="xsd:hexBinary">
+            <xsd:maxLength value="40"/>
+            <xsd:minLength value="0"/>
+          </xsd:restriction>
+        </xsd:simpleType>
+      </xsd:element>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="CiscoIPPhoneIconMenuItemType">
+    <xsd:sequence>
+      <xsd:element name="Name" minOccurs="0">
+        <xsd:simpleType>
+          <xsd:restriction base="xsd:string">
+            <xsd:minLength value="0"/>
+            <xsd:maxLength value="64"/>
+          </xsd:restriction>
+        </xsd:simpleType>
+      </xsd:element>
+      <xsd:element name="URL" minOccurs="0">
+        <xsd:simpleType>
+          <xsd:restriction base="xsd:string">
+            <xsd:maxLength value="256"/>
+            <xsd:minLength value="0"/>
+          </xsd:restriction>
+        </xsd:simpleType>
+      </xsd:element>
+      <xsd:element name="IconIndex" minOccurs="0">
+        <xsd:simpleType>
+          <xsd:restriction base="xsd:short">
+            <xsd:minInclusive value="0"/>
+            <xsd:maxInclusive value="9"/>
+          </xsd:restriction>
+        </xsd:simpleType>
+      </xsd:element>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="CiscoIPPhoneIconFileItemType">
+    <xsd:sequence>
+      <xsd:element name="Index">
+        <xsd:simpleType>
+          <xsd:restriction base="xsd:unsignedShort">
+            <xsd:minInclusive value="0"/>
+            <xsd:maxInclusive value="9"/>
+          </xsd:restriction>
+        </xsd:simpleType>
+      </xsd:element>
+      <xsd:element name="URL">
+        <xsd:simpleType>
+          <xsd:restriction base="xsd:string">
+            <xsd:minLength value="1"/>
+            <xsd:maxLength value="256"/>
+          </xsd:restriction>
+        </xsd:simpleType>
+      </xsd:element>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="CiscoIPPhoneKeyType">
+    <xsd:sequence>
+      <xsd:element name="Key">
+        <xsd:simpleType>
+          <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="KeyPad0"/>
+            <xsd:enumeration value="KeyPad1"/>
+            <xsd:enumeration value="KeyPad2"/>
+            <xsd:enumeration value="KeyPad3"/>
+            <xsd:enumeration value="KeyPad4"/>
+            <xsd:enumeration value="KeyPad5"/>
+            <xsd:enumeration value="KeyPad6"/>
+            <xsd:enumeration value="KeyPad7"/>
+            <xsd:enumeration value="KeyPad8"/>
+            <xsd:enumeration value="KeyPad9"/>
+            <xsd:enumeration value="KeyPadStar"/>
+            <xsd:enumeration value="KeyPadPound"/>
+            <xsd:enumeration value="NavUp"/>
+            <xsd:enumeration value="NavDown"/>
+            <xsd:enumeration value="NavLeft"/>
+            <xsd:enumeration value="NavRight"/>
+            <xsd:enumeration value="NavSelect"/>
+            <xsd:enumeration value="NavBack"/>
+            <xsd:enumeration value="PushToTalk"/>
+          </xsd:restriction>
+        </xsd:simpleType>
+      </xsd:element>
+      <xsd:element name="URL" minOccurs="0">
+        <xsd:simpleType>
+          <xsd:restriction base="xsd:string">
+            <xsd:minLength value="0"/>
+            <xsd:maxLength value="256"/>
+          </xsd:restriction>
+        </xsd:simpleType>
+      </xsd:element>
+      <xsd:element name="URLDown" minOccurs="0">
+        <xsd:simpleType>
+          <xsd:restriction base="xsd:string">
+            <xsd:minLength value="0"/>
+            <xsd:maxLength value="256"/>
+          </xsd:restriction>
+        </xsd:simpleType>
+      </xsd:element>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="CiscoIPPhoneSoftKeyType">
+    <xsd:sequence>
+      <xsd:element name="Name" minOccurs="0">
+        <xsd:simpleType>
+          <xsd:restriction base="xsd:string">
+            <xsd:maxLength value="32"/>
+            <xsd:minLength value="0"/>
+          </xsd:restriction>
+        </xsd:simpleType>
+      </xsd:element>
+      <xsd:element name="Position">
+        <xsd:simpleType>
+          <xsd:restriction base="xsd:unsignedShort">
+            <xsd:minInclusive value="1"/>
+            <xsd:maxInclusive value="8"/>
+          </xsd:restriction>
+        </xsd:simpleType>
+      </xsd:element>
+      <xsd:element name="URL" minOccurs="0">
+        <xsd:simpleType>
+          <xsd:restriction base="xsd:string">
+            <xsd:maxLength value="256"/>
+            <xsd:minLength value="0"/>
+          </xsd:restriction>
+        </xsd:simpleType>
+      </xsd:element>
+      <xsd:element name="URLDown" minOccurs="0">
+        <xsd:simpleType>
+          <xsd:restriction base="xsd:string">
+            <xsd:minLength value="0"/>
+            <xsd:maxLength value="256"/>
+          </xsd:restriction>
+        </xsd:simpleType>
+      </xsd:element>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="CiscoIPPhoneDisplayableType">
+    <xsd:sequence>
+      <xsd:element name="Title" minOccurs="0">
+        <xsd:simpleType>
+          <xsd:restriction base="xsd:string">
+            <xsd:minLength value="0"/>
+            <xsd:maxLength value="32"/>
+          </xsd:restriction>
+        </xsd:simpleType>
+      </xsd:element>
+      <xsd:element name="Prompt" minOccurs="0">
+        <xsd:simpleType>
+          <xsd:restriction base="xsd:string">
+            <xsd:minLength value="0"/>
+            <xsd:maxLength value="32"/>
+          </xsd:restriction>
+        </xsd:simpleType>
+      </xsd:element>
+      <xsd:element name="SoftKeyItem" type="CiscoIPPhoneSoftKeyType" minOccurs="0" maxOccurs="8"/>
+      <xsd:element name="KeyItem" type="CiscoIPPhoneKeyType" minOccurs="0" maxOccurs="32"/>
+    </xsd:sequence>
+    <xsd:attribute name="keypadTarget" use="optional" default="application">
+      <xsd:simpleType>
+        <xsd:restriction base="xsd:string">
+          <xsd:enumeration value="application"/>
+          <xsd:enumeration value="applicationCall"/>
+          <xsd:enumeration value="activeCall"/>
+        </xsd:restriction>
+      </xsd:simpleType>
+    </xsd:attribute>
+    <xsd:attribute name="appId" use="optional">
+      <xsd:simpleType>
+        <xsd:restriction base="xsd:string">
+          <xsd:minLength value="1"/>
+          <xsd:maxLength value="64"/>
+        </xsd:restriction>
+      </xsd:simpleType>
+    </xsd:attribute>
+    <xsd:attribute name="onAppFocusLost" use="optional">
+      <xsd:simpleType>
+        <xsd:restriction base="xsd:string">
+          <xsd:minLength value="1"/>
+          <xsd:maxLength value="256"/>
+        </xsd:restriction>
+      </xsd:simpleType>
+    </xsd:attribute>
+    <xsd:attribute name="onAppFocusGained" use="optional">
+      <xsd:simpleType>
+        <xsd:restriction base="xsd:string">
+          <xsd:minLength value="1"/>
+          <xsd:maxLength value="256"/>
+        </xsd:restriction>
+      </xsd:simpleType>
+    </xsd:attribute>
+    <xsd:attribute name="onAppMinimized" use="optional">
+      <xsd:simpleType>
+        <xsd:restriction base="xsd:string">
+          <xsd:minLength value="1"/>
+          <xsd:maxLength value="256"/>
+        </xsd:restriction>
+      </xsd:simpleType>
+    </xsd:attribute>
+    <xsd:attribute name="onAppClosed" use="optional">
+      <xsd:simpleType>
+        <xsd:restriction base="xsd:string">
+          <xsd:minLength value="1"/>
+          <xsd:maxLength value="256"/>
+        </xsd:restriction>
+      </xsd:simpleType>
+    </xsd:attribute>
+  </xsd:complexType>
+  <xsd:element name="CiscoIPPhoneExecute">
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element name="ExecuteItem" type="CiscoIPPhoneExecuteItemType" maxOccurs="3"/>
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+  <xsd:element name="CiscoIPhoneResponse">
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element name="ResponseItem" type="CiscoIPPhoneResponseItemType" maxOccurs="3"/>
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+  <xsd:element name="CiscoIPPhoneError">
+    <xsd:complexType>
+      <xsd:attribute name="Number" type="xsd:unsignedShort" use="required"/>
+    </xsd:complexType>
+  </xsd:element>
+  <xsd:element name="CiscoIPPhoneText">
+    <xsd:complexType>
+      <xsd:complexContent>
+        <xsd:extension base="CiscoIPPhoneDisplayableType">
+          <xsd:sequence>
+            <xsd:element name="Text" minOccurs="0">
+              <xsd:simpleType>
+                <xsd:restriction base="xsd:string">
+                  <xsd:minLength value="0"/>
+                  <xsd:maxLength value="4000"/>
+                </xsd:restriction>
+              </xsd:simpleType>
+            </xsd:element>
+          </xsd:sequence>
+        </xsd:extension>
+      </xsd:complexContent>
+    </xsd:complexType>
+  </xsd:element>
+  <xsd:element name="CiscoIPPhoneInput">
+    <xsd:complexType>
+      <xsd:complexContent>
+        <xsd:extension base="CiscoIPPhoneDisplayableType">
+          <xsd:sequence>
+            <xsd:element name="URL">
+              <xsd:simpleType>
+                <xsd:restriction base="xsd:string">
+                  <xsd:minLength value="1"/>
+                  <xsd:maxLength value="256"/>
+                </xsd:restriction>
+              </xsd:simpleType>
+            </xsd:element>
+            <xsd:element name="InputItem" type="CiscoIPPhoneInputItemType" minOccurs="0" maxOccurs="5"/>
+          </xsd:sequence>
+        </xsd:extension>
+      </xsd:complexContent>
+    </xsd:complexType>
+  </xsd:element>
+  <xsd:element name="CiscoIPPhoneDirectory">
+    <xsd:complexType>
+      <xsd:complexContent>
+        <xsd:extension base="CiscoIPPhoneDisplayableType">
+          <xsd:sequence>
+            <xsd:element name="DirectoryEntry" type="CiscoIPPhoneDirectoryEntryType" minOccurs="0" maxOccurs="32"/>
+          </xsd:sequence>
+        </xsd:extension>
+      </xsd:complexContent>
+    </xsd:complexType>
+  </xsd:element>
+  <xsd:element name="CiscoIPPhoneImage">
+    <xsd:complexType>
+      <xsd:complexContent>
+        <xsd:extension base="CiscoIPPhoneDisplayableType">
+          <xsd:sequence>
+            <xsd:element name="LocationX" default="0" minOccurs="0">
+              <xsd:simpleType>
+                <xsd:restriction base="xsd:short">
+                  <xsd:minInclusive value="-1"/>
+                  <xsd:maxInclusive value="132"/>
+                </xsd:restriction>
+              </xsd:simpleType>
+            </xsd:element>
+            <xsd:element name="LocationY" default="0" minOccurs="0">
+              <xsd:simpleType>
+                <xsd:restriction base="xsd:short">
+                  <xsd:minInclusive value="-1"/>
+                  <xsd:maxInclusive value="64"/>
+                </xsd:restriction>
+              </xsd:simpleType>
+            </xsd:element>
+            <xsd:element name="Width">
+              <xsd:simpleType>
+                <xsd:restriction base="xsd:unsignedShort">
+                  <xsd:minInclusive value="1"/>
+                  <xsd:maxInclusive value="133"/>
+                </xsd:restriction>
+              </xsd:simpleType>
+            </xsd:element>
+            <xsd:element name="Height">
+              <xsd:simpleType>
+                <xsd:restriction base="xsd:unsignedShort">
+                  <xsd:minInclusive value="1"/>
+                  <xsd:maxInclusive value="65"/>
+                </xsd:restriction>
+              </xsd:simpleType>
+            </xsd:element>
+            <xsd:element name="Depth">
+              <xsd:simpleType>
+                <xsd:restriction base="xsd:unsignedShort">
+                  <xsd:minInclusive value="1"/>
+                  <xsd:maxInclusive value="2"/>
+                </xsd:restriction>
+              </xsd:simpleType>
+            </xsd:element>
+            <xsd:element name="Data" minOccurs="0">
+              <xsd:simpleType>
+                <xsd:restriction base="xsd:hexBinary">
+                  <xsd:maxLength value="2162"/>
+                  <xsd:minLength value="0"/>
+                </xsd:restriction>
+              </xsd:simpleType>
+            </xsd:element>
+          </xsd:sequence>
+        </xsd:extension>
+      </xsd:complexContent>
+    </xsd:complexType>
+  </xsd:element>
+  <xsd:element name="CiscoIPPhoneImageFile">
+    <xsd:complexType>
+      <xsd:complexContent>
+        <xsd:extension base="CiscoIPPhoneDisplayableType">
+          <xsd:sequence>
+            <xsd:element name="LocationX" default="0" minOccurs="0">
+              <xsd:simpleType>
+                <xsd:restriction base="xsd:short">
+                  <xsd:minInclusive value="-1"/>
+                  <xsd:maxInclusive value="297"/>
+                </xsd:restriction>
+              </xsd:simpleType>
+            </xsd:element>
+            <xsd:element name="LocationY" default="0" minOccurs="0">
+              <xsd:simpleType>
+                <xsd:restriction base="xsd:short">
+                  <xsd:minInclusive value="-1"/>
+                  <xsd:maxInclusive value="167"/>
+                </xsd:restriction>
+              </xsd:simpleType>
+            </xsd:element>
+            <xsd:element name="URL">
+              <xsd:simpleType>
+                <xsd:restriction base="xsd:string">
+                  <xsd:maxLength value="256"/>
+                  <xsd:minLength value="1"/>
+                </xsd:restriction>
+              </xsd:simpleType>
+            </xsd:element>
+          </xsd:sequence>
+        </xsd:extension>
+      </xsd:complexContent>
+    </xsd:complexType>
+  </xsd:element>
+  <xsd:element name="CiscoIPPhoneMenu">
+    <xsd:complexType>
+      <xsd:complexContent>
+        <xsd:extension base="CiscoIPPhoneDisplayableType">
+          <xsd:sequence>
+            <xsd:element name="MenuItem" type="CiscoIPPhoneMenuItemType" minOccurs="0" maxOccurs="100"/>
+          </xsd:sequence>
+        </xsd:extension>
+      </xsd:complexContent>
+    </xsd:complexType>
+  </xsd:element>
+  <xsd:element name="CiscoIPPhoneIconMenu">
+    <xsd:complexType>
+      <xsd:complexContent>
+        <xsd:extension base="CiscoIPPhoneDisplayableType">
+          <xsd:sequence>
+            <xsd:element name="MenuItem" type="CiscoIPPhoneIconMenuItemType" minOccurs="0" maxOccurs="32"/>
+            <xsd:element name="IconItem" type="CiscoIPPhoneIconItemType" minOccurs="0" maxOccurs="10"/>
+          </xsd:sequence>
+        </xsd:extension>
+      </xsd:complexContent>
+    </xsd:complexType>
+  </xsd:element>
+  <xsd:element name="CiscoIPPhoneIconFileMenu">
+    <xsd:complexType>
+      <xsd:complexContent>
+        <xsd:extension base="CiscoIPPhoneDisplayableType">
+          <xsd:sequence>
+            <xsd:element name="MenuItem" type="CiscoIPPhoneIconMenuItemType" minOccurs="0" maxOccurs="32"/>
+            <xsd:element name="IconItem" type="CiscoIPPhoneIconFileItemType" minOccurs="0" maxOccurs="10"/>
+          </xsd:sequence>
+          <xsd:attribute name="IconIndex" type="xsd:unsignedShort" use="optional"/>
+        </xsd:extension>
+      </xsd:complexContent>
+    </xsd:complexType>
+  </xsd:element>
+  <xsd:element name="CiscoIPPhoneGraphicMenu">
+    <xsd:complexType>
+      <xsd:complexContent>
+        <xsd:extension base="CiscoIPPhoneDisplayableType">
+          <xsd:sequence>
+            <xsd:element name="LocationX" default="0" minOccurs="0">
+              <xsd:simpleType>
+                <xsd:restriction base="xsd:short">
+                  <xsd:minInclusive value="-1"/>
+                  <xsd:maxInclusive value="132"/>
+                </xsd:restriction>
+              </xsd:simpleType>
+            </xsd:element>
+            <xsd:element name="LocationY" default="0" minOccurs="0">
+              <xsd:simpleType>
+                <xsd:restriction base="xsd:short">
+                  <xsd:minInclusive value="-1"/>
+                  <xsd:maxInclusive value="64"/>
+                </xsd:restriction>
+              </xsd:simpleType>
+            </xsd:element>
+            <xsd:element name="Width">
+              <xsd:simpleType>
+                <xsd:restriction base="xsd:unsignedShort">
+                  <xsd:minInclusive value="1"/>
+                  <xsd:maxInclusive value="133"/>
+                </xsd:restriction>
+              </xsd:simpleType>
+            </xsd:element>
+            <xsd:element name="Height">
+              <xsd:simpleType>
+                <xsd:restriction base="xsd:unsignedShort">
+                  <xsd:minInclusive value="1"/>
+                  <xsd:maxInclusive value="65"/>
+                </xsd:restriction>
+              </xsd:simpleType>
+            </xsd:element>
+            <xsd:element name="Depth">
+              <xsd:simpleType>
+                <xsd:restriction base="xsd:unsignedShort">
+                  <xsd:minInclusive value="1"/>
+                  <xsd:maxInclusive value="2"/>
+                </xsd:restriction>
+              </xsd:simpleType>
+            </xsd:element>
+            <xsd:element name="Data" minOccurs="0">
+              <xsd:simpleType>
+                <xsd:restriction base="xsd:hexBinary">
+                  <xsd:maxLength value="2162"/>
+                  <xsd:minLength value="0"/>
+                </xsd:restriction>
+              </xsd:simpleType>
+            </xsd:element>
+            <xsd:element name="MenuItem" type="CiscoIPPhoneMenuItemType" minOccurs="0" maxOccurs="12"/>
+          </xsd:sequence>
+        </xsd:extension>
+      </xsd:complexContent>
+    </xsd:complexType>
+  </xsd:element>
+  <xsd:element name="CiscoIPPhoneGraphicFileMenu">
+    <xsd:complexType>
+      <xsd:complexContent>
+        <xsd:extension base="CiscoIPPhoneDisplayableType">
+          <xsd:sequence>
+            <xsd:element name="LocationX" default="0" minOccurs="0">
+              <xsd:simpleType>
+                <xsd:restriction base="xsd:short">
+                  <xsd:minInclusive value="-1"/>
+                  <xsd:maxInclusive value="297"/>
+                </xsd:restriction>
+              </xsd:simpleType>
+            </xsd:element>
+            <xsd:element name="LocationY" default="0" minOccurs="0">
+              <xsd:simpleType>
+                <xsd:restriction base="xsd:short">
+                  <xsd:minInclusive value="-1"/>
+                  <xsd:maxInclusive value="167"/>
+                </xsd:restriction>
+              </xsd:simpleType>
+            </xsd:element>
+            <xsd:element name="URL">
+              <xsd:simpleType>
+                <xsd:restriction base="xsd:string">
+                  <xsd:maxLength value="256"/>
+                  <xsd:minLength value="1"/>
+                </xsd:restriction>
+              </xsd:simpleType>
+            </xsd:element>
+            <xsd:element name="MenuItem" type="CiscoIPPhoneTouchAreaMenuItemType" minOccurs="0" maxOccurs="32"/>
+          </xsd:sequence>
+        </xsd:extension>
+      </xsd:complexContent>
+    </xsd:complexType>
+  </xsd:element>
+  <xsd:element name="CiscoIPPhoneStatus">
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element name="Text" minOccurs="0">
+          <xsd:simpleType>
+            <xsd:restriction base="xsd:string">
+              <xsd:minLength value="0"/>
+              <xsd:maxLength value="32"/>
+            </xsd:restriction>
+          </xsd:simpleType>
+        </xsd:element>
+        <xsd:element name="Timer" minOccurs="0">
+          <xsd:simpleType>
+            <xsd:restriction base="xsd:unsignedShort">
+              <xsd:minInclusive value="0"/>
+            </xsd:restriction>
+          </xsd:simpleType>
+        </xsd:element>
+        <xsd:element name="LocationX" default="0" minOccurs="0">
+          <xsd:simpleType>
+            <xsd:restriction base="xsd:short">
+              <xsd:minInclusive value="-1"/>
+              <xsd:maxInclusive value="105"/>
+            </xsd:restriction>
+          </xsd:simpleType>
+        </xsd:element>
+        <xsd:element name="LocationY" default="0" minOccurs="0">
+          <xsd:simpleType>
+            <xsd:restriction base="xsd:short">
+              <xsd:minInclusive value="-1"/>
+              <xsd:maxInclusive value="20"/>
+            </xsd:restriction>
+          </xsd:simpleType>
+        </xsd:element>
+        <xsd:element name="Width">
+          <xsd:simpleType>
+            <xsd:restriction base="xsd:unsignedShort">
+              <xsd:minInclusive value="1"/>
+              <xsd:maxInclusive value="106"/>
+            </xsd:restriction>
+          </xsd:simpleType>
+        </xsd:element>
+        <xsd:element name="Height">
+          <xsd:simpleType>
+            <xsd:restriction base="xsd:unsignedShort">
+              <xsd:minInclusive value="1"/>
+              <xsd:maxInclusive value="21"/>
+            </xsd:restriction>
+          </xsd:simpleType>
+        </xsd:element>
+        <xsd:element name="Depth">
+          <xsd:simpleType>
+            <xsd:restriction base="xsd:unsignedShort">
+              <xsd:minInclusive value="1"/>
+              <xsd:maxInclusive value="2"/>
+            </xsd:restriction>
+          </xsd:simpleType>
+        </xsd:element>
+        <xsd:element name="Data" minOccurs="0">
+          <xsd:simpleType>
+            <xsd:restriction base="xsd:hexBinary">
+              <xsd:minLength value="0"/>
+              <xsd:maxLength value="557"/>
+            </xsd:restriction>
+          </xsd:simpleType>
+        </xsd:element>
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+  <xsd:element name="CiscoIPPhoneStatusFile">
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element name="Text" minOccurs="0">
+          <xsd:simpleType>
+            <xsd:restriction base="xsd:string">
+              <xsd:minLength value="0"/>
+              <xsd:maxLength value="32"/>
+            </xsd:restriction>
+          </xsd:simpleType>
+        </xsd:element>
+        <xsd:element name="Timer" minOccurs="0">
+          <xsd:simpleType>
+            <xsd:restriction base="xsd:unsignedShort">
+              <xsd:minInclusive value="0"/>
+            </xsd:restriction>
+          </xsd:simpleType>
+        </xsd:element>
+        <xsd:element name="LocationX" default="0" minOccurs="0">
+          <xsd:simpleType>
+            <xsd:restriction base="xsd:short">
+              <xsd:minInclusive value="-1"/>
+              <xsd:maxInclusive value="261"/>
+            </xsd:restriction>
+          </xsd:simpleType>
+        </xsd:element>
+        <xsd:element name="LocationY" default="0" minOccurs="0">
+          <xsd:simpleType>
+            <xsd:restriction base="xsd:short">
+              <xsd:minInclusive value="-1"/>
+              <xsd:maxInclusive value="49"/>
+            </xsd:restriction>
+          </xsd:simpleType>
+        </xsd:element>
+        <xsd:element name="URL">
+          <xsd:simpleType>
+            <xsd:restriction base="xsd:string">
+              <xsd:minLength value="1"/>
+              <xsd:maxLength value="256"/>
+            </xsd:restriction>
+          </xsd:simpleType>
+        </xsd:element>
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+</xsd:schema>

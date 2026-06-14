@@ -1,0 +1,11 @@
+Убрать коменты 
+в sccpgeneral.xml 
+   - <item type="SLA-disabled" id="6"><label>Default Dial Plan</label> 
+   + <item type="SLA" id="6"><label>Default Dial Plan</label>
+
+
+в Sccp_manager.class.php 
+//                        "sccpdialplan" => array(
+//                            "name" => _("SCCP Dial Plan information"),
+//                            "page" => 'views/server.dialtemplate.php'
+//                        )

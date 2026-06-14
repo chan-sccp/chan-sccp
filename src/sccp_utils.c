@@ -1114,7 +1114,9 @@ struct sccp_ha *sccp_append_ha(const char *sense, const char *stuff, struct sccp
 		ret = ha;
 	}
 
-	sccp_log (DEBUGCAT_HIGH) (VERBOSE_PREFIX_2 "%s/%s sense %d appended to acl for peer\n", sccp_netsock_stringify_addr (&ha->netaddr), sccp_netsock_stringify_addr (&ha->netmask), ha->sense);
+	char *netaddr_str = pbx_strdupa(sccp_netsock_stringify_addr(&ha->netaddr));
+	char *netmask_str = pbx_strdupa(sccp_netsock_stringify_addr(&ha->netmask));
+	sccp_log (DEBUGCAT_HIGH) (VERBOSE_PREFIX_2 "%s/%s sense %d appended to acl for peer\n", netaddr_str, netmask_str, ha->sense);
 
 	return ret;
 }
@@ -1122,7 +1124,9 @@ struct sccp_ha *sccp_append_ha(const char *sense, const char *stuff, struct sccp
 void sccp_print_ha(struct ast_str *buf, int buflen, struct sccp_ha *path)
 {
 	while (path) {
-		pbx_str_append (&buf, buflen, "%s:%s/%s,", AST_SENSE_DENY == path->sense ? "deny" : "permit", sccp_netsock_stringify_addr (&path->netaddr), sccp_netsock_stringify_addr (&path->netmask));
+		char *netaddr_str = pbx_strdupa(sccp_netsock_stringify_addr(&path->netaddr));
+		char *netmask_str = pbx_strdupa(sccp_netsock_stringify_addr(&path->netmask));
+		pbx_str_append (&buf, buflen, "%s:%s/%s,", AST_SENSE_DENY == path->sense ? "deny" : "permit", netaddr_str, netmask_str);
 		path = path->next;
 	}
 }

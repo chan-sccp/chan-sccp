@@ -715,7 +715,7 @@ static int sccp_show_globals(int fd, sccp_cli_totals_t *totals, struct mansessio
 
 	sccp_codec_multiple2str(apref_buf, sizeof(apref_buf) - 1, GLOB(global_preferences).audio, ARRAY_LEN(GLOB(global_preferences).audio));
 #if CS_SCCP_VIDEO
-	sccp_codec_multiple2str(vpref_buf, sizeof(vpref_buf) - 1, GLOB(global_preferences).video, ARRAY_LEN(GLOB(global_preferences).audio));
+	sccp_codec_multiple2str(vpref_buf, sizeof(vpref_buf) - 1, GLOB(global_preferences).video, ARRAY_LEN(GLOB(global_preferences).video));
 #endif
 	debugcategories = sccp_get_debugcategories(GLOB(debug));
 	sccp_print_ha(ha_buf, DEFAULT_PBX_STR_BUFFERSIZE, GLOB(ha));

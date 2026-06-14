@@ -1,0 +1,91 @@
+Config Structure & Handling explained
+-------------------------------------
+Asterisk has a config parsing system that provides a generic interface to
+config sections and paramater, this system has multiple backends like
+ini, ldap, database that all present their data in a unified structure.
+
+From chan-sccp's view all the config sections and parameters looks exactly
+the same. In principal we don't have to know where the settings are coming
+from, we just need to be able to handle three cases:
+- requested section+paramater does not exist -> error
+- requested section+parameter exists and returns a value
+- requested section+parameter exists and returns NULL (ie: no field present in
+ini/table or is set to NULL)
+
+Based on this simple view of the world we built sccp_config.c and it's
+primary source of information sccp_config_entries.hh. The latter contains:
+- all valid config sections and parameters
+- their links to the in memory entity structures (POD's)
+- flags:
+  - their deprecated/obsolete status
+  - their value inheritance structure, device or lines can inherit values from
+the [general] section if they are not provided (See more about inheritance
+below)
+  - what to do when a value changes (either directly or through inheritance)
+- ultimate fallback value for parameter that cannot be/work `unspecified`
+- dedicated parser required to process the value, if a generic parser would
+not work (for example handling codecs, deny/permit)
+- help descriptions for each parameter
+
+Config value inheritance
+------------------------
+sccp_config_entries.hh contains universal fallback values for parameters
+that cannot work without one. Without this ultimate fallback
+value, chan-sccp would crash/not work. For example chan-sccp would not know
+what tcp-port to use for it's listerning connection, if not provided.
+They are built-in fallback values fixed at compile time.
+
+sccpdevices or sccplines can inherit values from the general section 
+in sccp.conf. The parameters in the general section are further backed by
+the sccp_config_entries.hh with it's fallback value, in case they
+are not provided.
+
+So for example:
+If sccpdevice:keepalive is not set, it will get it's value from
+general:keepalive, which if not set, will fallback to the value provided
+in sccp_config_entries.hh. The actual sccpdevice:keepalive is on evaluated
+at the moment the device is connecting and registering to chan-sccp, at
+which moment the value trickles down. So let's assume this situation:
+
+sccp.conf:
+```
+[general]
+;keepalive=120
+
+[SEPxxxxx]
+;keepalive=140
+```
+
+In this case the universal default will be provided by
+sccp_config_entries.hh. When we now set general:keepalive to 120 and issue
+`sccp reload`, all devices will have to be restart (RESTART_REQUIRED flag
+is set for keepalive in sccp_config_entries.hh). They will start to connect
+again, and the keepalive parameter is reevalueated, they will now see that
+they do not have a personal keepalive parameter provided and will use the
+general one, instead.
+
+Note: inheritance is specifically specified in the sccp_config_entries.hh
+file and just not automatically happen just based on the parameter name for
+example.
+
+You can think of the sccp_config_entries.hh and a universal section in the
+sccp.conf that has a slew of fallback values that are there to have your
+back. It will allow you to get by with a minimal config file without having
+to worry about chan-sccp not working, becasue you forgot to set the port
+number for example.
+
+So mentally you can think of it like this:
+```
+[universal]
+keepalive=60
+
+[general]
+;keepalive=120
+
+[SEPxxxxx]
+;keepalive=140
+```
+
+Note: changing sccp_config_entries.hh after the binary has been build, will
+not do anything, the fallback values are backed into the final binary at
+compile time.

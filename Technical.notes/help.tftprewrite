@@ -1,0 +1,58 @@
+diff --git a/src/sccp_config.c b/src/sccp_config.c
+index e15d19db..c78bcbf2 100644
+--- a/src/sccp_config.c
++++ b/src/sccp_config.c
+@@ -3062,6 +3062,7 @@ int sccp_manager_config_metadata(struct mansession *s, const struct message *m)
+        uint i;
+        const char *id = astman_get_header(m, "ActionID");
+        const char *req_segment = astman_get_header(m, "Segment");
++       const char *req_listresult = astman_get_header(m, "ListResult");
+        uint comma = 0;
+
+        if (sccp_strlen_zero(req_segment)) {                                                                            // return all segments
+@@ -3180,11 +3181,22 @@ int sccp_manager_config_metadata(struct mansession *s, const struct message *m)
+                                sccpConfigSegment = &sccpConfigSegments[i];
+                                const SCCPConfigOption *config = sccpConfigSegment->config;
+
+-                               astman_append(s, "Response: Success\r\n");
+-                               if (!ast_strlen_zero(id)) {
+-                                       astman_append(s, "ActionID: %s\r\n", id);
++                               if (sccp_strcaseequals(req_listresult, "yes")) {
++                                       //astman_append(s, "Response: Follows\r\n\r\n");
++                                       //astman_append(s, "EventList: Start\r\n");
++                                       astman_send_listack(s, m, "SCCPConfigMetaData Follows", "Start");
++                                       astman_append(s, "Event: SCCPConfigMetaData\r\n");
++                                       if (!ast_strlen_zero(id)) {
++                                               astman_append(s, "ActionID: %s\r\n", id);
++                                       }
++                               } else if (sccp_strcaseequals(req_listresult, "freepbx")) {
++                                       astman_append(s, "Response: Follows\r\n");
++                               } else {
++                                       astman_append(s, "Response: Success\r\n");
++                                       if (!ast_strlen_zero(id)) {
++                                               astman_append(s, "ActionID: %s\r\n", id);
++                                       }
+                                }
+-
+                                astman_append(s, "JSON: {");
+                                astman_append(s, "\"Segment\":\"%s\",", sccpConfigSegment->name);
+                                astman_append(s, "\"Options\":[");
+@@ -3296,8 +3308,17 @@ int sccp_manager_config_metadata(struct mansession *s, const struct message *m)
+                                                comma = 1;
+                                        }
+                                }
+-                               astman_append(s, "]}\r\n\r\n");
++                               astman_append(s, "]}\r\n");
+                                total++;
++                               if (sccp_strcaseequals(req_listresult, "yes")) {
++                                       astman_append(s,
++                                               "\r\nEvent: SCCPConfigMetaDataComplete\r\n"
++                                               "EventList: Complete\r\n"
++                                               "ListItems: %d\r\n\r\n", total);
++                               } else if (sccp_strcaseequals(req_listresult, "freepbx")) {
++                                       astman_append(s, "--END COMMAND--\r\n");
++                               }
++                               astman_append(s, "\r\n");
+                        }
+                }
+        }

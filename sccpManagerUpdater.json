@@ -1,0 +1,21 @@
+{
+    "rawname": "sccp_manager",
+    "repo": "stable",
+    "name": "Sccp Manager",
+    "version": "17.0.1.1",
+    "publisher": "Steve Lad",
+    "license": "GPL",
+    "licenselink": "http://www.gnu.org/licenses/gpl.txt",
+    "changelog": "*17.0.1.1* FreePBX 17, Asterisk 22, PHP 8.2\n*14.5.0.4* Preserve softkeys across installs. Fix truncated values\n*14.5.0.3* Fix issue 32\n*14.4.0.5* Fix issue 59\n*14.4.0.1* Fix regression in SQL not compatible with MariaDb 5\n*14.4.0.1* Upgrade installer to prevent data loss when run\n*14.3.0.30* Fix issue returning after save\n*14.3.0.28* Fix issue with RNav\n*14.3.0.27* Improve handling of SIP devices\n*14.3.0.15* Install master files list via installer\n*14.2.0.3* Fix module database definition\n*14.2.0.3* Fix module database definition\n*14.2.0.2* First release of new version without old interface\n*13.0.0.1* Packaging of ver 1.0.0.1\n*12.0.0.1* Packaging of ver 1.0.0.1",
+    "category": "Sccp Connectivity",
+    "description": "The Sccp Manager module lets you manage the chan-sccp driver.",
+    "depends": {
+        "version": "17.0"
+    },
+    "supported": {
+        "version": "16.0"
+    },
+    "location": "https://github.com/chan-sccp/sccp_manager/archive/refs/tags/v17.0.1.1.tar.gz",
+    "md5sum": "569e360cfa70c952b5067712de7f5988",
+    "packaged": "1771028229"
+}

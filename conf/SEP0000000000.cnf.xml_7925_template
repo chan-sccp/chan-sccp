@@ -1,0 +1,237 @@
+<?xml version="1.0"?>
+<device ctiid="406" uuid="{aed907f9-9e22-72d8-c218-b7165fff6d37}">
+  <fullConfig>true</fullConfig>
+  <portalDefaultServer>x.x.x.x</portalDefaultServer>
+  <deviceProtocol>SCCP</deviceProtocol>
+  <sshUserId/>
+  <sshPassword/>
+  <ipAddressMode>0</ipAddressMode>
+  <allowAutoConfig>true</allowAutoConfig>
+  <dadEnable>true</dadEnable>
+  <redirectEnable>false</redirectEnable>
+  <echoMultiEnable>false</echoMultiEnable>
+  <ipPreferenceModeControl>0</ipPreferenceModeControl>
+  <ipMediaAddressFamilyPreference>0</ipMediaAddressFamilyPreference>
+  <tzdata>
+    <tzolsonversion>2016g</tzolsonversion>
+    <tzupdater>tzupdater.jar</tzupdater>
+  </tzdata>
+  <mlppDomainId>000000</mlppDomainId>
+  <mlppIndicationStatus>Off</mlppIndicationStatus>
+  <preemption>Disabled</preemption>
+  <executiveOverridePreemptable>false</executiveOverridePreemptable>
+  <devicePool uuid="{f8d7c5cb-5d3b-e6c0-0200-8608c8138e66}">
+    <revertPriority>0</revertPriority>
+    <name>MyDeviceName</name>
+    <dateTimeSetting uuid="{ce543907-40b1-efe8-21e1-bdd1853c9594}">
+      <name>timezone name</name>
+      <dateTemplate>M-D-Y</dateTemplate>
+      <timeZone/>
+      <olsonTimeZone>Europe/Amsterdam</olsonTimeZone>
+      <ntps>
+        <ntp>
+          <name>x.x.x.x</name>
+          <ntpMode>Directed Broadcast</ntpMode>
+        </ntp>
+      </ntps>
+    </dateTimeSetting>
+    <callManagerGroup>
+      <name>MyGroupName</name>
+      <tftpDefault>false</tftpDefault>
+      <members>
+        <member priority="0">
+          <callManager>
+            <name>My CM1 name</name>
+            <description>My CM Description</description>
+            <ports>
+              <ethernetPhonePort>2000</ethernetPhonePort>
+              <sipPort>5060</sipPort>
+              <securedSipPort>5061</securedSipPort>
+              <mgcpPorts>
+                <listen>2427</listen>
+                <keepAlive>2428</keepAlive>
+              </mgcpPorts>
+            </ports>
+            <processNodeName>y.y.y.y</processNodeName>
+          </callManager>
+        </member>
+      </members>
+    </callManagerGroup>
+    <srstInfo uuid="{cd241e11-4a58-4d3d-9661-f06c912a18a3}">
+      <name>Disable</name>
+      <srstOption>Disable</srstOption>
+      <userModifiable>false</userModifiable>
+      <ipAddr1/>
+      <port1>2000</port1>
+      <ipAddr2/>
+      <port2>2000</port2>
+      <ipAddr3/>
+      <port3>2000</port3>
+      <sipIpAddr1/>
+      <sipPort1>5060</sipPort1>
+      <sipIpAddr2/>
+      <sipPort2>5060</sipPort2>
+      <sipIpAddr3/>
+      <sipPort3>5060</sipPort3>
+      <isSecure>false</isSecure>
+    </srstInfo>
+    <connectionMonitorDuration>120</connectionMonitorDuration>
+  </devicePool>
+  <commonProfile>
+    <phonePassword/>
+    <backgroundImageAccess>true</backgroundImageAccess>
+    <callLogBlfEnabled>3</callLogBlfEnabled>
+  </commonProfile>
+  <loadInformation>CP7925G-1.4.8.4</loadInformation>
+  <vendorConfig>
+    <disableSpeaker>false</disableSpeaker>
+    <garp>0</garp>
+    <webAccess>2</webAccess>
+    <WlanProfile1>0</WlanProfile1>
+    <WlanProfile2>0</WlanProfile2>
+    <WlanProfile3>0</WlanProfile3>
+    <WlanProfile4>0</WlanProfile4>
+    <loadServer>MyAdminUsername</loadServer>
+    <adminPassword>MyPassword#$%^!</adminPassword>
+    <specialNumbers/>
+    <PushToTalkURL/>
+    <sendKeyAction>0</sendKeyAction>
+    <phoneBookWebAccess>0</phoneBookWebAccess>
+    <unlockSettingsSequence>1</unlockSettingsSequence>
+    <appButtonTimer>0</appButtonTimer>
+    <appButtonPriority>0</appButtonPriority>
+    <outOfRangeAlert>0</outOfRangeAlert>
+    <scanningMode>0</scanningMode>
+    <restrictDataRates>0</restrictDataRates>
+    <powerOffWhenCharging>0</powerOffWhenCharging>
+    <cdpEnable>1</cdpEnable>
+    <g722CodecSupport>0</g722CodecSupport>
+    <homeScreen>0</homeScreen>
+    <fipsMode>0</fipsMode>
+    <autoSelectLineEnable>0</autoSelectLineEnable>
+    <fileSystemVerificationEnable>0</fileSystemVerificationEnable>
+    <minimumRingVolume>0</minimumRingVolume>
+    <java>1</java>
+  </vendorConfig>
+  <commonConfig>
+    <sshAccess>1</sshAccess>
+    <RingLocale>0</RingLocale>
+    <companyPhotoDir>http://z.z.z.z/pictures/%%sAMAccountName%%.jpg</companyPhotoDir>
+    <ice/>
+    <instantMessaging/>
+    <desktopClient/>
+  </commonConfig>
+  <enterpriseConfig>
+    <ciscoCamera>1</ciscoCamera>
+    <energyWiseDomain>MyaAdminUsername</energyWiseDomain>
+    <energyWiseSecret>MyPassword#$%^!</energyWiseSecret>
+    <webProtocol>0</webProtocol>
+    <companyPhotoDir>http://z.z.z.z/pictures/%%sAMAccountName%%.jpg</companyPhotoDir>
+    <ice/>
+    <instantMessaging/>
+    <desktopClient/>
+  </enterpriseConfig>
+  <versionStamp>1234562241-013d4ba4-5b51-4be6-9792-b7165fff6d37</versionStamp>
+  <userLocale>
+    <name>English_United_States</name>
+    <uid>1</uid>
+    <langCode>en_US</langCode>
+    <version>10.0.0.0(1)</version>
+    <winCharSet>iso-8859-1</winCharSet>
+  </userLocale>
+  <networkLocale>United_States</networkLocale>
+  <networkLocaleInfo>
+    <name>United_States</name>
+    <uid>64</uid>
+    <version>10.0.0.0(1)</version>
+  </networkLocaleInfo>
+  <deviceSecurityMode>1</deviceSecurityMode>
+  <idleTimeout>0</idleTimeout>
+  <authenticationURL>http://z.z.z.z:8080/sccp/authenticate.php</authenticationURL>
+  <directoryURL>http://z.z.z.z:8080/sccp/xmldirectory.php</directoryURL>
+  <idleURL/>
+  <informationURL>http://z.z.z.z:8080/sccp/helptext.php</informationURL>
+  <messagesURL/>
+  <proxyServerURL/>
+  <servicesURL>http://z.z.z.z:8080/sccp/servicesmenu.php</servicesURL>
+  <secureAuthenticationURL>https://z.z.z.z:8443/sccp/authenticate.php</secureAuthenticationURL>
+  <secureDirectoryURL>https://z.z.z.z:8443/sccp/xmldirectory.php</secureDirectoryURL>
+  <secureIdleURL/>
+  <secureInformationURL>https://z.z.z.z:8443/sccp/helptext.php</secureInformationURL>
+  <secureMessagesURL/>
+  <secureServicesURL>https://z.z.z.z:8443/sccp/servicesmenu.php</secureServicesURL>
+  <dscpForSCCPPhoneConfig>96</dscpForSCCPPhoneConfig>
+  <dscpForSCCPPhoneServices>0</dscpForSCCPPhoneServices>
+  <dscpForCm2Dvce>96</dscpForCm2Dvce>
+  <transportLayerProtocol>1</transportLayerProtocol>
+  <dndCallAlert>5</dndCallAlert>
+  <phonePersonalization>0</phonePersonalization>
+  <rollover>0</rollover>
+  <singleButtonBarge>0</singleButtonBarge>
+  <joinAcrossLines>0</joinAcrossLines>
+  <autoCallPickupEnable>false</autoCallPickupEnable>
+  <blfAudibleAlertSettingOfIdleStation>0</blfAudibleAlertSettingOfIdleStation>
+  <blfAudibleAlertSettingOfBusyStation>0</blfAudibleAlertSettingOfBusyStation>
+  <capfAuthMode>0</capfAuthMode>
+  <capfList>
+    <capf>
+      <phonePort>3804</phonePort>
+      <processNodeName>y.y.y.y</processNodeName>
+    </capf>
+  </capfList>
+  <certHash/>
+  <encrConfig>false</encrConfig>
+  <advertiseG722Codec>0</advertiseG722Codec>
+  <mobility>
+    <handoffdn/>
+    <dtmfdn/>
+    <ivrdn/>
+    <dtmfHoldCode>*81</dtmfHoldCode>
+    <dtmfExclusiveHoldCode>*82</dtmfExclusiveHoldCode>
+    <dtmfResumeCode>*83</dtmfResumeCode>
+    <dtmfTxfCode>*84</dtmfTxfCode>
+    <dtmfCnfCode>*85</dtmfCnfCode>
+  </mobility>
+  <TLSResumptionTimer>3600</TLSResumptionTimer>
+  <userId/>
+  <ownerId/>
+  <phoneServices useHTTPS="true">
+    <provisioning>2</provisioning>
+    <phoneService type="1" category="0">
+      <name>Missed Calls</name>
+      <url>Application:Cisco/MissedCalls</url>
+      <vendor/>
+      <version/>
+    </phoneService>
+    <phoneService type="2" category="0">
+      <name>Voicemail</name>
+      <url>Application:Cisco/Voicemail</url>
+      <vendor/>
+      <version/>
+    </phoneService>
+    <phoneService type="1" category="0">
+      <name>Received Calls</name>
+      <url>Application:Cisco/ReceivedCalls</url>
+      <vendor/>
+      <version/>
+    </phoneService>
+    <phoneService type="1" category="0">
+      <name>Placed Calls</name>
+      <url>Application:Cisco/PlacedCalls</url>
+      <vendor/>
+      <version/>
+    </phoneService>
+    <phoneService type="1" category="0">
+      <name>Personal Directory</name>
+      <url>Application:Cisco/PersonalDirectory</url>
+      <vendor/>
+      <version/>
+    </phoneService>
+    <phoneService type="1" category="0">
+      <name>Corporate Directory</name>
+      <url>Application:Cisco/CorporateDirectory</url>
+      <vendor/>
+      <version/>
+    </phoneService>
+  </phoneServices>
+</device>

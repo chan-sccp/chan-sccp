@@ -1,0 +1,2173 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor. Base Version before all crash :-)
+ *                          IE - Text Input
+ *                         IED - Text Input Dynamic
+ *                         ITED- Input Dynamic Table
+ *                          IS - Radio box
+ *                          SL - Select element
+ *                         SLA - Select element (from - data )
+ *    Input element Select SLD - Date format
+ *                         SLZ - Time Zone
+ *                       SLTZN - Time Zone List
+ *                         SLT - Installed Languages
+ *                         SLTD - Device Languages
+ *                         SLM - Music on hold
+ *                         SLK - System KeySet
+ *                         SLG - call groups
+ *  * Input element Select SLS - System Language
+ *    Input element Select SDM - Model List
+ *                         SDE - Extension List tftp_rewrite
+ *    Help elemen          HLP - Help Element
+
+-->
+<root>
+    <page_group name="sccp_info">
+        <item type="IS" id="6" seq="99">
+            <name>XML_info</name>
+            <label>XML_Ver 433</label>
+            <default>NONE</default>
+            <button value="NONE">XML_Ver 433</button>
+            <help></help>
+        </item>
+    </page_group>
+
+    <page_group name="sccp_hidden">
+        <label>SCCP Hiden Server config</label>
+        <item type="IE" id="1" seq="10">
+            <label>Phone ssh login</label>
+            <input>
+                <name>dev_sshUserId</name>
+                <default>cisco</default>
+            </input>
+            <help>Help.</help>
+        </item>
+        <item type="IE" id="1" seq="10">
+            <label>Phone ssh password</label>
+            <input>
+                <name>dev_sshPassword</name>
+                <default>cisco</default>
+            </input>
+            <help>Help.</help>
+        </item>
+        <item type="IE" id="1" seq="10">
+            <label>Phone protocol</label>
+            <input>
+                <name>dev_deviceProtocol</name>
+                <default>SCCP</default>
+            </input>
+            <help>Help.</help>
+        </item>
+        <item type="IE" id="1" seq="99">
+            <label>Phone ssh login</label>
+            <input>
+                <name>sccp_xml_about</name>
+                <default>XML Base ver: 11.2, Sccp ver: 433</default>
+            </input>
+            <help>Help.</help>
+        </item>
+    </page_group>
+
+    <page_group name="sccp_general">
+        <label>SCCP Server config</label>
+        <item type="IE" id="2">
+            <label>SCCP Server Name</label>
+            <input>
+                <name>servername</name>
+                <default>Asterisk XML</default>
+            </input>
+            <help>Servername: This is the name of the server; normally it will be Asterisk.</help>
+        </item>
+        <item type="IE" id="3">
+            <label>Bind Address : [ Port ]</label>
+            <input>
+                <name>bindaddr</name>
+                <default>0.0.0.0</default>
+                <class>sccp-custom</class>
+            </input>
+            <input>
+                <name>port</name>
+                <default>2000</default>
+                <class>sccp-custom</class>
+            </input>
+            <help>Bind Address: The address to bind to for SCCP. In general, it should be set to '0.0.0.0'. If you find problems with one-way audio, you can set this to a specific address in the server. Note that '127.0.0.1' is always wrong here.  Also note that placing in your external IP address will cause the chan_sccp module to not load.  A manual edit of the /etc/asterisk/sccp.conf file will be needed to fix and reload the module.</help>
+            <nameseparator> : </nameseparator>
+        </item>
+        <item type="IE" id="4">
+            <label>External Ip / Name</label>
+            <input>
+                <name>externip</name>
+                <default>0.0.0.0</default>
+                <class>sccp-custom</class>
+                <options placeholder="Provider IP"></options>
+            </input>
+            <input>
+                <name>externhost</name>
+                <default></default>
+                <class>sccp-custom</class>
+                <options placeholder="Host Name"></options>
+            </input>
+            <help>External IP Address of the firewall, required in case the PBX is running on a separate host behind it. IP Address that we're going to notify in RTP media stream as the pbx source address. Resolve Hostname (if dynamic) that we're going to resolve when setting up the RTP media stream (only active if externip=0.0.0.0 and host is natted.)</help>
+            <meta_help>1</meta_help>
+            <nameseparator> / </nameseparator>
+            externhost
+        </item>
+        <item type="IE" id="5">
+            <label>SCCP SERVER Keepalive</label>
+            <input>
+                <name>keepalive</name>
+                <default>60</default>
+                <class>sccp-custom</class>
+                <type>number</type>
+                <options min="60" max="300"></options>
+            </input>
+            <help>Time between Keep Alive checks. Valid range is 60-300 seconds. After much trial-and-error, the minimum (60) seems to work just fine.</help>
+        </item>
+        <item type="IS" id="3" seq="0">
+            <name>nat</name>
+            <label>Support NAT</label>
+            <default>auto</default>
+            <button value="auto">Auto</button>
+            <button value="off">Off</button>
+            <button value="on">On</button>
+            <help>Global NAT support (default Auto)</help>
+        </item>
+        <item type="IS" id="6">
+            <name>debug</name>
+            <label>SCCP DEBUG</label>
+            <default>NONE</default>
+            <button value="NONE">No</button>
+            <button value="core">Core</button>
+            <button value="sccp">SCCP</button>
+            <button value="device">Device</button>
+            <button value="core,channel,pbx,rtp,codec,indicate,features">Develop</button>
+            <button value="all">All</button>
+            <help>Debug: Enable debugging level in SCCP module.</help>
+        </item>
+        <item type="IS" id="6" seq="98">
+            <name>displayconfig</name>
+            <label>SCCP Config Mode </label>
+            <default>sccpgeneral</default>
+            <button value="sccpgeneral">Advanced</button>
+            <button value="sccpsimple">Simple</button>
+            <help>Help!</help>
+        </item>
+        <item type="IS" id="7" seq="98">
+            <name>siptftp</name>
+            <label>Support SIP device</label>
+            <default>off</default>
+            <button value="off">Disabled</button>
+            <button value="on">Enabled</button>
+            <help>Help!</help>
+        </item>
+    </page_group>
+
+    <page_group name="sccp_net">
+        <label>SCCP Networks</label>
+        <item type="IED" id="2" seq="0">
+            <label>Deny Networks / Mask</label>
+            <name>deny</name>
+            <default>0.0.0.0/0.0.0.0</default>
+            <input value="NONE" field="net" nameseparator="/">
+                <options placeholder="0.0.0.0" pattern="^([0-9]{1,3}\.){3}[0-9]{1,3}$"/>
+                <class></class>
+            </input>
+            <input value="NONE" field="mask">
+                <options placeholder="255.255.255.0" pattern="^([0-9]{1,3}\.){3}[0-9]{1,3}$"/>
+                <class></class>
+            </input>
+            <add_pluss>+</add_pluss>
+            <max_row>5</max_row>
+            <addbutton-disabled>Add Deny network</addbutton-disabled>
+            <help>All RFC 1918 addresses are local networks. Should always be at least '0.0.0.0/0.0.0.0'.</help>
+        </item>
+        <item type="IED" id="1" seq="0">
+            <label>Allow Networks / Mask</label>
+            <name>permit</name>
+            <cbutton field="internal" value="internal">Internal</cbutton>
+            <default>0.0.0.0/0.0.0.0</default>
+            <input value="NONE" field="net" nameseparator="/">
+                <options placeholder="0.0.0.0" pattern="^([0-9]{1,3}\.){3}[0-9]{1,3}$"/>
+            </input>
+            <input value="NONE" field="mask">
+                <options placeholder="255.255.255.0" pattern="^([0-9]{1,3}\.){3}[0-9]{1,3}$"/>
+            </input>
+            <add_pluss>+</add_pluss>
+            <max_row>5</max_row>
+            <addbutton-disabled>Add Allow Range</addbutton-disabled>
+            <help>Allow network settings. Blank fields will be ignored used Network 0.0.0.0/0.0.0.0 to resolve any existing connections. You can use the 'internal' connections only from the networks connected to the server. </help>
+        </item>
+        <item type="IED" id="3" seq="0">
+            <label>Local Networks / Mask</label>
+            <name>localnet</name>
+            <cbutton field="internal" value="internal">Internal</cbutton>
+            <default>0.0.0.0/0.0.0.0</default>
+            <input value="NONE" field="net" nameseparator="/">
+                <options placeholder="0.0.0.0" pattern="^([0-9]{1,3}\.){3}[0-9]{1,3}$" />
+                <class></class>
+            </input>
+            <input value="NONE" field="mask">
+                <options placeholder="255.255.255.0" pattern="^([0-9]{1,3}\.){3}[0-9]{1,3}$"/>
+                <class></class>
+            </input>
+            <add_pluss>+</add_pluss>
+            <max_row>5</max_row>
+            <addbutton-disabled>Add Internal Range</addbutton-disabled>
+            <help>Local network settings. Blank fields will be ignored used Network 0.0.0.0.</help>
+        </item>
+        <item type="IED" id="1" seq="98">
+            <label>Device Connect Address / Name </label>
+            <name>ccm_address</name>
+            <input value="NONE" field="ip" nameseparator=":">
+                <options placeholder="0.0.0.0 / pbx.org"/>
+                <class></class>
+            </input>
+            <input value="NONE" field="port">
+                <options placeholder="2000"/>
+                <class></class>
+            </input>
+            <add_pluss>+</add_pluss>
+            <max_row>5</max_row>
+            <addbutton-disabled>Add Address</addbutton-disabled>
+            <help>This function is useful when the server has many interfaces, but devices must connect only to some interfaces.</help>
+        </item>
+    </page_group>
+
+    <page_group name="sccp_lang">
+        <label>SCCP Language</label>
+        <item type="SLS" id="1">
+            <label>SCCP System Language</label>
+            <name>language</name>
+            <default>English</default>
+            <select></select>
+            <help>SCCP Language: This is the language for your hints and other features of the phone. If you don't have any languages installed or are using a single language, you can leave this blank.</help>
+        </item>
+        <item type="SLDA" id="3">
+            <label>Default Device Language</label>
+            <name>devlang</name>
+            <default>English_United_States</default>
+            <select> </select>
+            <help>The user locale allows the phone to display text (menu items, soft keys etc.) native to the phone's language. If No language packs found is shown, you need to add locales in the tftp server</help>
+        </item>
+        <item type="SLNA" id="2">
+            <label>Network Country</label>
+            <name>netlang</name>
+            <default>United_States</default>
+            <select></select>
+            <help>The Network locales allows the phone to play tones (ringing, busy etc.) native to the phone's country. If No language packs found is shown, you need to add locales in the tftp server</help>
+        </item>
+    </page_group>
+
+
+    <page_group name="sccp_dev_config">
+        <label>SCCP Device general config</label>
+        <item type="IE" id="1">
+            <label>First Digit Timeout</label>
+            <input>
+                <name>firstdigittimeout</name>
+                <default>16</default>
+                <class>sccp-custom</class>
+                <type>number</type>
+                <options min="0" max="120"></options>
+            </input>
+            <help>First Digit Timeout: The amount of time after your first digit to start dialing automatically. This can be over-ridden with settings in your dialplan.xml or by using the 'immediate dial' button.</help>
+        </item>
+        <item type="IE" id="2">
+            <label>Digit Timeout</label>
+            <input>
+                <name>digittimeout</name>
+                <default>8</default>
+                <class>sccp-custom</class>
+                <type>number</type>
+                <options min="0" max="120"></options>
+            </input>
+            <help>Digit Timeout: The amount of time to wait after the second (or subsequent) dialed digit. Override rules are the same as for firstdigittimeout.</help>
+        </item>
+        <item type="IE" id="3">
+            <label>No Answer Ring Time</label>
+            <input>
+                <name>cfwdnoanswer_timeout</name>
+                <default>30</default>
+                <class>sccp-custom</class>
+                <type>number</type>
+                <options min="0" max="120"></options>
+            </input>
+            <help>Timeout after which callforward noanswer (when active) will be triggered. default is 30 seconds</help>
+        </item>
+        <item type="IE" id="3">
+            <label>Autoanswer Ring Time</label>
+            <input>
+                <name>autoanswer_ring_time</name>
+                <default>0</default>
+                <class>sccp-custom</class>
+                <type>number</type>
+                <options min="0" max="120"></options>
+            </input>
+            <help>Autoanswer Ring Time: The amount of time the phones will ring when being called as Intercom or Paging mode.</help>
+        </item>
+        <item type="IE" id="4">
+            <label>Autoanswer Tone</label>
+            <input>
+                <name>autoanswer_tone</name>
+                <default>0x32</default>
+                <class>sccp-custom</class>
+            </input>
+            <help>Autoanswer Tone: The tone the phone plays back when it picks up the phone in autoanswer mode. Default is '0x32'. Silence is '0x00'. There are lots of tones, all expressed as '0XNN' where 'NN' is a hexadecimal number.</help>
+        </item>
+        <item type="IE" id="5">
+            <label>Remote Hangup Tone</label>
+            <input>
+                <name>remotehangup_tone</name>
+                <default>0x32</default>
+                <class>sccp-custom</class>
+            </input>
+            <help>Remote Hangup Tone: The tone played by the phone when it received a remote hang-up signal. Use '0' to disable the tone.</help>
+        </item>
+        <item type="IE" id="6">
+            <label>Transfer Tone</label>
+            <input>
+                <name>transfer_tone</name>
+                <default>0x32</default>
+                <class>sccp-custom</class>
+            </input>
+            <help>Transfer Tone: The tone played when a call is transferred. Use '0' to disable the tone.</help>
+        </item>
+        <item type="IE" id="7">
+            <label>Call Waiting Tone</label>
+            <input>
+                <name>callwaiting_tone</name>
+                <default>0x2D</default>
+                <class>sccp-custom</class>
+            </input>
+            <help>Call Waiting Tone: The tone played when a call is waiting. If you set this one to '0', you will not get a tone in your current call if a new call comes in, so you might want to disable call waiting for this line instead.</help>
+        </item>
+
+        <item type="IS" id="10">
+            <name>private</name>
+            <label>Private Calling</label>
+            <default>on</default>
+            <button value="yes">Yes</button>
+            <button value="no">No</button>
+            <help>Private Calling Enabled: Place a call with privacy Options (no Caller ID) turned on. Needs to be supported in Asterisk to work through SIP and DAHDI trunks.</help>
+        </item>
+        <item type="IS" id="13">
+            <name>callanswerorder</name>
+            <label>Call Answer Order</label>
+            <default>oldestfirst</default>
+            <button value="oldestfirst">Oldestfirst</button>
+            <button value="latestfirst">Latestfirst</button>
+            <help>Call Answer Order: Which call should be answered first? The most common choice is "oldestfirst", but other orders are supported.</help>
+        </item>
+        <item type="IS" id="13">
+            <name>callhistory_answered_elsewhere</name>
+            <label>Call history stored book</label>
+            <default>Missed Calls</default>
+            <button value="Placed Calls">Placed Calls</button>
+            <button value="Received Calls">Received Calls</button>
+            <button value="Missed Calls">Missed Calls</button>
+            <button value="Ignore">Ignore</button>
+            <help></help>
+        </item>
+        <item type="IS" id="14">
+            <name>mwilamp</name>
+            <label>Message Lamp</label>
+            <default>On</default>
+            <button value="on">On</button>
+            <button value="off">Off</button>
+            <button value="wink">Wink</button>
+            <button value="flash">Flash</button>
+            <button value="blink">Blink</button>
+            <help>Set the MWI lamp style when MWI active to on, off, wink, flash or blink</help>
+        </item>
+        <item type="IS" id="15">
+            <name>mwioncall</name>
+            <label>Message Lamp On Call</label>
+            <default></default>
+            <button value="yes">Yes</button>
+            <button value="no">No</button>
+            <help>Set the MWI on call.</help>
+        </item>
+    </page_group>
+
+    <page_group name="sccp_dev_advconfig">
+        <label>SCCP Device advanced config</label>
+        <item type="IS" id="4" seq="0">
+            <name>directrtp</name>
+            <label>Direct RTP</label>
+            <default></default>
+            <button value="yes">Yes</button>
+            <button value="no">NO</button>
+            <help>This option set global allow devices to do direct RTP sessions (default Off)</help>
+        </item>
+        <item type="IS" id="5" seq="99">
+            <name>earlyrtp</name>
+            <label>Early RTP</label>
+            <default></default>
+            <button value="yes">Yes</button>
+            <button value="no">No</button>
+            <help>The audio stream will be open in the progress and connected state. Valid options: Yes/ No</help>
+        </item>
+        <item type="IS" id="5" seq="0">
+            <name>simulate_enbloc</name>
+            <label>Simulated Enbloc Dialing</label>
+            <default></default>
+            <button value="yes">Yes</button>
+            <button value="no">No</button>
+            <help>Use simulated enbloc dialing to speedup connection when dialing while onhook (older phones)</help>
+        </item>
+        <item type="IS" id="11" seq="98">
+            <name>phonepersonalization</name>
+            <label>Allow push background from server </label>
+            <default></default>
+            <button value="1">Enabled</button>
+            <button value="0">Disabled</button>
+            <help>This needs to be enabled to allow the server to push background or ringtones to the phone in the SEPXXXXXXXXXX.cnf.xml of each phone:</help>
+        </item>
+    </page_group>
+
+    <page_group name="sccp_dev_softkey">
+        <label>Global Enable/Disable Softkeys</label>
+            <item type="IS" id="2" seq="0">
+            <name>cfwdall</name>
+            <label>Call Forward</label>
+            <default>off</default>
+            <button value="yes">Yes</button>
+            <button value="no">No</button>
+            <help>Activate the callforward softkeys. Default is On</help>
+        </item>
+        <item type="IS" id="3" seq="0">
+            <name>cfwdbusy</name>
+            <label>Call Forward busy</label>
+            <default>off</default>
+            <button value="yes">Yes</button>Call Forward
+            <button value="no">No</button>
+            <help>Activate the callforward busy softkeys. Default is On</help>
+        </item>
+        <item type="IS" id="3" seq="0">
+            <name>cfwdnoanswer</name>
+            <label>Call Forward NOANSWER</label>
+            <default>off</default>
+            <button value="yes">Yes</button>
+            <button value="no">No</button>
+            <help>Activate the callforward NOANSWER stuff and softkeys. Default is On</help>
+        </item>
+        <item type="IS" id="5" seq="0">
+            <name>dndFeature</name>
+            <label>DND Button on Device</label>
+            <default>on</default>
+            <button value="on">On</button>
+            <button value="off">Off</button>
+            <help>Do Not Disturb. Default is Off</help>
+        </item>
+        <item type="IS" id="1" seq="0">
+            <name>transfer</name>
+            <label>Transfer</label>
+            <default></default>
+            <button value="yes">Yes</button>
+            <button value="no">No</button>
+            <help>Allow the use of the transfer feature</help>
+        </item>
+    </page_group>
+
+    <page_group name="sccp_dev_ntp">
+        <label>SCCP NTP Service config</label>
+        <item type="IS" id="1" seq="98">
+            <name>ntp_config_enabled</name>
+            <label>NTP Server Enabled</label>
+            <default>off</default>
+            <button value="on">Yes</button>
+            <button value="off">No</button>
+            <help>Enable NTP settings in device configuration.</help>
+        </item>
+        <item type="IE" id="2" seq="10">
+            <label>NTP Server name (ip)</label>
+            <input>
+                <name>ntp_server</name>
+                <default>pool.ntp.org</default>
+                <value>pool.ntp.org</value>
+            </input>
+            <help>NTP Server name or IP address</help>
+        </item>
+        <item type="IS" id="3" seq="10">
+            <name>ntp_server_mode</name>
+            <label>Call Answer Order</label>
+            <default>unicast</default>
+            <button value="unicast">Unicast</button>
+            <button value="broadcast">Broadcast</button>
+            <button value="multicast">Multicast</button>
+            <button value="manycast">Manycast</button>
+            <help>Configure NTP Server protocol time synchronization</help>
+        </item>
+    </page_group>
+
+    <page_group name="sccp_dev_time">
+        <label>SCCP Time Service config</label>
+        <item type="SLD" id="1" seq="0">
+            <label>Display Day Format</label>
+            <name>dateformat</name>
+            <select>
+                <default>D.M.Y</default>
+            </select>
+            <help>Date Format: The date format for the on-screen display. Can be one of the following: (D-M-YA, M.D.Y, Y/M/D) where 'D' is Day, 'M' is Month, 'Y' is Year, 'A' is 24-hour, 'a' is 12-hour, and the separators can be '.','-','/'</help>
+        </item>
+        <item type="IE" id="4" seq="10">
+            <label>Time Zone</label>
+            <input>
+                <name>ntp_timezone</name>
+                <default></default>
+                <options readonly="readonly"></options>
+            </input>
+            <help>System Time zone - this is set by FreePBX and can be changed in Settings : Advanced Settings</help>
+        </item>
+    </page_group>
+
+    <page_group name="sccp_dev_vendor_conf">
+        <label>Device Vendor Setting</label>
+        <item type="IE" id="3" seq="98">
+            <label>Log Server</label>
+            <input>
+                <name>logserver</name>
+                <default></default>
+                <class>sccp-custom</class>
+                <options placeholder="x.x.x.x:9001" />
+            </input>
+            <help>Log server Address: x.x.x.x:9001 </help>
+        </item>
+        <item type="IE" id="3" seq="98">
+            <label>Days Display Not Active</label>
+            <input>
+                <name>daysdisplaynotactive</name>
+                <default></default>
+                <class>sccp-custom</class>
+                <options placeholder="1,7" />
+            </input>
+            <help>Comma separated list of days that the phone's display is not active and will be automatically turned off after the time specified by "displayIdleTimeout" has elapsed (1 - Sunday, 7 - Saturday)</help>
+        </item>
+        <item type="IE" id="3" seq="98">
+            <label>Display On Start Time</label>
+            <input>
+                <name>displayontime</name>
+                <default></default>
+                <class>sccp-custom</class>
+                <options placeholder="08:00" />
+            </input>
+            <help>Time in HH:MM format to automatically turn on the phone display.</help>
+        </item>
+        <item type="IE" id="3" seq="98">
+            <label>Display On Duration</label>
+            <input>
+                <name>displayonduration</name>
+                <default></default>
+                <class>sccp-custom</class>
+                <options placeholder="10:00" />
+            </input>
+            <help>Time duration in HH:MM format to automatically turn off the phone display after it was turned on.</help>
+        </item>
+        <item type="IE" id="3" seq="98">
+            <label>Display Idle Timeout</label>
+            <input>
+                <name>displayidletimeout</name>
+                <default></default>
+                <class>sccp-custom</class>
+                <options placeholder="00:10" />
+            </input>
+            <help>Timeout in HH:MM format to automatically turn off phone display if outside the time specified by "daysDisplayNotActive", "displayOnTime" and "displayOnTimeout".</help>
+        </item>
+        <item type="IS" id="6" seq="98">
+            <name>settingsaccess</name>
+            <label>Settings Access</label>
+            <default>off</default>
+            <button value="off">Disabled</button>
+            <button value="on">Enabled</button>
+            <help>Whether a user can access the phone settings.</help>
+        </item>
+        <item type="IS" id="6" seq="98">
+            <name>videocapability</name>
+            <label>Video Capability</label>
+            <default>off</default>
+            <button value="off">Disabled</button>
+            <button value="on">Enabled</button>
+            <help></help>
+        </item>
+        <item type="IS" id="6" seq="98">
+            <name>webaccess</name>
+            <label>Web Access</label>
+            <default>off</default>
+            <button value="off">Disabled</button>
+            <button value="on">Enabled</button>
+            <help>Enable the phone's HTTP server.</help>
+        </item>
+        <item type="IS" id="6" seq="98">
+            <name>webadmin</name>
+            <label>Web Admin</label>
+            <default>off</default>
+            <button value="off">Disabled</button>
+            <button value="on">Enabled</button>
+            <help>Enable remote administration using the phone's HTTP server. 8821 model only.</help>
+        </item>
+        <item type="IS" id="6" seq="98">
+            <name>pcport</name>
+            <label>Pc Port</label>
+            <default>off</default>
+            <button value="off">Disabled</button>
+            <button value="on">Enabled</button>
+            <help>Disable the PC (computer) port</help>
+        </item>
+        <item type="IS" id="6" seq="98">
+            <name>spantopcport</name>
+            <label>Span to PC Port</label>
+            <default>off</default>
+            <button value="off">Disabled</button>
+            <button value="on">Enabled</button>
+            <help>Forward packets sent and received on the SW (network) port to the PC (computer) port.</help>
+        </item>
+        <item type="IS" id="6" seq="98">
+            <name>voicevlanaccess</name>
+            <label>Voice Vlan Access</label>
+            <default>off</default>
+            <button value="off">Disabled</button>
+            <button value="on">Enabled</button>
+            <help>Allow devices connected to the PC (computer) port to access the voice VLAN.</help>
+        </item>
+        <item type="IS" id="6" seq="98">
+            <name>enablecdpswport</name>
+            <label>Cdp Sw Port</label>
+            <default>off</default>
+            <button value="off">Disabled</button>
+            <button value="on">Enabled</button>
+            <help>Enable Cisco Discovery Protocol on the SW (network) port.</help>
+        </item>
+        <item type="IS" id="6" seq="98">
+            <name>enablecdppcport</name>
+            <label>Cdp PC Port</label>
+            <default>off</default>
+            <button value="off">Disabled</button>
+            <button value="on">Enabled</button>
+            <help>Enable Cisco Discovery Protocol on the PC (computer) port.</help>
+        </item>
+        <item type="IS" id="6" seq="98">
+            <name>enablelldpswport</name>
+            <label>Link Layer Discovery Sw</label>
+            <default>off</default>
+            <button value="off">Disabled</button>
+            <button value="on">Enabled</button>
+            <help>Enable Link Layer Discovery Protocol on the SW (network) port.</help>
+        </item>
+        <item type="IS" id="6" seq="98">
+            <name>enablelldppcport</name>
+            <label>Link Layer Discovery PC</label>
+            <default>off</default>
+            <button value="off">Disabled</button>
+            <button value="on">Enabled</button>
+            <help> Enable Link Layer Discovery Protocol on the PC (computer) port.</help>
+        </item>
+    </page_group>
+
+    <page_group name="sccp_srst">
+        <label>SCCP Phone SRST</label>
+        <item type="HLP" id="2">
+            <label>HELP SRST</label>
+            <name>Help_srst</name>
+            <element type='p'>You can also configure a Survivable Remote Site Telephony (SRST) reference as the last device in the CallManager(CM) list. This proves especially useful in a remote site configuration where the phones and Asterisk are connected over a WAN network. SRST provides users with fallback support for the IP phones that cannot access the primary, secondary, or tertiary Asterisk Node in the CallManager List because of an Asterisk Node failure or loss of connectivity across the WAN. For the remote sites attached to multiple-service routers across the WAN, SRST ensures that your remote users receive continuous (although minimal) service by providing call handling support directly from the SRST router.</element>
+            <element type='p'>When IP phones lose contact with primary, secondary, and tertiary Asterisk Nodes (CM's), they must establish a connection to a local SRST router to sustain the call-processing capability necessary to place and receive calls. The IP phone retains the IP address of the local SRST router as a default router in the Network Configuration area of the Settings menu. The Settings menu supports a maximum of five default router entries; however, the cnf.xml accommodates a maximum of three entries. When a secondary Asterisk Node is not available on the network, the local SRST Router's IP address is retained as the standby connection for Asterisk Node during normal operation.</element>
+        </item>
+
+        <item type="IS" id="1" seq="20">
+            <name>srst_Option</name>
+            <label>SRST Server Enabled</label>
+            <default>disable</default>
+            <button value="enabled">Yes</button>
+            <button value="disable">No</button>
+            <button value="user">Template Default</button>
+            <help>You enabled/configured a Survivable Remote Site Telephony (SRST) reference as the last device in the CallManager(CM) list.</help>
+        </item>
+        <item type="IS" id="3" seq="20">
+            <name>srst_userModifiable</name>
+            <label>SRST User Modifiable</label>
+            <default>false</default>
+            <button value="true">Yes</button>
+            <button value="false">No</button>
+            <help>The user can change the personal SRST configuration on the device</help>
+        </item>
+        <item type="IS" id="3" seq="20">
+            <name>srst_isSecure</name>
+            <label>SRST Security</label>
+            <default>false</default>
+            <button value="true">Yes</button>
+            <button value="false">No</button>
+            <help>The user can change the personal SRST configuration on the device</help>
+        </item>
+
+        <item type="IE" id="2" seq="20">
+            <label>SRST Config Name</label>
+            <input>
+                <name>srst_Name</name>
+                <default>Enable</default>
+            </input>
+            <help>You enabled configure a Survivable Remote Site Telephony (SRST) reference as the last device in the CallManager(CM) list.</help>
+        </item>
+
+        <item type="IED" id="3" seq="20">
+            <label>SRST Server list</label>
+            <name>srst_ip</name>
+            <max_row>3</max_row>
+            <default>/</default>
+            <input value="NONE" field="ip" nameseparator=":">
+                <options placeholder="0.0.0.0" pattern="^([0-9]{1,3}\.){3}[0-9]{1,3}$" />
+                <class></class>
+            </input>
+            <input value="NONE" field="port">
+                <options placeholder="2000" pattern="^([0-9]){3,5}$"/>
+                <class></class>
+            </input>
+            <addbutton>Add Server</addbutton>
+            <help>Help.</help>
+        </item>
+        <item type="IED-disabled" id="3" seq="20">
+            <label>SRST Sip Server list</label>
+            <name>srst_sip</name>
+            <max_row>3</max_row>
+            <default>/</default>
+            <input value="NONE" field="Addr" nameseparator=":">
+                <options placeholder="0.0.0.0" pattern="^([0-9]{1,3}\.){3}[0-9]{1,3}$" />
+                <class></class>
+            </input>
+            <input value="NONE" field="port">
+                <options placeholder="2000" pattern="^[0-9]{3,5}$"/>
+                <class></class>
+            </input>
+            <addbutton>Add Server</addbutton>
+            <help>Help.</help>
+        </item>
+    </page_group>
+
+    <page_group name="sccp_dev_url">
+        <label>SCCP URL Service config</label>
+        <item type="IE" id="1" seq="10">
+            <label>Phone Service URL</label>
+            <input>
+                <name>dev_servicesURL</name>
+                <default></default>
+                <value></value>
+                <options placeholder="http://x.x.x.x/cisco_menu/service.php"></options>
+            </input>
+            <help></help>
+        </item>
+        <item type="IE" id="1" seq="10">
+            <label>Phone Secure Service URL</label>
+            <input>
+                <name>dev_secureservicesURL</name>
+                <default></default>
+                <value></value>
+                <options placeholder="https://x.x.x.x:port/cisco_menu/service.php"></options>
+            </input>
+            <help></help>
+        </item>
+        <item type="IE" id="2" seq="10">
+            <label>Phone authentication URL</label>
+            <input>
+                <name>dev_authenticationURL</name>
+                <options placeholder="http://x.x.x.x/cisco_menu/authentication.php"></options>
+                <default></default>
+                <value></value>
+            </input>
+            <help>The above is simply a dummy authentication page.  It literally contains one word: AUTHORIZED (it receives UserId, Password, and devicename in the url - if you truly wish to implement special auth)</help>
+        </item>
+        <item type="IE" id="2" seq="10">
+            <label>Phone Secure authentication URL</label>
+            <input>
+                <name>dev_secureauthenticationURL</name>
+                <options placeholder="https://x.x.x.x:port/cisco_menu/authentication.php"></options>
+                <default></default>
+                <value></value>
+            </input>
+            <help></help>
+        </item>
+        <item type="IE" id="4" seq="10">
+            <label>Phone information URL</label>
+            <input>
+                <name>dev_informationURL</name>
+                <options placeholder="http://x.x.x.x/cisco_menu/information.php"></options>
+                <default></default>
+            </input>
+            <help></help>
+        </item>
+        <item type="IE" id="4" seq="10">
+            <label>Phone Secure information URL</label>
+            <input>
+                <name>dev_secureinformationURL</name>
+                <options placeholder="https://x.x.x.x/cisco_menu/information.php"></options>
+                <default></default>
+            </input>
+            <help></help>
+        </item>
+        <item type="IE" id="5" seq="10">
+            <label>Phone messages URL</label>
+            <input>
+                <name>dev_messagesURL</name>
+                <options placeholder="http://x.x.x.x:port/cisco_menu/messages.php"></options>
+                <default></default>
+            </input>
+            <help></help>
+        </item>
+        <item type="IE" id="5" seq="10">
+            <label>Phone Secure messages URL</label>
+            <input>
+                <name>dev_securemessagesURL</name>
+                <options placeholder="https://x.x.x.x:port/cisco_menu/messages.php"></options>
+                <default></default>
+            </input>
+            <help></help>
+        </item>
+        <item type="IE" id="6" seq="10">
+            <label>Phone directory service URL</label>
+            <input>
+                <name>dev_directoryURL</name>
+                <options placeholder="http://x.x.x.x/cisco_menu/directories.php"></options>
+                <default></default>
+            </input>
+            <help>This is the URL for a CiscoIPPhoneMenu which gets appended to the end of the Missed/Received/Placed calls.  I don't use it (I find it makes more sense to put my phone book under services)</help>
+        </item>
+        <item type="IE" id="6" seq="10">
+            <label>Phone Secure directory service URL</label>
+            <input>
+                <name>dev_securedirectoryURL</name>
+                <options placeholder="https://x.x.x.x/cisco_menu/directories.php"></options>
+                <default></default>
+            </input>
+            <help></help>
+        </item>
+        <item type="IE" id="3" seq="10">
+            <label>Phone Idle information URL</label>
+            <input>
+                <name>dev_idleURL</name>
+                <options placeholder="http://x.x.x.x/cisco_menu/idle.php"></options>
+                <default></default>
+                <value></value>
+            </input>
+            <help>URL of CiscoIPPhoneImage. Requires a non-zero setting in idleTimeout.</help>
+        </item>
+        <item type="IE" id="3" seq="10">
+            <label>Phone Secure Idle information URL</label>
+            <input>
+                <name>dev_secureidleURL</name>
+                <options placeholder="https://x.x.x.x/cisco_menu/idle.php"></options>
+                <default></default>
+                <value></value>
+            </input>
+            <help></help>
+        </item>
+
+        <item type="IE" id="7" seq="10">
+            <label>Phone proxyServer URL</label>
+            <input>
+                <name>dev_proxyServerURL</name>
+                <options placeholder="http://x.x.x.x/cisco_menu/proxy.php"></options>
+                <default></default>
+                <value></value>
+            </input>
+            <help></help>
+        </item>
+
+        <item type="IE" id="8" seq="10">
+            <label>Phone Idle Timeout</label>
+            <input>
+                <name>dev_idleTimeout</name>
+                <default>60</default>
+                <class>sccp-custom</class>
+                <type>number</type>
+                <options min="0" max="3600"></options>
+            </input>
+            <help></help>
+        </item>
+    </page_group>
+
+    <page_group name="sccp_qos_config">
+        <label>SCCP QoS config</label>
+        <item type="IE" id="1">
+            <label>SCCP ToS / CoS</label>
+            <input>
+                <name>sccp_tos</name>
+                <default>0x68</default>
+                <class>sccp-custom</class>
+            </input>
+            <input>
+                <name>sccp_cos</name>
+                <default>0x4</default>
+                <class>sccp-custom</class>
+            </input>
+            <help>SCCP Signalling Type Of Service / Class Of Service - this is modifiable, but it is not recommended to change</help>
+        </item>
+        <item type="IE" id="2">
+            <label>SCCP Audio ToS / CoS</label>
+            <input>
+                <name>audio_tos</name>
+                <default>0xB8</default>
+                <class>sccp-custom</class>
+            </input>
+            <input>
+                <name>audio_cos</name>
+                <default>0x6</default>
+                <class>sccp-custom</class>
+            </input>
+            <help>Audio Type Of Service / Class Of Service - this is modifiable, but it is not recommended to change</help>
+        </item>
+        <item type="IE" id="3">
+            <label>SCCP Video ToS / CoS</label>
+            <input>
+                <name>video_tos</name>
+                <default>0x88</default>
+                <class>sccp-custom</class>
+            </input>
+            <input>
+                <name>video_cos</name>
+                <default>0x5</default>
+                <class>sccp-custom</class>
+            </input>
+            <help>Video Type Of Service / Class Of Service - this is modifiable, but it is not recommended to change</help>
+        </item>
+    </page_group>
+
+    <page_group name="sccp_hotline_config">
+        <label>SCCP Hot Line config</label>
+        <item type="HLP" id="2">
+            <name>Help_id2</name>
+            <label>HELP SCCP HotLine</label>
+            <element type='p'>Setting the hotline Feature on a device, will make it connect to a predefined extension as soon as the Receiver is picked up or the "New Call" Button is pressed. No number has to be given. This works even on devices which have no entry in the config file or realtime database.</element>
+            <element type='h4'>The hotline function can be used in :</element>
+            <element type='table'>
+                <row>
+                    <col>First time configuration</col>
+                    <col>This will make it easier to register new devices and assign numbers</col>
+                </row>
+                <row>
+                    <col>At a door</col>
+                    <col>Where you want people to be able to only call one number</col>
+                </row>
+                <row>
+                    <col>For unprovisioned phones</col>
+                    <col>To only be able to call the helpdesk to get their phone set up</col>
+                </row>
+            </element>
+            <element type='p'> </element>
+            <element type='h3'>Be careful with this function. It is recommended to restrict to internal network use; set the deny/permit to 'internal' by default. This is insecure and should be switched off before going into production. A PLAR phone is still able to ring any other extension by entering the number on the phone before going off-hook. So either setup a secure context for these types of phones or switch off hotline.</element>
+            <element type='table'>
+                <row>
+                    <col>Allow =</col>
+                    <col>Specify a list of your networks, for example: 192.168.1.0</col>
+                </row>
+                <row>
+                    <col>deny =</col>
+                    <col>0.0.0.0/0.0.0.0</col>
+                </row>
+                <row>
+                    <col>permit =</col>
+                    <col>internal</col>
+                </row>
+                <row>
+                    <col>hotline_context =</col>
+                    <col>sccp</col>
+                </row>
+                <row>
+                    <col>hotline_label = </col>
+                    <col>hotline</col>
+                </row>
+            </element>
+
+        </item>
+        <item type="IS" id="1">
+            <name>hotline_enabled</name>
+            <label>Hotline</label>
+            <default>"no"</default>
+            <button value="no">No</button>
+            <button value="yes">Yes</button>
+            <help>Hotline Enabled: This allows unregistered extensions to connect to the system and dial the number listed below.</help>
+        </item>
+        <item type="IE" id="2">
+            <label>Hotline extension</label>
+            <input>
+                <name>hotline_extension</name>
+                <default>*111</default>
+                <class>sccp-custom</class>
+            </input>
+            <help>Hotline Extension: The number that gets called when a hotline is picked up. hint</help>
+        </item>
+        <item type="IE" id="2">
+            <label>Hotline Label</label>
+            <input>
+                <name>hotline_label</name>
+                <default>Hot Line</default>
+                <class>sccp-custom</class>
+            </input>
+            <help>Hotline Label: The label on the device</help>
+        </item>
+        <item type="IE" id="3">
+            <label>Hotline Context</label>
+            <input>
+                <name>hotline_context</name>
+                <default>default</default>
+                <class>sccp-custom</class>
+            </input>
+            <help>Hotline Context: This is the context through which the phone will connect. It should probably match your other contest. The default is "from-internal" but "from-internal-xfer" would also make sense by limiting the options for the person using the phone.</help>
+        </item>
+    </page_group>
+
+    <page_group name="sccp_dev_group_config">
+        <label>SCCP Line config</label>
+        <item type="IE" id="4">
+            <label>System Context</label>
+            <input>
+                <name>context</name>
+                <default>from-internal</default>
+                <class>sccp-custom</class>
+            </input>
+            <help>Context: This is the context in which your phones will operate. It should match the context you are using for the rest of your phones (if you have any). The FreePBX default is 'from-internal'</help>
+        </item>
+        <item type="IE" id="5">
+            <label>Dynamically registration Context</label>
+            <input>
+                <name>regcontext</name>
+                <default>sccpregistration</default>
+                <class>sccp-custom</class>
+            </input>
+            <help>If regcontext is specified in sccp.conf chan-sccp-b will dynamically create and destroy a NoOp priority 1 extension for a given peer/line which registers with the server. If the context is not specified in extension.conf, then it will be dynamically created when an chan-sccp-b agent registers</help>
+        </item>
+        <item type="IE" id="7">
+            <label>Directed pickup context</label>
+            <input>
+                <name>directed_pickup_context</name>
+                <default></default>
+                <options placeholder="default"></options>
+                <class>sccp-custom</class>
+            </input>
+            <help>Context where direct pickup search for extensions. if not set current context will be use.</help>
+        </item>
+        <item type="IE" id="7">
+            <label>Default pickup group</label>
+            <input>
+                <name>pickupgroup</name>
+                <default></default>
+                <options placeholder="default"></options>
+                <class>sccp-custom</class>
+            </input>
+            <help>Context where direct pickup search for extensions. if not set current context will be use.</help>
+        </item>
+        <item type="IS" id="11">
+            <name>pickup_modeanswer</name>
+            <label>Directed Pickup Answer</label>
+            <default>off</default>
+            <button value="yes">Yes</button>
+            <button value="no">No</button>
+            <help>Directed Pickup Mode (Answer): If a call is sent with the "directed pickup" flag, the phone will answer when set to "Yes".</help>
+        </item>
+        <item type="IS" id="11">
+            <name>directed_pickup</name>
+            <label>Directed Pickup</label>
+            <default>off</default>
+            <button value="yes">Yes</button>
+            <button value="no">No</button>
+            <help>Enable/disable Pickup button to do directed pickup from a specific extension.</help>
+        </item>
+        <item type="IS" id="12">
+            <name>transfer_on_hangup</name>
+            <label>Transfer on hangup</label>
+            <default>off</default>
+            <button value="yes">Yes</button>
+            <button value="no">No</button>
+            <help>Complete transfer on hangup, without pressing transfer a second time. Will complete transfer, when the transferer puts the receiver on hook, after the destination has been reached. To cancel the transfer, either press resume on the transferred channel, press the 'endcall' softkey, or have the receiving party hangup first.</help>
+        </item>
+
+        <item type="SLA-disabled" id="6">
+            <label>Default Dial Plan</label>
+            <name>dial_template</name>
+            <default>NONE</default>
+            <select></select>
+            <class>sccp-custom</class>
+            <help>Help.</help>
+        </item>
+        <item type="IS" id="7" seq="98">
+            <name>autoselectline_enabled</name>
+            <label>Autoselect Line</label>
+            <default>off</default>
+            <button value="on">Enabled</button>
+            <button value="off">Disabled</button>
+            <help>Enables and Disables auto line selection.</help>
+        </item>
+        <item type="IS-disabled" id="8" seq="0">
+            <name>meetme</name>
+            <label>Meetme Conference</label>
+            <default>off</default>
+            <button value="on">Enabled</button>
+            <button value="off">Disabled</button>
+            <help>Enable/Disable conferencing via meetme (on/off), make sure you have one of the meetme apps mentioned below is activated in module.conf</help>
+        </item>
+        <item type="IS-disabled" id="9" seq="0">
+            <label>Meetme Options</label>
+            <input>
+                <name>meetmeopts</name>
+                <default>qxd</default>
+                <class>sccp-custom</class>
+            </input>
+            <help>Other options (app_meetme: A,a,b,c,C,d,D,E,e,F,i,I,l,L,m,M,o,p,P,q,r,s,S,t,T,w,x,X,1) see meetme specific documentation</help>
+        </item>
+        <item type="IS" id="10" seq="98">
+            <name>autocall_select</name>
+            <label>Auto Call Select</label>
+            <default>off</default>
+            <button value="on">Enabled</button>
+            <button value="off">Disabled</button>
+            <help></help>
+        </item>
+        <item type="IS" id="11" seq="98">
+            <name>backgroundImageAccess</name>
+            <label>Allow change Background Image</label>
+            <default>true</default>
+            <button value="on">Enabled</button>
+            <button value="off">Disabled</button>
+            <help>I'm guessing on this one, but on some devices, the background image on the display can be modified at the device. I think this is the thing that allows that to happen.</help>
+        </item>
+        <item type="IS" id="11" seq="98">
+            <name>callLogBlfEnabled</name>
+            <label>Allow BLF in Phone Directory</label>
+            <default>2</default>
+            <button value="3">Enabled</button>
+            <button value="2">Disabled</button>
+            <help>Show numbers you can redial, but also include their current device state, so you know when they are currently busy. Note that the other phonebook entries will now also monitor the remove device state and show the current device state</help>
+        </item>
+        <item type="IS" id="8">
+            <name>echocancel</name>
+            <label>Echo Cancel</label>
+            <default>yes</default>
+            <button value="yes">Yes</button>
+            <button value="no">No</button>
+            <help>Echo Cancel: Echo Cancellation (Yes or No).</help>
+        </item>
+        <item type="IS" id="9">
+            <name>silencesuppression</name>
+            <label>Silence Suppression</label>
+            <default>no</default>
+            <button value="yes">Yes</button>
+            <button value="no">No</button>
+            <help>Silence Suppression: Silence Suppression on the phone.</help>
+        </item>
+        <item type="SLM" id="6">
+            <label>Music On Hold Class</label>
+            <name>musicclass</name>
+            <default>NONE</default>
+            <select></select>
+            <class>form-control</class>
+            <help>Music Class: Available MOH Classes. These are the MOH classes listed in your current server.</help>
+        </item>
+    </page_group>
+
+    <page_group name="sccp_extpath_config">
+        <item type="HLP" id="2">
+            <label>Rewrite HELP </label>
+            <name>Help_tftp_rewrite</name>
+            <element type='p'>This section is responsible for the modes of operation of external services: tftp http.</element>
+            <element type='p'> * off - Flat model cisco. All data is in the directory TFTP Server Path</element>
+            <element type='p'> * Provision - The directory structure is strictly defined in the manager. Requires tftpd mapping support.</element>
+            <element type='p'> The mode is determined by Sccp_manager based on the presence of a mapping file in TFTP defaults</element>
+            <element type='p'> and must be the same as the tftp server, or the phones will not find required files</element>
+            <element type='p'> To change the mode, add or remove the -m option.</element>
+        </item>
+        <label>SCCP Server Path config</label>
+        <item type="IE" id="1" seq="2">
+            <label>SCCP TFTP SERVER Path</label>
+            <class>provision_hide</class>
+            <input>
+                <name>tftp_path</name>
+                <default></default>
+                <class>sccp-custom</class>
+            </input>
+            <help>Path to tftp home directory. This was determined by the Sccp_manager installer and should only be changed if the tftp root has been modified since installation</help>
+        </item>
+        <item type="IE" id="1" seq="20">
+            <label>Provision SERVER Path</label>
+            <class>provision_show</class>
+            <input>
+                <name>tftp_rewrite_path</name>
+                <default></default>
+                <class>sccp-custom</class>
+            </input>
+            <help>Use path from provision index.cnf file. You must first make sure that you have properly configured the "Provision"</help>
+        </item>
+        <item type="ISC" id="21" seq="20">
+            <name>tftp_rewrite</name>
+            <label>TFTP SERVER remapping support</label>
+            <default>off</default>
+            <option_disable class=".provision_disable">Provision</option_disable>
+            <option_disable class=".off_disable">Off</option_disable>
+            <button value="off">Off</button>
+            <button value="pro">Provision</button>
+            <help>Support the use of regular-expression-based filename remapping</help>
+        </item>
+        <item type="IE" id="2">
+            <label>SCCP SERVER MySQL Device Table</label>
+            <input>
+                <name>devicetable</name>
+                <default>sccpdevice</default>
+                <class>sccp-custom</class>
+            </input>
+            <help>Device Table: This is the devicetable for your realtime configuration. Don't change this unless you know what you are doing and have made all the appropriate changes in the rest of your Asterisk config files. There are two reasonable settings for this - the sccpdevice table or the sccpdeviceconfig view. If you do not want to use the realtime database anymore, you can set this to blank. NOT RECOMMENDED.</help>
+        </item>
+        <item type="IE" id="3">
+            <label>SCCP SERVER MySQL Line Table</label>
+            <input>
+                <name>linetable</name>
+                <default>sccpline</default>
+                <class>sccp-custom</class>
+            </input>
+            <help>Line Table: This is the linetable for your realtime configuration. Don't change this unless you know what you are doing and have made all the appropriate changes in the rest of your Asterisk config files. If you do not want to use the realtime database anymore, you can set this to blank. NOT RECOMMENDED.</help>
+        </item>
+        <item type="IS" id="4" seq="99">
+            <name>createlangdir</name>
+            <label>Create tftp empty language dir</label>
+            <default>no</default>
+            <button value="yes">Yes</button>
+            <button value="no">No</button>
+            <help>Say 'yes' if you need to create cisco default language directory in tftp path.</help>
+        </item>
+        <item type="IS" id="4" seq="90">
+            <name>getExternalData</name>
+            <label>Get data files from Provision</label>
+            <default>no</default>
+            <button value="yes">Yes</button>
+            <button value="no">No</button>
+            <help>If this is set to yes, Sccp_manager will try to get data files from dkgroot/Provision (languages, ring tones, firmware etc). This is enabled at your own risk - Sccp_Manager cannot vouch for the security or accuracy of these files, and this option is included to assist in getting up to speed as rapidly as possible.</help>
+        </item>
+        <item type="IS" id="4" seq="90">
+            <name>system_rouminguser</name>
+            <label>User Roaming</label>
+            <default>no</default>
+            <button value="yes">Yes</button>
+            <button value="no">No</button>
+            <help>Experimental Function Roaming Users</help>
+        </item>
+    </page_group>
+
+    <!--  Begin Form   add/ edit device group-->
+    <page_group name="sccp_hw_dev">
+        <label>General Device configuration</label>
+        <item type="IE" id="1" seq="99">
+            <label>Device ID.[XXXXXXXXXXXX]=MAC</label>
+            <input>
+                <name>mac</name>
+                <default></default>
+                <class>sccp-custom</class>
+                <options></options>
+            </input>
+            <help>The MAC address of the phone. You must specify 12 characters in the format XXXX.XXXX.XXXX, XX:XX:XX:XX:XX:XX, XX-XX-XX-XX-XX-XX or XXXXXXXXXXXX</help>
+        </item>
+        <item type="SDM" id="2" seq="99">
+            <label>Type</label>
+            <name>type</name>
+            <default>7911</default>
+            <select name="model" dataid="dns" dataval="buttons">model</select>
+            <class>hw_select form-control</class>
+            <help>The type of phone: 7911, 7940, 7960, etc. Important note: the 'G' models are handled as the base model (e.g., 7962G is handled as 7962). In the Display mode, this field is read-only because the MAC address and the model number are a pair.</help>
+        </item>
+        <item type="SDE" id="3" seq="99">
+            <label>Addon</label>
+            <name>addon</name>
+            <default>NONE</default>
+            <select name="model" dataval="buttons">description</select>
+            <class>hw_select form-control</class>
+            <help>Addon: Addons are model specific and only work with certain base phones. This phone model is identified as being a phone that does not accept sidecars. Update devmodel if this is not correct.</help>
+        </item>
+    </page_group>
+
+    <page_group name="sccp_hw_dev_edit">
+        <label>General Device configuration</label>
+        <item type="IE" id="1" seq="99">
+            <label>Device ID</label>
+            <input>
+                <name>mac</name>
+                <default></default>
+                <class>sccp-custom</class>
+                <options readonly="readonly"></options>
+            </input>
+            <help>The MAC address of the phone</help>
+        </item>
+        <item type="IE" id="2" seq="99">
+            <label>Type</label>
+            <input>
+                <name>type</name>
+                <default>79XX</default>
+                <class>sccp-custom</class>
+                <options readonly="readonly"></options>
+            </input>
+            <help>The type of phone: 7911, 7940, 7960, etc. Important note: the 'G' models are handled as the base model (e.g., 7962G is handled as 7962). In the Display mode, this field is read-only because the MAC address and the model number are a pair.</help>
+        </item>
+        <item type="SDE" id="3" seq="99">
+            <label>Addon</label>
+            <name>addon</name>
+            <default>NONE</default>
+            <select name="model" dataval="buttons">description</select>
+            <class>hw_select form-control</class>
+            <help>Addon: Addons are model specific and only work with certain base phones. This phone model is identified as being a phone that does not accept sidecars. Update devmodel if this is not correct.</help>
+        </item>
+    </page_group>
+
+    <page_group name="sccp_hw_dev2">
+        <label>Device configuration</label>
+        <item type="IE" id="1" seq="99">
+            <label>Device Label</label>
+            <input>
+                <name>description</name>
+                <default>000000000</default>
+                <class>sccp-custom</class>
+                <options pattern="[0-9a-zA-Z]+"/>
+            </input>
+            <help>The information in the upper right corner of the device screen. Only English letters and digits !</help>
+        </item>
+        <item type="SDML" id="1" seq="100">
+            <label>Default Line</label>
+            <name>defaultLine</name>
+            <default></default>
+            <select name="name" addlabel='label' dataid="name" dataval="label">model</select>
+            <class>lineSelect form-control</class>
+            <help>Select the default line for this device</help>
+        </item>
+        <item type="SLK" id="2" seq="99">
+            <label>Soft Keyset</label>
+            <name>softkeyset</name>
+            <default>default</default>
+            <select></select>
+            <help>System Default Softkey</help>
+        </item>
+        <item type="SLZ" id="3" seq="98">
+            <label>Time Zone offset</label>
+            <name>tzoffset</name>
+            <default>00</default>
+            <select></select>
+            <help>Time Zone offset</help>
+        </item>
+        <item type="SLTD" id="5" seq="98">
+            <label>SCCP Phone Device Language</label>
+            <name>devlang</name>
+            <default>English_United_States</default>
+            <select> </select>
+            <help>The user locale allows the phone to display text (menu items, soft keys etc.) native to the phone's language. If No language packs found is shown, you need to add locales in the tftp server</help>
+        </item>
+        <item type="SLTN" id="4" seq="98">
+            <label>SCCP Network Device Language</label>
+            <name>netlang</name>
+            <default>English_United_States</default>
+            <select></select>
+            <help>The Network locales allows the phone to play tones (ringing, busy etc.) native to the phone's country. If No language packs found is shown, you need to add locales in the tftp server</help>
+        </item>
+        <item type="IS" id="11" seq="98">
+            <name>phonepersonalization</name>
+            <label>Allow push background from server </label>
+            <default></default>
+            <button value="1">Enabled</button>
+            <button value="0">Disabled</button>
+            <help>This needs to be enabled to allow the server to push background or ringtones to the phone in the SEPXXXXXXXXXX.cnf.xml of each phone:</help>
+        </item>
+        <item type="IE" id="6" seq="99">
+            <label>Background Image</label>
+            <input>
+                <name>backgroundImage</name>
+                <default></default>
+                <class>sccp-custom</class>
+            </input>
+            <help>For phones that can display background images - display this one. Default is [empty]</help>
+        </item>
+        <item type="IE" id="7" seq="99">
+            <label>Ringtone</label>
+            <input>
+                <name>ringtone</name>
+                <default></default>
+                <class>sccp-custom</class>
+            </input>
+            <help>The ringtone that the phone will default to. Can be overridden in the phone. The files RINGLIST.XML provides the basic phone ring tones, while DISTINCTIVERINGLIST.XML defines the list of possible ring tones for your other line types. They, along with the actual 'raw' ringtones, are stored in the /tftpboot/ringtones directory with the rest of the config files.</help>
+        </item>
+    </page_group>
+
+    <page_group name="sccp_hw_sip_dev2">
+        <label>Device configuration</label>
+        <item type="IE" id="1" seq="99">
+            <label>Device Label</label>
+            <input>
+                <name>description</name>
+                <default>000000000</default>
+                <class>sccp-custom</class>
+                <options pattern="[0-9a-zA-Z]+"/>
+            </input>
+            <help>The information in the upper right corner of the device screen. Only English letters and digits !</help>
+        </item>
+        <item type="SDMF" id="1" seq="100">
+            <label>Default Line</label>
+            <name>defaultLine</name>
+            <default></default>
+            <select name="name" addlabel='label' dataid="name" dataval="label">model</select>
+            <class>lineSelect form-control</class>
+            <help>Select the default line for this device</help>
+        </item>
+        <item type="SLK" id="2" seq="99">
+            <label>Soft Keyset</label>
+            <name>softkeyset</name>
+            <default>default</default>
+            <select></select>
+            <help>System Default Softkey</help>
+        </item>
+        <item type="SLZ" id="3" seq="98">
+            <label>Time Zone offset</label>
+            <name>tzoffset</name>
+            <default>00</default>
+            <select></select>
+            <help>Time Zone offset</help>
+        </item>
+        <item type="SLTD" id="5" seq="98">
+            <label>SCCP Phone Device Language</label>
+            <name>devlang</name>
+            <default>English_United_States</default>
+            <select> </select>
+            <help>The user locale allows the phone to display text (menu items, soft keys etc.) native to the phone's language. If No language packs found is shown, you need to add locales in the tftp server</help>
+        </item>
+        <item type="SLTN" id="4" seq="98">
+            <label>SCCP Network Device Language</label>
+            <name>netlang</name>
+            <default>English_United_States</default>
+            <select></select>
+            <help>The Network locales allows the phone to play tones (ringing, busy etc.) native to the phone's country. If No language packs found is shown, you need to add locales in the tftp server</help>
+        </item>
+        <item type="IS" id="11" seq="98">
+            <name>phonepersonalization</name>
+            <label>Allow push background from server </label>
+            <default></default>
+            <button value="1">Enabled</button>
+            <button value="0">Disabled</button>
+            <help>This needs to be enabled to allow the server to push background or ringtones to the phone in the SEPXXXXXXXXXX.cnf.xml of each phone:</help>
+        </item>
+        <item type="IE" id="6" seq="99">
+            <label>Background Image</label>
+            <input>
+                <name>backgroundImage</name>
+                <default></default>
+                <class>sccp-custom</class>
+            </input>
+            <help>For phones that can display background images - display this one. Default is [empty]</help>
+        </item>
+        <item type="IE" id="7" seq="99">
+            <label>Ringtone</label>
+            <input>
+                <name>ringtone</name>
+                <default></default>
+                <class>sccp-custom</class>
+            </input>
+            <help>The ringtone that the phone will default to. Can be overridden in the phone. The files RINGLIST.XML provides the basic phone ring tones, while DISTINCTIVERINGLIST.XML defines the list of possible ring tones for your other line types. They, along with the actual 'raw' ringtones, are stored in the /tftpboot/ringtones directory with the rest of the config files.</help>
+        </item>
+    </page_group>
+
+    <page_group name="sccp_hw_dev_button">
+        <label>Buttons Configuration</label>
+        <item type="IE" id="1" seq="99">
+            <label>Device MAC.</label>
+            <input>
+                <name>mac</name>
+                <default>000000000</default>
+                <class>sccp-custom</class>
+            </input>
+            <help></help>
+        </item>
+    </page_group>
+
+    <page_group name="sccp_hw_dev_softkey">
+        <label>Enable/Disable Softkeys</label>
+        <item type="IS" id="1" seq="99">
+            <name>transfer</name>
+            <label>Transfer</label>
+            <default>off</default>
+            <button value="yes">Yes</button>
+            <button value="no">No</button>
+            <help>Transfer allowed</help>
+        </item>
+        <item type="IS" id="1" seq="99">
+            <name>park</name>
+            <label>Park</label>
+            <default>on</default>
+            <button value="on">On</button>
+            <button value="off">Off</button>
+            <help>Take a look to the compile how-to. Park stuff is not compiled by default.</help>
+        </item>
+        <item type="IS" id="2" seq="99">
+            <name>cfwdall</name>
+            <label>Call Forward</label>
+            <default>off</default>
+            <button value="yes">Yes</button>
+            <button value="No">No</button>
+            <help>Activate the callforward softkeys. Default is On</help>
+        </item>
+        <item type="IS" id="3" seq="99">
+            <name>cfwdbusy</name>
+            <label>Call Forward busy</label>
+            <default>off</default>
+            <button value="yes">Yes</button>
+            <button value="no">No</button>
+            <help>Activate the callforward busy softkeys. Default is On</help>
+        </item>
+        <item type="IS" id="3" seq="0">
+            <name>cfwdnoanswer</name>
+            <label>Call Forward NOANSWER</label>
+            <default>on</default>
+            <button value="yes">Yes</button>
+            <button value="no">No</button>
+            <help>Activate the callforward NOANSWER stuff and softkeys. Default is On</help>
+        </item>
+        <item type="IS" id="5" seq="99">
+            <name>dndFeature</name>
+            <label>DND Button on Device</label>
+            <default>off</default>
+            <button value="on">On</button>
+            <button value="off">Off</button>
+            <help>Do Not Disturb. Default is Off</help>
+        </item>
+        <item type="IS" id="1" seq="99">
+            <name>conf_allow</name>
+            <label>Conference</label>
+            <default>on</default>
+            <option_hide class=".conf_hide">off</option_hide>
+            <button value="on">On</button>
+            <button value="off">Off</button>
+            <help>Allow the use of conference</help>
+        </item>
+    </page_group>
+
+    <page_group name="sccp_hw_dev_advance">
+        <label>Device Properies</label>
+        <item type="IS" id="4" seq="99">
+            <name>useRedialMenu</name>
+            <label>Redial using Phonebook</label>
+            <default>off</default>
+            <button value="yes">On</button>
+            <button value="no">Off</button>
+            <help>You can specifying 'useRedialMenu = yes' in the sccp.conf device section and the redial softkey will cause the "placed calls" list instead of immediately calling the last dialed number.</help>
+        </item>
+        <item type="IS" id="6" seq="99">
+            <name>force_dtmfmode</name>
+            <label>Dual-Tone Multi-Frequency (DTMF)</label>
+            <default>auto</default>
+            <button value="auto">AUTO</button>
+            <button value="rfc2833">RFC2833</button>
+            <button value="skinny">SKINNY</button>
+            <help>Some phone models with bad firmware do send dtmf in a messed up order and need to be forced to skinny mode.</help>
+        </item>
+        <item type="IS" id="14">
+            <name>mwioncall</name>
+            <label>Message Lamp On Call</label>
+            <default>on</default>
+            <button value="on">Yes</button>
+            <button value="off">No</button>
+            <help>Set the MWI on call.</help>
+        </item>
+
+        <item type="IS" id="7" seq="99">
+            <name>mwilamp</name>
+            <label>Message Waiting Indication (MWI)</label>
+            <default>on</default>
+            <button value="on">On</button>
+            <button value="off">Off</button>
+            <button value="wink">Wink</button>
+            <button value="flash">Flash</button>
+            <button value="blink">Blink</button>
+            <help>Set the MWI lamp style when MWI active to on, off, wink, flash or blink</help>
+        </item>
+        <item type="IS" id="8" seq="99">
+            <name>callhistory_answered_elsewhere</name>
+            <label>Call history stored book</label>
+            <default>Missed Calls</default>
+            <button value="Placed Calls">Placed Calls</button>
+            <button value="Received Calls">Received Calls</button>
+            <button value="Missed Calls">Missed Calls</button>
+            <button value="Ignore">Ignore</button>
+            <help>Do not update history for this Phonebook if answered by another extension</help>
+        </item>
+    </page_group>
+
+    <page_group name="sccp_hw_dev_conference">
+        <class>conf_hide</class>
+        <label>Conference</label>
+        <item type="IS" id="2" seq="99">
+            <name>conf_play_general_announce</name>
+            <label>Playback Conference Announcements</label>
+            <default>on</default>
+            <button value="on">Yes</button>
+            <button value="off">No</button>
+            <help>Playback General Announcements (like: 'You are Entering/Leaving the conference')</help>
+        </item>
+        <item type="IS" id="3" seq="99">
+            <name>conf_play_part_announce</name>
+            <label>Playback Participant Announcements</label>
+            <default>on</default>
+            <button value="on">Yes</button>
+            <button value="off">No</button>
+            <help>Playback Personal/Participant Announcements, (like: 'You have been muted / You have been kicked')</help>
+        </item>
+        <item type="IS" id="4" seq="99">
+            <name>conf_mute_on_entry</name>
+            <label>Start Muted</label>
+            <default>off</default>
+            <button value="on">Yes</button>
+            <button value="off">No</button>
+            <help>Mute new participants from the start</help>
+        </item>
+        <item type="IS" id="5" seq="99">
+            <name>conf_show_conflist</name>
+            <label>Show conference list</label>
+            <default>on</default>
+            <button value="on">Yes</button>
+            <button value="off">No</button>
+            <help>Automatically show conference list to the moderator</help>
+        </item>
+        <item type="SLM" id="6" seq="99">
+            <label>Music On Hold Class</label>
+            <name>conf_music_on_hold_class</name>
+            <default>default</default>
+            <select></select>
+            <class>form-control</class>
+            <help>Play music on hold of this class when no moderator is listening on the conference. If set to an empty string, no music on hold will be played.</help>
+        </item>
+    </page_group>
+
+<!--  End Form   add/ edit device groups-->
+
+    <page_group name="add_network_1">
+        <item type="IS" id="1" seq="99">
+            <name>custom_network_acc</name>
+            <label>Select Networks Actions</label>
+            <default>permit</default>
+            <button value="permit">Permit</button>
+            <button value="deny">Deny</button>
+            <button value="local">Local</button>
+            <help>Help.</help>
+        </item>
+        <item type="IS" id="1" seq="99">
+            <name>custom_network_type</name>
+            <label>Select Networks Type</label>
+            <default>ipv4</default>
+            <button value="ipv4">IpV4</button>
+            <button value="ipv6">IpV6</button>
+            <help>Help.</help>
+        </item>
+        <item type="IE" id="1" seq="99">
+            <label>Network IP</label>
+            <input>
+                <name>custom_network_v</name>
+                <options placeholder="0.0.0.0" pattern="^([0-9]{1,3}\.){3}[0-9]{1,3}$"/>
+                <default></default>
+                <class>sccp-custom</class>
+            </input>
+            <input>
+                <name>custom_network_m</name>
+                <default></default>
+                <class>sccp-custom</class>
+                <options placeholder="255.255.255.0" pattern="^([0-9]{1,3}\.){3}[0-9]{1,3}$"/>
+            </input>
+            <help>Help.</help>
+        </item>
+    </page_group>
+
+    <page_group name="sccp_hw_dev_network">
+        <label>Network</label>
+        <item type="IED" id="2" seq="0">
+            <label>Deny Networks / Mask</label>
+            <name>deny</name>
+            <default>/</default>
+            <class>sccp_hw_net_inherit</class>
+            <input value="NONE" field="net" nameseparator="/">
+                <options placeholder="0.0.0.0" pattern="^([0-9]{1,3}\.){3}[0-9]{1,3}$"/>
+            </input>
+            <input value="NONE" field="mask">
+                <options placeholder="255.255.255.0" pattern="^([0-9]{1,3}\.){3}[0-9]{1,3}$"/>
+            </input>
+            <add_pluss>+</add_pluss>
+            <max_row>5</max_row>
+            <addbutton-disabled>Add Deny network</addbutton-disabled>
+            <help>All RFC 1918 addresses are local networks. Should always be at least '0.0.0.0/0.0.0.0'.</help>
+        </item>
+        <item type="IED" id="1" seq="0">
+            <label>Allow Networks / Mask</label>
+            <name>permit</name>
+            <default>NONE</default>
+            <cbutton field="internal" value="internal"><class>sccp_hw-ar_permit-gr</class>internal</cbutton>
+            <class>sccp_hw_net_inherit</class>
+            <input value="NONE" field="net" nameseparator="/">
+                <options placeholder="0.0.0.0" pattern="^([0-9]{1,3}\.){3}[0-9]{1,3}$"/>
+            </input>
+            <input value="NONE" field="mask">
+                <options placeholder="255.255.255.0" pattern="^([0-9]{1,3}\.){3}[0-9]{1,3}$"/>
+            </input>
+            <add_pluss>+</add_pluss>
+            <max_row>5</max_row>
+            <addbutton-disables>Add Allow network</addbutton-disables>
+            <help>Allow network settings. Blank fields will be ignored used Network 0.0.0.0.</help>
+        </item>
+        <item type="IS" id="3" seq="99">
+            <name>nat</name>
+            <label>NAT</label>
+            <default>auto</default>
+            <button value="auto">Auto</button>
+            <button value="off">Off</button>
+            <button value="on">On</button>
+            <help>Device NAT support (default Auto)</help>
+        </item>
+        <item type="IS" id="4" seq="99">
+            <name>directrtp</name>
+            <label>Direct RTP</label>
+            <default></default>
+            <button value="no">No</button>
+            <button value="Yes">Yes</button>
+            <help>This option allow devices to do direct RTP sessions (default Off)</help>
+        </item>
+        <item type="IS" id="5" seq="99">
+            <name>earlyrtp</name>
+            <label>Early RTP</label>
+            <default></default>
+            <button value="yes">Yes</button>
+            <button value="no">No</button>
+            <help>The audio stream will be open in the progress and connected state. Valid options: Yes/ No</help>
+        </item>
+        <item type="IE" id="5">
+            <label>SCCP SERVER Keepalive</label>
+            <input>
+                <name>keepalive</name>
+                <default>60</default>
+                <class>sccp-custom</class>
+                <type>number</type>
+                <options min="60" max="300"></options>
+            </input>
+            <help>Time between Keep Alive checks. Valid range is 60-300 seconds. After much trial-and-error, the minimum (60) seems to work just fine.</help>
+        </item>
+    </page_group>
+
+    <page_group name="sccp_dp_new_template">
+        <item type="IE" id="1" seq="99">
+            <label>Template Name </label>
+            <input>
+                <name>dialtemplate_name</name>
+                <default>name_ruls</default>
+                <class>form-control</class>
+            </input>
+            <help>Help.</help>
+        </item>
+    </page_group>
+
+    <page_group name="sccp_dp_template">
+        <label>Device Template Function</label>
+        <item type="HLP" id="2">
+            <label>HELP SCCP Server Name</label>
+            <name>Help_id1</name>
+            <element type='p'>Specifies a pattern to match dialed digits against. Note: TEMPLATE must be in uppercase.</element>
+            <element type='h4'>Rules:</element>
+            <element type='table'>
+                <row>
+                    <col>match:</col>
+                    <col>Pattern to match, consists of one or more elements</col>
+                </row>
+                <row>
+                    <col>0 1 2 3 4 5 6 7 8 9</col>
+                    <col>Match digit</col>
+                </row>
+                <row>
+                    <col>.</col>
+                    <col>Match one digit, # or *</col>
+                </row>
+                <row>
+                    <col>*</col>
+                    <col>Match zero or more digits, # or *</col>
+                </row>
+                <row>
+                    <col>\*</col>
+                    <col>Match a literal *</col>
+                </row>
+                <row>
+                    <col>,</col>
+                    <col>Play secondary dial-tone specified by tone</col>
+                </row>
+                <row>
+                    <col>timeout:</col>
+                    <col>Number of seconds to wait for more digits if this pattern matches</col>
+                </row>
+                <row>
+                    <col>line:</col>
+                    <col>Only apply template to the specified line (optional)</col>
+                </row>
+                <row>
+                    <col>rewrite:</col>
+                    <col>Rewrite the matched digits before dialing, consists of one or more elements (optional)</col>
+                </row>
+                <row>
+                    <col>0 1 2 3 4 5 6 7 8 9</col>
+                    <col>Replace with digit</col>
+                </row>
+                <row>
+                    <col>%0</col>
+                    <col>The entire match</col>
+                </row>
+                <row>
+                    <col>%1 %2 %3 %4 %5</col>
+                    <col>Replace with group of digits matched, grouping is done by consecutive literal digit or . elements</col>
+                </row>
+                <row>
+                    <col>%%</col>
+                    <col>A literal %</col>
+                </row>
+                <row>
+                    <col>.</col>
+                    <col>Each . is replaced by the digit that was matched by the corresponding . in the pattern</col>
+                </row>
+                <row>
+                    <col>tone:</col>
+                    <col>Secondary dial-tone to play when a , is matched, up to 3 can be specified (optional)</col>
+                </row>
+            </element>
+        </item>
+        <item type="ITED" id="1" seq="0">
+            <name>dialtemplate</name>
+            <default>*/10/*</default>
+            <element1 type="title" field="title">
+                <options class="form-control control-label"/>title</element1>
+            <element type="input" value="NONE" field="match" display_prefix="(" display_sufix=")">
+                <options class="form-control dpt-title" placeholder="Pattern to match"/>
+            </element>
+            <element type="number" value="NONE" field="timeout" display_prefix="[" display_sufix="]">
+                <options min="0" max="30" class="form-control dpt-title" placeholder="Time wait" />
+            </element>
+            <element1 type="label" field="label1">
+                <options class="form-control control-label"/>text1</element1>
+            <element type="input" value="NONE" field="rewrite" display_prefix="(" display_sufix=")">
+                <options class="form-control dpt-title" placeholder="Rewrite the matched"/>
+            </element>
+            <element type="select" value="NONE" field="tone">
+                <options class="form-control dpt-title" />
+                <data>empty</data>
+                <data>Bellcore-Alerting</data>
+                <data>Bellcore-Inside</data>
+                <data>Bellcore-Outside</data>
+                <data>Bellcore-Busy</data>
+                <data>Bellcore-BusyVerify</data>
+                <data>Bellcore-Reorder</data>
+                <data>Bellcore-CallWaiting</data>
+                <data>Bellcore-Hold</data>
+                <data>Bellcore-Reminder</data>
+                <data>Bellcore-Confirmation</data>
+                <data>Bellcore-Stutter</data>
+                <data>Bellcore-Permanent</data>
+                <data>Bellcore-None</data>
+                <data>Cisco-Zip</data>
+                <data>Cisco-ZipZip</data>
+                <data>Cisco-BeepBonk</data>
+                <data>Bellcore-dr1</data>
+                <data>Bellcore-dr2</data>
+                <data>Bellcore-dr3</data>
+                <data>Bellcore-dr4</data>
+                <data>Bellcore-dr5</data>
+                <data>Bellcore-dr6</data>
+                <data>CallWaiting-2</data>
+                <data>CallWaiting-3</data>
+                <data>CallWaiting-4</data>
+            </element>
+            <help>Allow network settings. Blank fields will be ignored used Network 0.0.0.0.</help>
+        </item>
+    </page_group>
+ <!--
+    Roaming User Pages
+     -->
+    <page_group name="sccp_ruser">
+        <label>Roaming User configuration</label>
+        <item type="IE" id="1" seq="99">
+            <label>User ID</label>
+            <input>
+                <name>id</name>
+                <default>000000000</default>
+                <class>sccp-custom</class>
+                <options readonly="readonly"></options>
+            </input>
+            <help>Help!</help>
+        </item>
+        <item type="IE" id="2" seq="99">
+            <label>User Display Name</label>
+            <input>
+                <name>description</name>
+                <default></default>
+            </input>
+            <help>Help!</help>
+        </item>
+        <item type="IE" id="2" seq="99">
+            <label>User Pincode</label>
+            <input>
+                <name>pin</name>
+                <default></default>
+            </input>
+            <help>Help!</help>
+        </item>
+        <item type="IE-D" id="2" seq="99">
+            <label>User password</label>
+            <input>
+                <name>password</name>
+                <default></default>
+            </input>
+            <help>Help!</help>
+        </item>
+        <item type="IS" id="13" seq="99">
+            <name>roaminglogin</name>
+            <label>Roaming</label>
+            <default>off</default>
+            <button value="off">Disabled</button>
+            <button value="on">Enable Single</button>
+            <button value="multi">Multi Device</button>
+            <help></help>
+        </item>
+        <item type="IS" id="13" seq="99">
+            <name>auto_logout</name>
+            <label>Auto Logout</label>
+            <default>off</default>
+            <button value="off">Ask User</button>
+            <button value="on">Enable</button>
+            <button value="block">User must Logoff</button>
+            <help></help>
+        </item>
+        <item type="SDD" id="3" seq="99">
+            <label>Link Buttons from Home Device</label>
+            <name>homedevice</name>
+            <default>NONE</default>
+            <select name="name" addlabel='description'>name</select>
+            <class>sccp-custom</class>
+            <help>Help!</help>
+        </item>
+    </page_group>
+ <!--
+    Roaming User Pages
+     -->
+    <page_group name="sccp_ruser_time">
+        <label>Time Work configuration</label>
+        <item type="IS" id="13" seq="99">
+            <name>work_time</name>
+            <label>Logof after Work Time</label>
+            <default>off</default>
+            <button value="off">Disabled</button>
+            <button value="on">Gneneral logoff</button>
+            <button value="group">Time Group</button>
+            <help></help>
+        </item>
+        <item type="IE" id="2" seq="99">
+            <label>Time Group</label>
+            <input>
+                <name>work_group</name>
+                <default></default>
+            </input>
+            <help>Help!</help>
+        </item>
+        <item type="IE" id="2" seq="99">
+            <label>Out of time session length</label>
+            <input>
+                <name>time_extend</name>
+                <default>30</default>
+            </input>
+            <help>Help!</help>
+        </item>
+    </page_group>
+
+    <page_group name="sccp_hw_sip_dev">
+        <label>General Device configuration</label>
+        <item type="IE" id="1" seq="99">
+            <label>Device ID.[XXXXXXXXXXXX]=MAC</label>
+            <input>
+                <name>mac</name>
+                <default>000000000</default>
+                <class>sccp-custom</class>
+            </input>
+            <help>The MAC address of the phone. You must specify 12 characters in the format XXXX.XXXX.XXXX, XX:XX:XX:XX:XX:XX, XX-XX-XX-XX-XX-XX or XXXXXXXXXXXX</help>
+        </item>
+        <item type="SDMS" id="2" seq="99">
+            <label>Type</label>
+            <name>type</name>
+            <default>7911</default>
+            <select name="model" dataid="dns" dataval="buttons">model</select>
+            <class>form-control hw_select</class>
+            <help>The type of phone: 7911, 7940, 7960, etc. Important note: the 'G' models are handled as the base model (e.g., 7962G is handled as 7962). In the Display mode, this field is read-only because the MAC address and the model number are a pair.</help>
+        </item>
+        <item type="SDE" id="3" seq="99">
+            <label>Addon</label>
+            <name>addon</name>
+            <default>NONE</default>
+            <select name="model" dataval="buttons">model</select>
+            <class>hw_select form-control</class>
+            <help>Addon: Addons are model specific and only work with certain base phones. This phone model is identified as being a phone that does not accept sidecars. Update devmodel if this is not correct.</help>
+        </item>
+    </page_group>
+
+    <page_group name="sccp_hw_sip_conf">
+        <label>SIP Device config</label>
+        <item type="SLP" id="2" seq="99">
+            <label>Dial Templates</label>
+            <name>_dialrules</name>
+            <default>dialplan</default>
+            <select></select>
+             <help>Dial templates control what number patterns are valid and how many seconds to wait for extra digits before dialing. </help>
+        </item>
+    </page_group>
+
+    <page_group name="sccp_hw_addv_device">
+        <label>SIP Device config</label>
+        <item type="IED" id="1" seq="0">
+            <label>Set Vars</label>
+            <name>setvar</name>
+            <input value="NONE" field="setvar">
+                <options placeholder="inventoryNumber=AB123443" />
+                <class>col-md-9</class>
+            </input>
+            <add_pluss>+</add_pluss>
+            <max_row>3</max_row>
+            <help></help>
+        </item>
+    </page_group>
+
+    <page_group name="sccp_extension_config">
+        <label>SCCP Extension Details</label>
+        <item type="IE" id="51">
+            <label>Mailbox</label>
+            <input>
+                <name>mailbox</name>
+                <default></default>
+                <class>sccp-custom</class>
+            </input>
+            <help>Name or id of linked maibox: Voicemail has to be enabled for this to be available</help>
+        </item>
+        <item type="IE" id="4">
+            <label>Incoming Call Limit</label>
+            <input>
+                <name>incominglimit</name>
+                <default></default>
+                <class>sccp-custom</class>
+            </input>
+            <help>The SCCP channel number for this port. If you are planning to use this line as 'Shared' or use on several devices - leave this field blank or set limit to 10 calls.</help>
+        </item>
+        <item type="IE" id="4">
+            <label>Line Context</label>
+            <input>
+                <name>context</name>
+                <default></default>
+                <class>sccp-custom</class>
+            </input>
+            <help>Context: This is the context in which your phones will operate. It should match the context you are using for the rest of your phones (if you have any). The FreePBX default is 'from-internal'</help>
+        </item>
+        <item type="IE" id="7">
+            <label>Directed pickup context</label>
+            <input>
+                <name>directed_pickup_context</name>
+                <default></default>
+                <options placeholder="from_internal"></options>
+                <class>sccp-custom</class>
+            </input>
+            <help>Context where direct pickup search for extensions. if not set current context will be use.</help>
+        </item>
+        <item type="SLG" id="7">
+            <label>Named Call Group</label>
+            <name>namedcallgroup</name>
+            <select>
+                <default></default>
+            </select>
+            <help>Sets the named caller groups this line is a member of</help>
+        </item>
+        <item type="SLG" id="7">
+            <label>Named Pickup Group</label>
+            <name>namedpickupgroup</name>
+            <select>
+                <default></default>
+            </select>
+            <help>Named PickupGroup - the list is of pickup groups used on the system</help>
+        </item>
+        <item type="IE" id="7">
+            <label>Secondary dialtone digits</label>
+            <input>
+                <name>secondary_dialtone_digits</name>
+                <default></default>
+                <class>sccp-custom</class>
+            </input>
+            <help>Digits to indicate an external line to user (secondary dialtone) Sample 9 or 8 (max 9 digits)</help>
+        </item>
+        <item type="SLD" id="1">
+            <name>secondary_dialtone_tone</name>
+            <label>Secondary dialtone</label>
+            <select>
+                <default></default>
+            </select>
+            <help>Outside dialtone frequency (default 0x22)</help>
+        </item>
+        <item type="IS" id="11">
+            <name>directed_pickup</name>
+            <label>Directed Pickup</label>
+            <default></default>
+            <button value="yes">Yes</button>
+            <button value="no">No</button>
+            <help>Enable/disable Pickup button to do directed pickup from a specific extension.</help>
+        </item>
+        <item type="IS" id="11">
+            <name>pickup_modeanswer</name>
+            <label>Directed Pickup Answer</label>
+            <default>off</default>
+            <button value="yes">Yes</button>
+            <button value="no">No</button>
+            <help>Directed Pickup Mode (Answer): If a call is sent with the "directed pickup" flag, the phone will answer when set to "Yes".</help>
+        </item>
+        <item type="IS" id="1" seq="0">
+            <name>transfer</name>
+            <label>Transfer</label>
+            <default></default>
+            <button value="yes">Yes</button>
+            <button value="no">No</button>
+            <help>Allow the use of the transfer feature</help>
+        </item>
+        <item type="IS" id="8">
+            <name>echocancel</name>
+            <label>Echo Cancel</label>
+            <default>yes</default>
+            <button value="yes">Yes</button>
+            <button value="no">No</button>
+            <help>Echo Cancel: Echo Cancellation (Yes or No).</help>
+        </item>
+        <item type="IS" id="5" seq="0">
+            <name>dnd</name>
+            <label>DND</label>
+            <default>reject</default>
+            <button value="off">Off</button>
+            <button value="reject">Reject</button>
+            <button value="silent">Silent</button>
+            <button value="cycle">Cycle</button>
+            <help>DND: Means how will dnd react when it is set on the device level dnd can have three states: off / busy(reject) / silent / Cycle
+                  Cycle  - DND that cycles through all three states off -> reject -> silent -> off (this is the normal behaviour)
+                  Reject - Users can only switch off and on (in reject/busy mode)
+                  Silent - Users can only switch off and on (in silent mode)</help>
+        </item>
+        <item type="IS" id="9">
+            <name>silencesuppression</name>
+            <label>Silence Suppression</label>
+            <default>no</default>
+            <button value="yes">Yes</button>
+            <button value="no">No</button>
+            <help>Silence Suppression: Silence Suppression on the phone.</help>
+        </item>
+        <item type="SLM" id="6">
+            <label>Music On Hold Class</label>
+            <name>musicclass</name>
+            <default>NONE</default>
+            <select></select>
+            <class>form-control</class>
+            <help>Music Class: Available MOH Classes. These are the MOH classes listed in your current server.</help>
+        </item>
+        <item type="IE" id="2" seq="99">
+            <label>User Pincode</label>
+            <input>
+                <name>pin</name>
+                <default></default>
+            </input>
+            <help>Help!</help>
+        </item>
+    </page_group>
+
+</root>

@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<device>
+  <fullConfig>true</fullConfig>
+  <sshUserId>cisco</sshUserId>
+  <sshPassword>cisco</sshPassword>
+  <ipAddressMode>2</ipAddressMode>
+  <ipPreferenceModeControl>1</ipPreferenceModeControl>
+  <allowAutoConfig>true</allowAutoConfig>
+  <devicePool uuid="{1b1b9eb6-7803-11d3-bdf0-00108302ead1}">
+    <revertPriority>1</revertPriority>
+    <dateTimeSetting>
+      <dateTemplate>M/D/YA</dateTemplate>
+      <timeZone>Eastern Standard/Daylight Time</timeZone>
+      <ntps>
+        <ntp>
+          <name>213.109.127.195</name>
+          <ntpMode>Unicast</ntpMode>
+        </ntp>
+      </ntps>
+    </dateTimeSetting>
+    <callManagerGroup>
+      <members>
+        <member priority="0">
+          <callManager>
+            <name>pbxserver1</name>
+            <ports>
+              <ethernetPhonePort>2000</ethernetPhonePort>
+            </ports>
+            <processNodeName>x.x.x.x</processNodeName>
+          </callManager>
+        </member>
+      </members>
+    </callManagerGroup>
+    <srstInfo>
+      <srstOption>Disable</srstOption>
+      <ipAddr1>x.x.x.x</ipAddr1>
+      <port1>2443</port1>
+      <ipAddr2/>
+      <port2/>
+      <isSecure>false</isSecure>
+    </srstInfo>
+    <connectionMonitorDuration>60</connectionMonitorDuration>
+  </devicePool>
+  <versionStamp>1b1b9eb6-7803-11d3-bdf0-00108302ead1</versionStamp>
+  <commonProfile>
+    <phonePassword>1234</phonePassword>
+    <defaultBackground>http://x.x.x.x/Chan-SCCP-b.png</defaultBackground>
+    <backgroundImageAccess>true</backgroundImageAccess>
+    <callLogBlfEnabled>3</callLogBlfEnabled>
+  </commonProfile>
+  <vendorConfig>
+    <disableSpeaker>false</disableSpeaker>
+    <disableSpeakerAndHeadset>false</disableSpeakerAndHeadset>
+    <forwardingDelay>1</forwardingDelay>
+    <settingsAccess>1</settingsAccess>
+    <videoCapability>1</videoCapability>
+    <autoSelectLineEnable>0</autoSelectLineEnable>
+    <webAccess>0</webAccess>
+    <daysDisplayNotActive>1,7</daysDisplayNotActive>
+    <displayOnTime>08:30</displayOnTime>
+    <displayOnDuration>11:30</displayOnDuration>
+    <displayIdleTimeout>01:00</displayIdleTimeout>
+    <displayOnWhenIncomingCall>1</displayOnWhenIncomingCall>
+    <loggingDisplay>1</loggingDisplay>
+    <autoCallSelect>0</autoCallSelect>
+    <logServer>x.x.x.x:9001</logServer>
+    <enableCdpSwPort>1</enableCdpSwPort>
+    <enableCdpPcPort>1</enableCdpPcPort>
+    <enableLldpSwPort>1</enableLldpSwPort>
+    <enableLldpPcPort>1</enableLldpPcPort>
+    <lldpAssetId>Cisco Phone</lldpAssetId>
+    <powerPriority>1</powerPriority>
+    <detectCMConnectionFailure>0</detectCMConnectionFailure>
+    <g722CodecSupport>2</g722CodecSupport>
+    <sshAccess>0</sshAccess>
+    <pcPort>0</pcPort>
+    <spanToPCPort>0</spanToPCPort>
+    <callHoldRingback>1</callHoldRingback>
+    <rtcp>1</rtcp>
+    <rtpcontrolprotocol>1</rtpcontrolprotocol>
+    <videoRtcp>1</videoRtcp>
+  </vendorConfig>
+  <userLocale>
+    <name>English_United_States</name>
+    <uid>39</uid>
+    <langCode>en_US</langCode>
+    <version>9.3(2.9902)US</version>
+    <winCharSet>utf-8</winCharSet>
+  </userLocale>
+  <networkLocale>United_States</networkLocale>
+  <networkLocaleInfo>
+    <name>United_States</name>
+    <uid>64</uid>
+    <version>4.0(1)</version>
+  </networkLocaleInfo>
+  <informationURL>http://x.x.x.x/shiftkey/handle_shift.php</informationURL>
+  <authenticationURL>http://x.x.x.x/authenticate.php</authenticationURL>
+  <!--<servicesURL>http://x.x.x.x/cisco/service.php?emcc=#EMCC#</servicesURL>-->
+  <directoryURL>http://x.x.x.x/CiscoDirectory/phonebook.php</directoryURL>
+  <messagesURL/>
+  <proxyServerURL/>
+  <dndCallAlert>5</dndCallAlert>
+  <dndReminderTimer>60</dndReminderTimer>
+  <phonePersonalization>0</phonePersonalization>
+  <rollover>0</rollover>
+  <singleButtonBarge>1</singleButtonBarge>
+  <joinAcrossLines>1</joinAcrossLines>
+  <autoCallPickupEnable>true</autoCallPickupEnable>
+  <blfAudibleAlertSettingOfIdleStation>1</blfAudibleAlertSettingOfIdleStation>
+  <blfAudibleAlertSettingOfBusyStation>1</blfAudibleAlertSettingOfBusyStation>
+  <advertiseG722Codec>1</advertiseG722Codec>
+  <userId>dkgroot</userId>
+  <transportLayerProtocol>2</transportLayerProtocol>
+  <deviceSecurityMode>1</deviceSecurityMode>
+  <dscpForSCCPPhoneConfig>96</dscpForSCCPPhoneConfig>
+  <dscpForSCCPPhoneServices>0</dscpForSCCPPhoneServices>
+  <dscpForCm2Dvce>184</dscpForCm2Dvce>
+  <phoneServices>
+    <provisioning>0</provisioning>
+    <phoneService type="1" category="0">
+      <name>Missed Calls</name>
+      <url>Application:Cisco/MissedCalls</url>
+      <vendor/>
+      <version/>
+    </phoneService>
+    <phoneService type="1" category="0">
+      <name>Received Calls</name>
+      <url>Application:Cisco/ReceivedCalls</url>
+      <vendor/>
+      <version/>
+    </phoneService>
+    <phoneService type="1" category="0">
+      <name>Placed Calls</name>
+      <url>Application:Cisco/PlacedCalls</url>
+      <vendor/>
+      <version/>
+    </phoneService>
+    <phoneService type="1" category="0">
+      <name>Personal Directory</name>
+      <url>Application:Cisco/PersonalDirectory</url>
+      <vendor/>
+      <version/>
+    </phoneService>
+    <phoneService type="2" category="0">
+      <name>Voicemail</name>
+      <url>Application:Cisco/Voicemail</url>
+      <vendor/>
+      <version/>
+    </phoneService>
+    <phoneService type="0" category="0">
+      <name>Services</name>
+      <url>http://x.x.x.x/cisco/service.php?emmcmode=#EMCC#</url>
+      <vendor/>
+      <version/>
+    </phoneService>
+    <phoneService type="0" category="0">
+      <name>Login</name>
+      <url>http://x.x.x.x/cisco/service.php?name=#DEVICENAME#&amp;emmcmode=#EMCC#&amp;action=loginform</url>
+      <vendor/>
+      <version/>
+    </phoneService>
+  </phoneServices>
+</device>

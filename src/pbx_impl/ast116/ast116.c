@@ -104,6 +104,42 @@ static boolean_t sccp_astwrap_setReadFormat(constChannelPtr channel, skinny_code
 PBX_CHANNEL_TYPE *sccp_astwrap_findPickupChannelByExtenLocked(PBX_CHANNEL_TYPE * chan, const char *exten, const char *context);
 PBX_CHANNEL_TYPE *sccp_astwrap_findPickupChannelByGroupLocked(PBX_CHANNEL_TYPE * chan);
 
+typedef struct {
+	uint payload;
+	const char *mime;
+} sccp_rtp_audio_payload_t;
+
+static void sccp_astwrap_apply_audio_payloads(struct ast_rtp_instance *instance, const char *designator, const char *rtp_map_filter)
+{
+	static const sccp_rtp_audio_payload_t payloads[] = {
+		{ 0,  "PCMU" },
+		{ 3,  "GSM" },
+		{ 4,  "G723" },
+		{ 8,  "PCMA" },
+		{ 9,  "G722" },
+		{ 18, "G729" },
+	};
+	size_t i;
+
+	for (i = 0; i < ARRAY_LEN(payloads); ++i) {
+		ast_rtp_codecs_payloads_set_m_type(ast_rtp_instance_get_codecs(instance), instance, payloads[i].payload);
+		ast_rtp_codecs_payloads_set_rtpmap_type(ast_rtp_instance_get_codecs(instance), instance, payloads[i].payload, "audio", payloads[i].mime, (enum ast_rtp_options)0);
+	}
+
+	sccp_log(DEBUGCAT_CODEC)(VERBOSE_PREFIX_2 "%s: update rtpmap: format:%s, payload:%d, mime:%s, rate:%d\n",
+		designator, "CISCO-DTMF", 101, "audio", 0);
+	ast_rtp_codecs_payloads_set_m_type(ast_rtp_instance_get_codecs(instance), instance, 101);
+	if (ast_rtp_codecs_payloads_set_rtpmap_type(ast_rtp_instance_get_codecs(instance), instance, 101, rtp_map_filter, "telephone-event", (enum ast_rtp_options)0)) {
+		ast_rtp_codecs_payloads_unset(ast_rtp_instance_get_codecs(instance), instance, 101);
+	}
+
+	/*
+	 * Keep slin16 on the legacy wideband payload so older endpoints stay aligned
+	 * with the rest of the SCCP audio map.
+	 */
+	ast_rtp_codecs_payload_replace_format(ast_rtp_instance_get_codecs(instance), 25, ast_format_slin16);
+}
+
 static inline skinny_codec_t sccp_astwrap_getSkinnyFormatSingle(struct ast_format_cap *ast_format_capability)
 {
 	uint formatPosition;
@@ -2520,13 +2556,8 @@ static boolean_t sccp_astwrap_createRtpInstance(constDevicePtr d, constChannelPt
 	ast_rtp_instance_set_qos(instance, tos, cos, "SCCP RTP");
 
 	if (rtp->type == SCCP_RTP_AUDIO) {
-		sccp_log(DEBUGCAT_CODEC)(VERBOSE_PREFIX_2 "%s: update rtpmap: format:%s, payload:%d, mime:%s, rate:%d\n",
-			c->designator, "CISCO-DTMF", 101, "audio", 0);
-		ast_rtp_codecs_payloads_set_m_type(ast_rtp_instance_get_codecs(instance), instance, 101);
-		if (ast_rtp_codecs_payloads_set_rtpmap_type(ast_rtp_instance_get_codecs(instance), instance, 101, rtp_map_filter, "telephone-event", (enum ast_rtp_options)0)) {
-			ast_rtp_codecs_payloads_unset(ast_rtp_instance_get_codecs(instance), instance, 101);
- 		}
-		ast_rtp_codecs_payload_replace_format(ast_rtp_instance_get_codecs(instance), 25, ast_format_slin16);				// replace slin16 RTPPayloadType=25 (wideband-256)
+		/* Keep the audio RTP map explicit for AST116 so codec negotiation stays stable. */
+		sccp_astwrap_apply_audio_payloads(instance, c->designator, rtp_map_filter);
 	}
 
 	ast_rtp_codecs_set_framing(ast_rtp_instance_get_codecs(instance), ast_format_cap_get_framing(ast_channel_nativeformats(c->owner)));
@@ -3065,10 +3096,6 @@ DECLARE_PBX_CHANNEL_STRGET(name)
     DECLARE_PBX_CHANNEL_STRGET(linkedid)
     DECLARE_PBX_CHANNEL_STRGET(context)
     DECLARE_PBX_CHANNEL_STRSET(context)
-    DECLARE_PBX_CHANNEL_STRGET(macroexten)
-    DECLARE_PBX_CHANNEL_STRSET(macroexten)
-    DECLARE_PBX_CHANNEL_STRGET(macrocontext)
-    DECLARE_PBX_CHANNEL_STRSET(macrocontext)
     DECLARE_PBX_CHANNEL_STRGET(call_forward)
     DECLARE_PBX_CHANNEL_STRSET(call_forward)
 
@@ -3536,10 +3563,6 @@ const PbxInterface iPbx = {
 	setChannelExten: sccp_astwrap_set_channel_exten,
 	getChannelContext: sccp_astwrap_get_channel_context,
 	setChannelContext: sccp_astwrap_set_channel_context,
-	getChannelMacroExten: sccp_astwrap_get_channel_macroexten,
-	setChannelMacroExten: sccp_astwrap_set_channel_macroexten,
-	getChannelMacroContext: sccp_astwrap_get_channel_macrocontext,
-	setChannelMacroContext: sccp_astwrap_set_channel_macrocontext,
 	getChannelCallForward: sccp_astwrap_get_channel_call_forward,
 	setChannelCallForward: sccp_astwrap_set_channel_call_forward,
 
@@ -3687,10 +3710,6 @@ const PbxInterface iPbx = {
 	.setChannelExten = sccp_astwrap_set_channel_exten,
 	.getChannelContext = sccp_astwrap_get_channel_context,
 	.setChannelContext = sccp_astwrap_set_channel_context,
-	.getChannelMacroExten = sccp_astwrap_get_channel_macroexten,
-	.setChannelMacroExten = sccp_astwrap_set_channel_macroexten,
-	.getChannelMacroContext = sccp_astwrap_get_channel_macrocontext,
-	.setChannelMacroContext = sccp_astwrap_set_channel_macrocontext,
 	.getChannelCallForward = sccp_astwrap_get_channel_call_forward,
 	.setChannelCallForward = sccp_astwrap_set_channel_call_forward,
 
