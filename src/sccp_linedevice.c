@@ -18,6 +18,7 @@
 
 #include "config.h"
 #include "common.h"
+#include "sccp_atomic.h"
 #include "sccp_device.h"
 #include "sccp_line.h"
 #include "sccp_linedevice.h"
@@ -408,10 +409,10 @@ void sccp_linedevice_createButtonsArray(devicePtr device)
 	for(i = 0; i < StationMaxButtonTemplateSize; i++) {
 		if(btn[i].type == SKINNY_BUTTONTYPE_LINE && btn[i].ptr) {
 			ld = sccp_linedevice_find(device, (sccp_line_t *)btn[i].ptr);
-			if(!(device->lineButtons.instance[btn[i].instance] = ld)) {
-				pbx_log(LOG_ERROR, "%s: ld could not be found or retained\n", device->id);
-				device->lineButtons.size--;
-				sccp_free(device->lineButtons.instance);
+			device->lineButtons.instance[btn[i].instance] = ld; /* NULL on lookup miss is fine */
+			if(!ld) {
+				pbx_log(LOG_ERROR, "%s: ld could not be found or retained for instance %d\n", device->id, btn[i].instance);
+				/* skip this button; do not free the whole array or decrement size */
 			}
 		}
 	}
@@ -419,19 +420,28 @@ void sccp_linedevice_createButtonsArray(devicePtr device)
 
 void sccp_linedevice_deleteButtonsArray(devicePtr device)
 {
-	uint8_t i = 0;
-
-	if(device->lineButtons.instance) {
-		for(i = SCCP_FIRST_LINEINSTANCE; i < device->lineButtons.size; i++) {
-			if(device->lineButtons.instance[i]) {
-				sccp_linedevice_t * tmpld = device->lineButtons.instance[i]; /* castless conversion */
-				sccp_linedevice_release(&tmpld);                             /* explicit release of retained ld */
-				device->lineButtons.instance[i] = NULL;
-			}
-		}
-		device->lineButtons.size = 0;
-		sccp_free(device->lineButtons.instance);
+	/* Atomically claim the instance array. Concurrent cleanup paths (session-timeout
+	 * cleanup racing a new session's createButtonsArray during a phone's TCP-timeout
+	 * reconnect) would otherwise TOCTOU-read the per-slot pointer and call release on
+	 * NULL, or double-free the array itself. */
+	sccp_linedevice_t ** instances = device->lineButtons.instance;
+	if(!instances) {
+		return;
 	}
+	if(!CAS_PTR(&device->lineButtons.instance, instances, NULL, &device->messageStack.lock)) {
+		return;
+	}
+	uint8_t size = device->lineButtons.size;
+	device->lineButtons.size = 0;
+
+	for(uint8_t i = SCCP_FIRST_LINEINSTANCE; i < size; i++) {
+		sccp_linedevice_t * tmpld = instances[i];
+		if(tmpld) {
+			instances[i] = NULL;
+			sccp_linedevice_release(&tmpld); /* explicit release of retained ld */
+		}
+	}
+	sccp_free(instances);
 }
 
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

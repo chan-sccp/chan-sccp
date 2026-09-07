@@ -62,6 +62,9 @@
 #ifdef ASTERISK_CONF_1_19
 #	include "pbx_impl/ast119/ast119.h"
 #endif
+#ifdef ASTERISK_CONF_1_20
+#	include "pbx_impl/ast120/ast120.h"
+#endif
 
 /* only trunk version has AST_CAUSE_ANSWERED_ELSEWHERE */
 #ifndef AST_CAUSE_ANSWERED_ELSEWHERE

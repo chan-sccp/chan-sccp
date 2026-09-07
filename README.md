@@ -57,7 +57,7 @@ Make sure you have the following installed on your system:
   - libssl-dev / openssl-devel
 - pbx:
   - asterisk >= 11 (absolute minimum)
-  - asterisk >= 16 or 18 recommended
+  - asterisk 16, 18, or 20 LTS recommended
   - including source headers and debug symbols (asterisk-dev and asterisk-dbg / asterisk-devel and asterisk-debug-info)
   - chan_skinny module is prevented from loading in /etc/asterisk/modules.conf
 - standard posix compatible applications like sed, awk, tr
