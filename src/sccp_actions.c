@@ -426,10 +426,10 @@ void handle_XMLAlarmMessage(constSessionPtr s, devicePtr no_d, constMessagePtr m
 		if (sscanf(line, "<Enum name=\"ReasonForOutOfService\">%d</Enum>>", &reasonEnum) == 1) {
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "Reason Enum: %d\n", reasonEnum);
 		}
-		if (sscanf(line, "<String name=\"LastProtocolEventSent\">%[^<]</String>", lastProtocolEventSent) == 1) {
+		if (sscanf(line, "<String name=\"LastProtocolEventSent\">%100[^<]</String>", lastProtocolEventSent) == 1) {
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "Last Event Sent: %s\n", lastProtocolEventSent);
 		}
-		if (sscanf(line, "<String name=\"LastProtocolEventReceived\">%[^<]</String>", lastProtocolEventReceived) == 1) {
+		if (sscanf(line, "<String name=\"LastProtocolEventReceived\">%100[^<]</String>", lastProtocolEventReceived) == 1) {
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "Last Event Received: %s\n", lastProtocolEventReceived);
 		}
 
