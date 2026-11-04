@@ -497,6 +497,13 @@ void handle_token_request(constSessionPtr s, devicePtr no_d, constMessagePtr msg
 	skinny_devicetype_t deviceType = SKINNY_DEVICETYPE_UNDEFINED;
 
 	deviceName = pbx_strdupa(msg_in->data.RegisterTokenRequest.sId.deviceName);
+	for (const char *p = deviceName; *p; p++) {
+		if (!((*p >= 'a' && *p <= 'z') || (*p >= 'A' && *p <= 'Z') || (*p >= '0' && *p <= '9') || *p == '.' || *p == '-' || *p == '_')) {
+			pbx_log(LOG_WARNING, "SCCP: Rejecting token request with invalid device name character 0x%02x\n", (unsigned char)*p);
+			sccp_session_tokenReject(s, 60);
+			return;
+		}
+	}
 	deviceInstance = letohl(msg_in->data.RegisterTokenRequest.sId.lel_instance);
 	deviceType = letohl(msg_in->data.RegisterTokenRequest.lel_deviceType);
 	int token_backoff_time = GLOB(token_backoff_time) >= 30 ? GLOB(token_backoff_time) : 60;
