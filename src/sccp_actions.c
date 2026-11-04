@@ -4667,6 +4667,9 @@ void handle_device_to_user(constSessionPtr s, devicePtr d, constMessagePtr msg_i
 	transactionID = letohl(msg_in->data.DeviceToUserDataVersion1Message.lel_transactionID);
 
 	dataLength = letohl(msg_in->data.DeviceToUserDataVersion1Message.lel_dataLength);
+	if (dataLength > StationMaxXMLMessage) {
+		dataLength = StationMaxXMLMessage;
+	}
 	if (dataLength) {
 		memset(data, 0, dataLength);
 		memcpy(data, msg_in->data.DeviceToUserDataVersion1Message.data, dataLength);
